@@ -40,7 +40,7 @@ Mappings is a separated TypeScript module created in the mappings folder. The ha
 yarn mappings:build
 ```
 
-## Run the Query Node API
+## 4. Run the Query Node API
 
 Run 
 
