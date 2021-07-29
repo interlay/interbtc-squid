@@ -37,25 +37,57 @@ to run the [typegen](https://github.com/Joystream/hydra/tree/master/packages/hyd
 Mappings is a separated TypeScript module created in the mappings folder. The handlers exported by the module should match the ones defined in `manifest.yml` in the mappings section. Once the necessary files are generated, build it with
 
 ```bash
-yarn workspace sample-mappings install
 yarn mappings:build
 ```
 
-## 4. Run the processor and the GraphQL server
+## Run the Query Node API
 
-Then run the processor:
-
-```bash
-yarn processor:start
-```
-
-Afterwards start the GraphQL server in a separate terminal (opens a GraphQL playground at localhost by default):
+Run 
 
 ```bash
 yarn query-node:start:dev
 ```
 
-## 5. Choose a Hydra Indexer
+This will start the query node, but against an empty database. Still, you can already navigate to
+`localhost:4000/graphql`
+
+and some query, e.g.:
+
+```gql
+query {
+  accounts(limit: 5, where: { wallet_eq: "5HKcLj5vuexs9K6jAGdjErKijVFciLQzWBoJtj7cmrqe6GpB" }) {
+     id
+     balance
+     wallet
+     historicalBalances {
+       balance
+       timestamp
+     }
+  }  
+}
+```
+
+## 5. Run the processor
+
+Run the processor to pull the runtime data from the indexer and run the mappings:
+
+```bash
+yarn processor:start
+```
+
+The query node is now fully functional. You can subsribe to the state via GraphQL subscriptions:
+
+```gql
+subscription {
+  stateSubscription {
+    chainHead # current chain height
+    indexerHead # last block the Indexer has indexed
+    lastProcessedEvent # last event the processor has processed
+  }
+}
+```
+
+## Choosing the Hydra Indexer
 
 The Hydra Indexer endpoint is set by the environment variable `INDEXER_ENDPOINT_URL` sourced from `.env`. 
 
@@ -63,7 +95,7 @@ Check the official [docs](https://docs.subsquid.io) for the list of publicly ava
 
 If you don't find your substrate chain, [contact us](mailto:dz@subsquid.io) and we will setup an Indexer for your chain.
 
-## 6. Self-hosted Hydra Indexer
+## Self-hosted Hydra Indexer
 
 One can also use a self-hosted Hydra Indexer.
 
