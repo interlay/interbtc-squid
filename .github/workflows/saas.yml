@@ -60,4 +60,5 @@ jobs:
           method: 'POST'
           accept: 200
           bearer-token: ${{ secrets.api_admin_token }}
+          headers: '{ "Content-Type": "application/json" }'
           body: '{"deploymentName": "${{ needs.build.outputs.deployment_name }}", "username": "${{ github.event.pull_request.user.login }}", "ref": "${{ github.event.pull_request.number }}"}'
