@@ -1,0 +1,61 @@
+name: saas
+on:
+  pull_request:
+    types: [ labeled ]
+  workflow_dispatch:
+jobs:
+  # check if we can deploy for this user
+  check_user:
+    if: ${{ github.event.label.name == 'fordeploy' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Call REST API for check if user registered'
+        uses: indiesdev/curl@v1
+        with: 
+          url: ${{ secrets.rest_api_url }}/admin/ci/client/${{ github.event.pull_request.user.login }}/exists
+          method: 'GET'
+          accept: 200
+          bearer-token: ${{ secrets.api_admin_token }}
+  # build and push component's images to registry
+  build:
+    needs: check_user
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: 'Project name generation'
+        uses: TGPSKI/name-generator-node-action@v2
+        id: namegen
+        with:
+          separator: '-'
+          length: 2
+          style: 'lowerCase'
+      #- name: 'Setup gcloud CLI'
+      #  uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      #  with:
+      #    service_account_key: ${{ secrets.GCR_DEVOPS_SERVICE_ACCOUNT_KEY }}
+      #    project_id: ${{ secrets.PROJECT_ID }}
+      #    export_default_credentials: true
+      # steps for building images here
+      #-builder
+      #-processor
+      #-query-node
+      #- name: 'gcloud cli --> docker credential helper'
+      #  run: |
+      #    gcloud auth configure-docker -q
+      # steps for push images to gcr
+      #-processor
+      #-query-node
+    outputs:
+      deployment_name: ${{ steps.namegen.outputs.name }}
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Call REST API for creating deployment'
+        uses: indiesdev/curl@v1
+        with:
+          url: ${{ secrets.rest_api_url }}/admin/ci/deployment
+          method: 'POST'
+          accept: 200
+          bearer-token: ${{ secrets.api_admin_token }}
+          body: '{"deploymentName": "${{ needs.build.outputs.deployment_name }}", "username": "${{ github.event.pull_request.user.login }}", "ref": "${{ github.event.pull_request.number }}"}'
