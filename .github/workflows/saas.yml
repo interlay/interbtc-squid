@@ -29,6 +29,8 @@ jobs:
           separator: '-'
           length: 2
           style: 'lowerCase'
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       #- name: 'Setup gcloud CLI'
       #  uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
       #  with:
