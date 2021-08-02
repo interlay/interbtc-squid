@@ -48,7 +48,7 @@ jobs:
       #-processor
       #-query-node
     outputs:
-      deployment_name: ${{ steps.namegen.outputs.name }}
+      deployment_name: ${{ steps.namegen.outputs.generated_name }}
   deploy:
     needs: build
     runs-on: ubuntu-latest
