@@ -31,12 +31,14 @@ jobs:
           style: 'lowerCase'
         env:
           ACTIONS_ALLOW_UNSECURE_COMMANDS: true
-      #- name: 'Setup gcloud CLI'
-      #  uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
-      #  with:
-      #    service_account_key: ${{ secrets.GCR_DEVOPS_SERVICE_ACCOUNT_KEY }}
-      #    project_id: ${{ secrets.PROJECT_ID }}
-      #    export_default_credentials: true
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          project_id: ${{ secrets.GCP_PROJECT }}
+          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          export_default_credentials: true
+
       # steps for building images here
       #-builder
       #-processor
