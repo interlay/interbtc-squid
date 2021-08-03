@@ -3,6 +3,10 @@ on:
   pull_request:
     types: [ labeled ]
   workflow_dispatch:
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT }}
+
 jobs:
   # check if we can deploy for this user
   check_user:
@@ -38,6 +42,13 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT }}
           service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
           export_default_credentials: true
+
+      # Build and push image to Google Container Registry
+      - name: Build
+        run: |-
+          gcloud builds submit \
+            --quiet \
+            --tag "gcr.io/$PROJECT_ID/query-node:$GITHUB_SHA"
 
       # steps for building images here
       #-builder
