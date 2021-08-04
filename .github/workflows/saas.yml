@@ -43,23 +43,26 @@ jobs:
           service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
           export_default_credentials: true
 
-      # Build and push image to Google Container Registry
-      - name: Build
+      # Build and push images to Google Container Registry
+      - name: Build builder image
         run: |-
-          gcloud builds submit \
-            --quiet \
-            --tag "gcr.io/$PROJECT_ID/query-node:$GITHUB_SHA"
-
-      # steps for building images here
-      #-builder
-      #-processor
-      #-query-node
-      #- name: 'gcloud cli --> docker credential helper'
-      #  run: |
-      #    gcloud auth configure-docker -q
+          docker build . -f docker/Dockerfile.builder -t builder
+      - name: Build processor image
+        run: |-
+          docker build . -f docker/Dockerfile.processor --build-arg -t gcr.io/$PROJECT_ID/processor:$GITHUB_REF
+      - name: Build query-node image
+        run: |-
+          docker build . -f docker/Dockerfile.query-node --build-arg -t gcr.io/$PROJECT_ID/query-node:$GITHUB_REF
+      - name: 'gcloud cli --> docker credential helper'
+        run: |
+          gcloud auth configure-docker -q
       # steps for push images to gcr
-      #-processor
-      #-query-node
+      - name: Push processor image
+        run: |-
+          docker push gcr.io/$PROJECT_ID/processor:$GITHUB_REF
+      - name: Push query-node image
+        run: |-
+          docker push gcr.io/$PROJECT_ID/query-node:$GITHUB_REF
     outputs:
       deployment_name: ${{ steps.namegen.outputs.generated_name }}
   deploy:
@@ -74,4 +77,4 @@ jobs:
           accept: 200
           bearer-token: ${{ secrets.api_admin_token }}
           headers: '{ "Content-Type": "application/json" }'
-          body: '{"deploymentName": "${{ needs.build.outputs.deployment_name }}", "username": "${{ github.event.pull_request.user.login }}", "ref": "${{ github.event.pull_request.number }}"}'
+          body: '{"deploymentName": "${{ needs.build.outputs.deployment_name }}", "username": "${{ github.event.pull_request.user.login }}", "ref": "$GITHUB_REF"}'
