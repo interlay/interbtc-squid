@@ -49,10 +49,10 @@ jobs:
           docker build . -f docker/Dockerfile.builder -t builder
       - name: Build processor image
         run: |-
-          docker build . -f docker/Dockerfile.processor --build-arg -t gcr.io/$PROJECT_ID/processor:$GITHUB_REF
+          docker build . -f docker/Dockerfile.processor -t gcr.io/$PROJECT_ID/processor:$GITHUB_REF
       - name: Build query-node image
         run: |-
-          docker build . -f docker/Dockerfile.query-node --build-arg -t gcr.io/$PROJECT_ID/query-node:$GITHUB_REF
+          docker build . -f docker/Dockerfile.query-node -t gcr.io/$PROJECT_ID/query-node:$GITHUB_REF
       - name: 'gcloud cli --> docker credential helper'
         run: |
           gcloud auth configure-docker -q
