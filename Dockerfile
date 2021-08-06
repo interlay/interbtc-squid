@@ -22,7 +22,7 @@ RUN yarn mappings:build
 
 
 FROM base AS processor
-CMD ["sh", "-c", "yarn workspace query-node db:sync && yarn db:migrate && yarn processor:start"]
+CMD ["sh", "-c", "yarn processor:start"]
 
 
 FROM base AS query-node

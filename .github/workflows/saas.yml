@@ -44,15 +44,12 @@ jobs:
           export_default_credentials: true
 
       # Build and push images to Google Container Registry
-      - name: Build builder image
-        run: |-
-          docker build . -f docker/Dockerfile.builder -t builder
       - name: Build processor image
         run: |-
-          docker build . -f docker/Dockerfile.processor -t gcr.io/$PROJECT_ID/processor:$GITHUB_REF
+          docker build -t gcr.io/$PROJECT_ID/processor:$GITHUB_REF --target processor .
       - name: Build query-node image
         run: |-
-          docker build . -f docker/Dockerfile.query-node -t gcr.io/$PROJECT_ID/query-node:$GITHUB_REF
+          docker build -t gcr.io/$PROJECT_ID/query-node:$GITHUB_REF --target query-node .
       - name: 'gcloud cli --> docker credential helper'
         run: |
           gcloud auth configure-docker -q
