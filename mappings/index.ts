@@ -47,7 +47,7 @@ async function getOrCreate<T extends {id: string}>(
   id: string
 ): Promise<T> {
 
-  let e = await store.get<T>(entityConstructor, {
+  let e = await store.get(entityConstructor, {
     where: { id },
   })
 

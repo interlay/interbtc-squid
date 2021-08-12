@@ -28,18 +28,23 @@ npm run processor:start
 npm run query-node:start
 ```
 
-## Other commands
+## If you want start from scratch
 
 ```bash
-# If you modified schema.graphql:
+# Delete database migrations and other generated files
+rm -r db generated types
 
-# 1. Analyze schema.graphql and generate model/server files
+# Write down your schema.graphql
+
+# Analyze schema.graphql and generate model/server files
 npm run codegen
 
-# 2. Analyze database state and create migration to match generated models
+# Analyze database state and create migration to match generated models
 npm run db:create-migration
 
-# To (re-)generate type definitions for substrate events and extrinsics, run:
+# Review typegen section of manifest.yml
+
+# Generate type definitions for substrate events and extrinsics
 npm run typegen
 ```
 
@@ -47,3 +52,10 @@ npm run typegen
 
 Project's configuration is driven by environment variables, defined in `.env`,
 and `manifest.yml`. For more details see https://docs.subsquid.io.
+
+## Self-hosted indexer
+
+It is recommeded to use already set up indexer if available, as new indexer typically
+requires some time to catch up with interesting events.
+
+Have a look at `./indexer/docker-compose.yml` for example of how you can set up a self-hosted version.
