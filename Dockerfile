@@ -1,35 +1,17 @@
-FROM node:14 AS base
-
+FROM node:14 AS processor
 WORKDIR /hydra-project
-
-# install dependencies
 ADD package.json .
-ADD mappings/package.json mappings/
-ADD yarn.lock .
-RUN yarn --frozen-lockfile
-
-# codegen / graphql-server
-ADD .env .
-ADD schema.graphql .
-RUN yarn codegen
-RUN yarn query-node:build:prod
-
-# mappings
+ADD package-lock.json .
+RUN npm ci
+ADD tsconfig.json .
+ADD db db
+ADD generated generated
+ADD mappings mappings
+ADD types types
 ADD manifest.yml .
-RUN yarn typegen
-ADD mappings mappings/
-RUN yarn mappings:build
+ADD .env .
+CMD [ "npm", "run", "processor:start"]
 
 
-FROM base AS processor
-CMD ["sh", "-c", "yarn processor:start"]
-
-
-FROM base AS query-node
-WORKDIR /hydra-project/generated/graphql-server
-ENV WARTHOG_ENV=production
-ENV WARTHOG_SUBSCRIPTIONS=true
-ENV WARTHOG_DB_ENTITIES=dist/src/**/*.model.js
-ENV WARTHOG_DB_SUBSCRIBERS=dist/src/**/*.model.js
-ENV WARTHOG_RESOLVERS_PATH=dist/src/**/*.resolver.js
-CMD ["sh", "-c", "yarn dotenv:generate && node ./dist/src/index.js"]
+FROM processor AS query-node
+CMD ["npm", "run", "query-node:start"]
