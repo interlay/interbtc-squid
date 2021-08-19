@@ -46,6 +46,9 @@ npm run db:create-migration
 
 # Generate type definitions for substrate events and extrinsics
 npm run typegen
+
+# If you're using a custom type library for typegen, add it with
+npm install <my-custom-type-library>
 ```
 
 ## Configuration
