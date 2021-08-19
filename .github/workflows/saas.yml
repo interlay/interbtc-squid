@@ -16,10 +16,10 @@ jobs:
       - name: 'Call REST API for check if user registered'
         uses: indiesdev/curl@v1
         with: 
-          url: ${{ secrets.rest_api_url }}/admin/ci/client/${{ github.event.pull_request.user.login }}/exists
+          url: ${{ secrets.REST_API_URL }}/admin/ci/client/${{ github.event.pull_request.user.login }}/exists
           method: 'GET'
           accept: 200
-          bearer-token: ${{ secrets.api_admin_token }}
+          bearer-token: ${{ secrets.API_ADMIN_TOKEN }}
   # build and push component's images to registry
   build:
     needs: check_user
@@ -69,9 +69,9 @@ jobs:
       - name: 'Call REST API for creating deployment'
         uses: indiesdev/curl@v1
         with:
-          url: ${{ secrets.rest_api_url }}/admin/ci/deployment
+          url: ${{ secrets.REST_API_URL }}/admin/ci/deployment
           method: 'POST'
           accept: 200
-          bearer-token: ${{ secrets.api_admin_token }}
+          bearer-token: ${{ secrets.API_ADMIN_TOKEN }}
           headers: '{ "Content-Type": "application/json" }'
           body: '{"deploymentName": "${{ needs.build.outputs.deployment_name }}", "username": "${{ github.event.pull_request.user.login }}", "ref": "$GITHUB_REF"}'
