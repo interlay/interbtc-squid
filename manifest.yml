@@ -5,12 +5,15 @@ hydraVersion: "4"
 
 typegen:
   metadata:
-    source: wss://kusama-rpc.polkadot.io/
+    source: ./parachain.json
   events:
-    - balances.Transfer
+    - issue.RequestIssue
   calls:
-    - timestamp.set
+    - vaultRegistry.registerVault
   outDir: chain
+  customTypes:
+    lib: '@interlay/interbtc-api'
+    typedefsLoc: indexer/types.json
 
 mappings:
   mappingsModule: mappings

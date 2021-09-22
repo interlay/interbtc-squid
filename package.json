@@ -21,6 +21,8 @@
   "dependencies": {
     "@subsquid/hydra-cli": "4.2.0-alpha.0",
     "@subsquid/hydra-processor": "4.2.0-alpha.0",
+    "@interlay/interbtc-types": "0.12.5",
+    "@interlay/interbtc-api": "link:../../../interlay/polkabtc-js",
     "@subsquid/hydra-typegen": "4.2.0-alpha.0"
   }
 }

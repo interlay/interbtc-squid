@@ -1,7 +1,13 @@
 import { TypeRegistry } from "@polkadot/types";
+import path from "path";
+import fs from "fs";
 const typeRegistry = new TypeRegistry();
+
+typeRegistry.register(
+  JSON.parse(fs.readFileSync(path.join(__dirname, "typedefs.json"), "utf-8"))
+);
 
 export { typeRegistry };
 
-export * from "./balances";
-export * from "./timestamp";
+export * from "./issue";
+export * from "./vault-registry";

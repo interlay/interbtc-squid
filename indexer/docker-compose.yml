@@ -22,7 +22,7 @@ services:
       - DB_PORT=5432
       - REDIS_URI=redis://redis:6379/0
       - BLOCK_HEIGHT=0 # starting block height
-      - WS_PROVIDER_ENDPOINT_URI=wss://kusama-rpc.polkadot.io/
+      - WS_PROVIDER_ENDPOINT_URI=ws://interbtc:9944
 
     # # If your chain uses custom types you need to provide those
     # # as detailed here - https://polkadot.js.org/docs/api/start/types.extend
@@ -30,14 +30,14 @@ services:
     # # Json files below are passed verbatim to ApiPromise.create() from @polkadot/api.
     # # Use any combination of those
     #
-    #   - TYPES_JSON=types.json
+      - TYPES_JSON=types.json
     #   - TYPES_ALIAS=typesAlias.json
     #   - SPEC_TYPES=typesSpec.json
     #   - CHAIN_TYPES=typesChain.json
     #   - BUNDLE_TYPES=typesBundle.json
     #
-    # volumes:
-    #   - ../types.json:/hydra/packages/hydra-indexer/types.json
+    volumes:
+      - ${PWD}/types.json:/hydra/packages/hydra-indexer/types.json
     #   - ../typesAlias.json:/hydra/packages/hydra-indexer/typesAlias.json
     #   - ../typesSpec.json:/hydra/packages/hydra-indexer/typesSpec.json
     #   - ../typesChain.json:/hydra/packages/hydra-indexer/typesChain.json
@@ -82,3 +82,110 @@ services:
     restart: always
     ports:
       - "6379"
+
+  interbtc:
+    image: "interlayhq/interbtc:interbtc-standalone-0.8.5"
+    command:
+      - interbtc-standalone
+      - --unsafe-rpc-external
+      - --unsafe-ws-external
+      - --rpc-methods
+      - Unsafe
+      - --dev
+    ports:
+      - '9933:9933'
+      - '9944:9944'
+  bitcoind:
+    image: 'ruimarinho/bitcoin-core:0.20'
+    command:
+      - -regtest
+      - -server
+      - -rpcbind=0.0.0.0
+      - -rpcallowip=0.0.0.0/0
+      - -rpcuser=rpcuser
+      - -rpcpassword=rpcpassword
+      - -fallbackfee=0.0002
+    ports:
+      - '18443:18443'
+  bitcoin_cli:
+    image: 'ruimarinho/bitcoin-core:0.20'
+    command:
+      - /bin/sh
+      - -c
+      - |
+        bitcoin-cli -regtest -rpcconnect=bitcoind -rpcwait -rpcuser=rpcuser -rpcpassword=rpcpassword createwallet Alice
+        bitcoin-cli -regtest -rpcconnect=bitcoind -rpcwait -rpcuser=rpcuser -rpcpassword=rpcpassword createwallet Bob
+        bitcoin-cli -regtest -rpcconnect=bitcoind -rpcwait -rpcuser=rpcuser -rpcpassword=rpcpassword createwallet Dave
+        bitcoin-cli -regtest -rpcconnect=bitcoind -rpcwait -rpcuser=rpcuser -rpcpassword=rpcpassword loadwallet Alice
+        bitcoin-cli -regtest -rpcconnect=bitcoind -rpcwait -rpcuser=rpcuser -rpcpassword=rpcpassword loadwallet Bob
+        bitcoin-cli -regtest -rpcconnect=bitcoind -rpcwait -rpcuser=rpcuser -rpcpassword=rpcpassword loadwallet Dave
+        ALICE_ADDRESS=$$(bitcoin-cli -regtest -rpcconnect=bitcoind -rpcwait -rpcuser=rpcuser -rpcpassword=rpcpassword -rpcwallet=Alice getnewaddress)
+        # coins need 100 confirmations to be spendable
+        bitcoin-cli -regtest -rpcconnect=bitcoind -rpcwait -rpcuser=rpcuser -rpcpassword=rpcpassword generatetoaddress 101 $${ALICE_ADDRESS}
+  electrs:
+    image: 'interlayhq/electrs:latest'
+    command:
+      - electrs
+      - -v
+      - --network
+      - regtest
+      - --jsonrpc-import
+      - --cors
+      - '*'
+      - --cookie
+      - 'rpcuser:rpcpassword'
+      - --daemon-rpc-addr
+      - bitcoind:18443
+      - --http-addr
+      - '[::0]:3002'
+      - --index-unspendables
+    ports:
+      - '3002:3002'
+  oracle:
+    image: "interlayhq/interbtc-clients:oracle-0-8-2"
+    command:
+      - oracle
+      - --keyring
+      - bob
+      - --btc-parachain-url
+      - "ws://interbtc:9944"
+    environment:
+      RUST_LOG: info
+    restart: unless-stopped
+  faucet:
+    image: "interlayhq/interbtc-clients:faucet-0-8-2"
+    command:
+      - faucet
+      - --keyring
+      - ferdie
+      - --btc-parachain-url
+      - "ws://interbtc:9944"
+      - --user-allowance
+      - "1"
+      - --vault-allowance
+      - "500"
+      - --http-addr
+      - "[::0]:3035"
+    environment:
+      RUST_LOG: info
+    ports:
+      - '3035:3035'
+    restart: unless-stopped
+  vault:
+    image: "interlayhq/interbtc-clients:vault-0-8-2"
+    command:
+      - /bin/sh
+      - -c
+      - |
+          echo '{"charlie_stash": "0x66256c4e2f90e273bf387923a9a7860f2e9f47a1848d6263de512f7fb110fc08"}' > keyfile.json
+          echo "Sleeping..."
+          # sleep for 30s to wait for bitcoin to create the Charlie wallet
+          # and also to ensure that the issue period and redeem period are set
+          sleep 30
+          vault --keyfile="keyfile.json" --keyname=charlie_stash --auto-register-with-collateral 1000000000000000000 --btc-parachain-url 'ws://interbtc:9944'
+    environment: &client-env
+      BITCOIN_RPC_URL: http://bitcoind:18443
+      BITCOIN_RPC_USER: rpcuser
+      BITCOIN_RPC_PASS: rpcpassword
+      RUST_LOG: info
+    restart: unless-stopped
