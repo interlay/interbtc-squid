@@ -1,8 +1,8 @@
 {
-  "name": "hydra-template",
+  "name": "interbtc-indexer",
   "private": "true",
-  "version": "0.0.0",
-  "description": "GraphQL server and Substrate indexer. Generated with ♥ by Hydra-CLI",
+  "version": "0.0.1",
+  "description": "GraphQL server and Substrate indexer for the interBTC parachain",
   "author": "",
   "license": "ISC",
   "scripts": {
@@ -24,5 +24,12 @@
     "@interlay/interbtc-types": "0.12.5",
     "@interlay/interbtc-api": "1.1.0",
     "@subsquid/hydra-typegen": "4.2.0-alpha.0"
+  },
+  "devDependencies": {
+    "prettier": "^2.0.5"
+  },
+  "prettier": {
+    "singleQuote": false,
+    "tabWidth": 4
   }
 }

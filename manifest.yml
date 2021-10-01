@@ -18,8 +18,8 @@ typegen:
 mappings:
   mappingsModule: mappings
   eventHandlers:
-    - event: balances.Transfer
-      handler: balancesTransfer
+    - event: issue.RequestIssue
+      handler: requestIssue
   extrinsicHandlers:
   preBlockHooks:
   postBlockHooks:
