@@ -3,16 +3,14 @@ Quick setup of a POC to get hydra indexer to index a local interbtc chain and ge
 
 List of current hacks (to clean up):
  - parachain.json currently copied from lib, add either export from lib or yarn script to update it in-repo?
- - types.json is currently ripped out of interbtc-types. It needs to be a json, so will need to add a yarn script to take interbtc-types, grab `definitions.types[0].types` and save it to a standalone json.
  - docker-compose setup from the UI was copied over into the indexer compose. Ideally, tweak the docker networking to allow the indexer's compose to connect to the parachain from a different docker compose setup, to avoid this duplication
 
 ## Codegen
 For CI, or when pulling the project, you must run
 ```bash
-yarn codegen
-yarn typegen
+yarn gen:all
 ```
-On top of the usual `yarn install`.
+On top of the usual `yarn install`. This will regenerate the parachain types json, the graphql models and the typescript event classes.
 
 ## Prerequisites
 

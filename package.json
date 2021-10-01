@@ -6,8 +6,10 @@
   "author": "",
   "license": "ISC",
   "scripts": {
-    "typegen": "hydra-typegen typegen manifest.yml",
-    "codegen": "hydra-cli codegen",
+    "gen:json": "ts-node indexer/generateTypes.ts",
+    "gen:types": "hydra-typegen typegen manifest.yml",
+    "gen:code": "hydra-cli codegen",
+    "gen:all": "yarn gen:json && yarn gen:types && yarn gen:code",
     "db:create": "hydra-cli db:create",
     "db:drop": "hydra-cli db:drop",
     "db:create-migration": "hydra-cli db:create-migration",
@@ -19,14 +21,15 @@
     "query-node:start": "ts-node --type-check ./generated/server/index.ts"
   },
   "dependencies": {
+    "@interlay/interbtc-api": "1.1.0",
+    "@interlay/interbtc-types": "0.12.5",
     "@subsquid/hydra-cli": "4.2.0-alpha.0",
     "@subsquid/hydra-processor": "4.2.0-alpha.0",
-    "@interlay/interbtc-types": "0.12.5",
-    "@interlay/interbtc-api": "1.1.0",
     "@subsquid/hydra-typegen": "4.2.0-alpha.0"
   },
   "devDependencies": {
-    "prettier": "^2.0.5"
+    "prettier": "^2.0.5",
+    "ts-node": "^10.2.1"
   },
   "prettier": {
     "singleQuote": false,
