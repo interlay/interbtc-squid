@@ -8,8 +8,9 @@ typegen:
     source: ./parachain.json
   events:
     - issue.RequestIssue
+    - issue.ExecuteIssue
+    - vaultRegistry.RegisterVault
   calls:
-    - vaultRegistry.registerVault
   outDir: chain
   customTypes:
     lib: '@interlay/interbtc-api'
@@ -20,6 +21,10 @@ mappings:
   eventHandlers:
     - event: issue.RequestIssue
       handler: requestIssue
+    - event: issue.ExecuteIssue
+      handler: executeIssue
+    - event: vaultRegistry.RegisterVault
+      handler: registerVault
   extrinsicHandlers:
   preBlockHooks:
   postBlockHooks:

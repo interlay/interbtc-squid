@@ -1,38 +1,63 @@
 enum IssueStatus {
-  Completed
-  Cancelled
-  RequestedRefund
-  Expired
-  PendingWithBtcTxNotFound
-  PendingWithBtcTxNotIncluded
-  PendingWithTooFewConfirmations
-  PendingWithEnoughConfirmations
+    Completed
+    Cancelled
+    RequestedRefund
+    Expired
+    PendingWithBtcTxNotFound
+    PendingWithBtcTxNotIncluded
+    PendingWithTooFewConfirmations
+    PendingWithEnoughConfirmations
+}
+
+type VaultRegistration @entity {
+    id: String! @unique
+    block: Int!
+    timestamp: BigInt!
 }
 
 type Issue @entity {
-  "Issue request"
-  id: String! @unique
-  wrappedAmount: BigInt!
-  userParachainAddress: String!
-  bridgeFee: BigInt!
-  griefingCollateral: BigInt!
-  vaultWalletPubkey: String!
-  creationBlock: Int!
-  creationTimestamp: BigInt!
-  vaultBackingAddress: String!
-  vaultParachainAddress: String!
-  btcTxId: String
-  confirmations: Int
-  btcBlockHeight: Int
-  btcAmountSubmittedByUser: BigInt
-  status: IssueStatus
-  refundRequest: Refund @derivedFrom(field: "issue")
-  executedAmountBTC: BigInt
+    "Issue request"
+    id: String! @unique
+    request: IssueRequest! @derivedFrom(field: "issue")
+    bridgeFee: BigInt!
+    griefingCollateral: BigInt!
+    userParachainAddress: String!
+    vaultWalletPubkey: String!
+    vaultBackingAddress: String!
+    vaultParachainAddress: String!
+    backingPayment: IssuePayment @derivedFrom(field: "issue")
+    status: IssueStatus
+    execution: Execution @derivedFrom(field: "issue")
+    refund: Refund @derivedFrom(field: "issue")
+}
+
+type IssuePayment @entity {
+    "Bitcoin payment executing an issue"
+    issue: Issue! @unique
+    btcTxId: String!
+    confirmations: Int!
+    blockHeight: Int
+    amount: BigInt!
+}
+
+type IssueRequest @entity {
+    "Request of an issue"
+    issue: Issue! @unique
+    requestedAmountWrapped: BigInt!
+    block: Int!
+    timestamp: BigInt!
+}
+
+type IssueExecution @entity {
+    "Execution of an issue"
+    issue: Issue! @unique
+    executedAmountWrapped: BigInt!
+    block: Int!
+    timestamp: BigInt!
 }
 
 type Refund @entity {
-  id: String!
-  issue: Issue!
-  refundBtcAddress: String!
-  refundAmountBTC: BigInt
+    issue: Issue! @unique
+    refundBtcAddress: String!
+    refundAmountBTC: BigInt
 }
