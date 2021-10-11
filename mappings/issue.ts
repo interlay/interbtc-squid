@@ -1,7 +1,7 @@
 import BN from "bn.js";
 import { EventContext, StoreContext } from "@subsquid/hydra-common";
 import { Issue as IssueCrate } from "../chain";
-import { Execution, Issue, IssueRequest, IssueStatus } from "../generated/model";
+import { IssueExecution, Issue, IssueRequest, IssueStatus } from "../generated/model";
 
 export async function requestIssue({
     store,
@@ -54,7 +54,7 @@ export async function executeIssue({
         throw new Error(
             "ExecuteIssue event did not match any existing issue requests"
         );
-    const execution = new Execution({
+    const execution = new IssueExecution({
         issue,
         executedAmountWrapped,
         block: block.height,
