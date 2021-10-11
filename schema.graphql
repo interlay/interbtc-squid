@@ -27,7 +27,7 @@ type Issue @entity {
     vaultParachainAddress: String!
     backingPayment: IssuePayment @derivedFrom(field: "issue")
     status: IssueStatus
-    execution: Execution @derivedFrom(field: "issue")
+    execution: IssueExecution @derivedFrom(field: "issue")
     refund: Refund @derivedFrom(field: "issue")
 }
 
