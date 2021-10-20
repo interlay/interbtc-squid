@@ -9,7 +9,9 @@ typegen:
   events:
     - issue.RequestIssue
     - issue.ExecuteIssue
+    - issue.CancelIssue
     - vaultRegistry.RegisterVault
+    - security.UpdateActiveBlock
   calls:
   outDir: chain
   customTypes:
@@ -23,8 +25,12 @@ mappings:
       handler: requestIssue
     - event: issue.ExecuteIssue
       handler: executeIssue
+    - event: issue.CancelIssue
+      handler: cancelIssue
     - event: vaultRegistry.RegisterVault
       handler: registerVault
+    - event: security.UpdateActiveBlock
+      handler: updateActiveBlock
   extrinsicHandlers:
   preBlockHooks:
   postBlockHooks:

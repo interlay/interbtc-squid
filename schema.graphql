@@ -1,7 +1,6 @@
 enum IssueStatus {
     Completed
     Cancelled
-    RequestedRefund
     Expired
     PendingWithBtcTxNotFound
     PendingWithBtcTxNotIncluded
@@ -9,10 +8,26 @@ enum IssueStatus {
     PendingWithEnoughConfirmations
 }
 
+enum RedeemStatus {
+    Completed,
+    Expired,
+    Reimbursed,
+    Retried,
+    PendingWithBtcTxNotFound,
+    PendingWithBtcTxNotIncluded,
+    PendingWithTooFewConfirmations,
+    PendingWithEnoughConfirmations,
+}
+
 type VaultRegistration @entity {
     id: String! @unique
     block: Int!
     timestamp: BigInt!
+}
+
+type Height @entity {
+    absolute: BigInt! @unique # Apparently Int cannot be unique
+    active: Int!
 }
 
 type Issue @entity {
@@ -28,6 +43,7 @@ type Issue @entity {
     backingPayment: IssuePayment @derivedFrom(field: "issue")
     status: IssueStatus
     execution: IssueExecution @derivedFrom(field: "issue")
+    cancellation: IssueCancellation @derivedFrom(field: "issue")
     refund: Refund @derivedFrom(field: "issue")
 }
 
@@ -44,7 +60,7 @@ type IssueRequest @entity {
     "Request of an issue"
     issue: Issue! @unique
     requestedAmountWrapped: BigInt!
-    block: Int!
+    height: Height!
     timestamp: BigInt!
 }
 
@@ -52,12 +68,66 @@ type IssueExecution @entity {
     "Execution of an issue"
     issue: Issue! @unique
     executedAmountWrapped: BigInt!
-    block: Int!
+    height: Height!
+    timestamp: BigInt!
+}
+
+type IssueCancellation @entity {
+    "Cancellation of an issue request"
+    issue: Issue! @unique
+    height: Height!
     timestamp: BigInt!
 }
 
 type Refund @entity {
+    "Refund on issue overpayment"
     issue: Issue! @unique
     refundBtcAddress: String!
     refundAmountBTC: BigInt
+}
+
+type Redeem @entity {
+    id: String! @unique
+    request: RedeemRequest! @derivedFrom(field: "redeem")
+    bridgeFee: BigInt!
+    collateralPremium: BigInt!
+    btcTransferFee: BigInt!
+    userParachainAddress: String!
+    userBackingAddress: String!
+    vaultParachainAddress: String!
+    backingPayment: RedeemPayment @derivedFrom(field: "redeem")
+    status: RedeemStatus
+    execution: RedeemExecution @derivedFrom(field: "redeem")
+    cancellation: RedeemCancellation @derivedFrom(field: "redeem")
+}
+
+type RedeemPayment @entity {
+    "Bitcoin payment executing a redeem"
+    redeem: Redeem! @unique
+    btcTxId: String!
+    confirmations: Int!
+    blockHeight: Int
+}
+
+type RedeemRequest @entity {
+    "Request for redeeming"
+    redeem: Redeem! @unique
+    requestedAmountBacking: BigInt!
+    height: Height!
+    timestamp: BigInt!
+}
+
+type RedeemExecution @entity {
+    "Execution of a redeem"
+    redeem: Redeem! @unique
+    height: Height!
+    timestamp: BigInt!
+}
+
+type RedeemCancellation @entity {
+    "Cancellation of a redeem request"
+    redeem: Redeem! @unique
+    height: Height!
+    timestamp: BigInt!
+    reimbursed: Boolean!
 }
