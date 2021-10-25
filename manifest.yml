@@ -1,7 +1,6 @@
-version: '3.0'
+version: '4.0'
 description: Test manifest
 repository: https://github.com/
-hydraVersion: "4"
 
 typegen:
   metadata:
@@ -13,13 +12,13 @@ typegen:
     - vaultRegistry.RegisterVault
     - security.UpdateActiveBlock
   calls:
-  outDir: chain
   customTypes:
     lib: '@interlay/interbtc-api'
     typedefsLoc: indexer/types.json
+  outDir: src/types
 
 mappings:
-  mappingsModule: mappings
+  mappingsModule: lib/mappings
   eventHandlers:
     - event: issue.RequestIssue
       handler: requestIssue

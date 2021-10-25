@@ -1,6 +1,5 @@
-import BN from "bn.js";
 import { EventContext, StoreContext } from "@subsquid/hydra-common";
-import { VaultRegistry } from "../chain";
+import { VaultRegistry } from "../types";
 import { VaultRegistration } from "../generated/model";
 
 export async function registerVault({
@@ -12,7 +11,7 @@ export async function registerVault({
     const vaultRegistration = new VaultRegistration({
         id: id.toString(),
         block: block.height,
-        timestamp: new BN(block.timestamp),
+        timestamp: new Date(block.timestamp),
     });
 
     await store.save(vaultRegistration);

@@ -37,7 +37,7 @@ services:
     #   - BUNDLE_TYPES=typesBundle.json
     #
     volumes:
-      - ${PWD}/types.json:/hydra/packages/hydra-indexer/types.json
+      - ./types.json:/hydra/packages/hydra-indexer/types.json
     #   - ../typesAlias.json:/hydra/packages/hydra-indexer/typesAlias.json
     #   - ../typesSpec.json:/hydra/packages/hydra-indexer/typesSpec.json
     #   - ../typesChain.json:/hydra/packages/hydra-indexer/typesChain.json
