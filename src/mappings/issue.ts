@@ -1,15 +1,8 @@
-import BN from "bn.js";
 import { EventContext, StoreContext } from "@subsquid/hydra-common";
-import { Issue as IssueCrate } from "../chain";
-import {
-    IssueExecution,
-    Issue,
-    IssueRequest,
-    IssueStatus,
-    Height,
-} from "../generated/model";
+import BN from "bn.js";
+import { Height, Issue, IssueCancellation, IssueExecution, IssueRequest } from "../generated/model";
+import { Issue as IssueCrate } from "../types";
 import { blockToHeight } from "./_utils";
-import { IssueCancellation } from "../generated/model";
 
 export async function requestIssue({
     store,
@@ -28,8 +21,8 @@ export async function requestIssue({
     ] = new IssueCrate.RequestIssueEvent(event).params;
     const issue = new Issue({
         id: id.toString(),
-        bridgeFee,
-        griefingCollateral,
+        bridgeFee: bridgeFee.toBigInt(),
+        griefingCollateral: griefingCollateral.toBigInt(),
         userParachainAddress: userParachainAddress.toString(),
         vaultParachainAddress: vaultParachainAddress.toString(),
         vaultBackingAddress: vaultBackingAddress.toString(),
@@ -42,15 +35,14 @@ export async function requestIssue({
         throw new Error(
             `Did not find Height entity for absolute block ${block.height}; this should never happen, unless the parachain has not produced a single active block yet!`
         );
-    const issueRequestData = new IssueRequest({
-        issue, // TODO: double-check this works before saving
-        requestedAmountWrapped,
-        height,
-        timestamp: new BN(block.timestamp),
+
+    issue.request = new IssueRequest({
+        requestedAmountWrapped: requestedAmountWrapped.toBigInt(),
+        height: height.id,
+        timestamp: new Date(block.timestamp),
     });
 
     await store.save(issue);
-    await store.save(issueRequestData);
 }
 
 export async function executeIssue({
@@ -71,9 +63,9 @@ export async function executeIssue({
     const height = await blockToHeight({ store }, block.height, "ExecuteIssue");
     const execution = new IssueExecution({
         issue,
-        executedAmountWrapped,
+        executedAmountWrapped: executedAmountWrapped.toBigInt(),
         height,
-        timestamp: new BN(block.timestamp),
+        timestamp: new Date(block.timestamp),
     });
     await store.save(execution);
 
