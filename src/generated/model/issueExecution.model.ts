@@ -21,7 +21,7 @@ export class IssueExecution {
   issue!: Issue
 
   @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-  executedAmountWrapped!: bigint
+  amountWrapped!: bigint
 
   @Index_()
   @ManyToOne_(() => Height, {nullable: false})

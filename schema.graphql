@@ -1,6 +1,7 @@
 enum IssueStatus {
     Completed
     Cancelled
+    RequestedRefund
     Expired
     PendingWithBtcTxNotFound
     PendingWithBtcTxNotIncluded
@@ -42,7 +43,6 @@ type RelayedBlock @entity {
 
 type Issue @entity {
     id: ID!
-    "Issue request"
     request: IssueRequest!
     bridgeFee: BigInt!
     griefingCollateral: BigInt!
@@ -68,7 +68,7 @@ type IssuePayment @entity {
 
 "Request of an issue"
 type IssueRequest {
-    requestedAmountWrapped: BigInt!
+    amountWrapped: BigInt!
     height: Height!
     timestamp: DateTime!
 }
@@ -76,7 +76,7 @@ type IssueRequest {
 "Execution of an issue"
 type IssueExecution @entity {
     issue: Issue! @unique
-    executedAmountWrapped: BigInt!
+    amountWrapped: BigInt!
     height: Height!
     timestamp: DateTime!
 }
@@ -90,9 +90,15 @@ type IssueCancellation @entity {
 
 "Refund on issue overpayment"
 type Refund @entity {
+    id: ID!
     issue: Issue! @unique
-    refundBtcAddress: String!
-    refundAmountBTC: BigInt
+    btcAddress: String!
+    amountPaid: BigInt!
+    btcFee: BigInt!
+    requestHeight: Height!
+    requestTimestamp: DateTime!
+    executionHeight: Height
+    executionTimestamp: DateTime
 }
 
 type Redeem @entity {

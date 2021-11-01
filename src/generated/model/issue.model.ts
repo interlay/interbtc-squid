@@ -16,9 +16,6 @@ export class Issue {
   @PrimaryColumn_()
   id!: string
 
-  /**
-   * Issue request
-   */
   @Column_("jsonb", {transformer: {to: obj => obj.toJSON(), from: obj => new IssueRequest(undefined, marshal.nonNull(obj))}, nullable: false})
   request!: IssueRequest
 

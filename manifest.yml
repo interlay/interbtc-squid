@@ -12,6 +12,8 @@ typegen:
     - issue.CancelIssue
     - vaultRegistry.RegisterVault
     - security.UpdateActiveBlock
+    - refund.RequestRefund
+    - refund.ExecuteRefund
   calls:
   customTypes:
     lib: '@interlay/interbtc-api'
@@ -33,6 +35,10 @@ mappings:
       handler: updateActiveBlock
     - event: btcRelay.StoreMainChainHeader
       handler: storeMainChainHeader
+    - event: refund.RequestRefund
+      handler: requestRefund
+    - event: refund.ExecuteRefund
+      handler: executeRefund
   extrinsicHandlers:
   preBlockHooks:
   postBlockHooks:

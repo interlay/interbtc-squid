@@ -1,6 +1,7 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, OneToOne as OneToOne_, Index as Index_, JoinColumn as JoinColumn_} from "typeorm"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, OneToOne as OneToOne_, Index as Index_, JoinColumn as JoinColumn_, ManyToOne as ManyToOne_} from "typeorm"
 import * as marshal from "../marshal"
 import {Issue} from "./issue.model"
+import {Height} from "./height.model"
 
 /**
  * Refund on issue overpayment
@@ -20,8 +21,25 @@ export class Refund {
   issue!: Issue
 
   @Column_("text", {nullable: false})
-  refundBtcAddress!: string
+  btcAddress!: string
 
-  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: true})
-  refundAmountBTC!: bigint | undefined | null
+  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+  amountPaid!: bigint
+
+  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+  btcFee!: bigint
+
+  @Index_()
+  @ManyToOne_(() => Height, {nullable: false})
+  requestHeight!: Height
+
+  @Column_("timestamp with time zone", {nullable: false})
+  requestTimestamp!: Date
+
+  @Index_()
+  @ManyToOne_(() => Height, {nullable: true})
+  executionHeight!: Height | undefined | null
+
+  @Column_("timestamp with time zone", {nullable: true})
+  executionTimestamp!: Date | undefined | null
 }
