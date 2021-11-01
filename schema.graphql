@@ -26,8 +26,18 @@ type VaultRegistration @entity {
 }
 
 type Height @entity {
+    id: ID!
     absolute: BigInt! @unique # Apparently Int cannot be unique
     active: Int!
+}
+
+type RelayedBlock @entity {
+    id: ID!
+    relayedAtHeight: Height!
+    timestamp: DateTime!
+    blockHash: String!
+    backingHeight: Int!
+    relayer: String
 }
 
 type Issue @entity {

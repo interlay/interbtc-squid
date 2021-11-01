@@ -1,6 +1,6 @@
 import { EventContext, StoreContext } from "@subsquid/hydra-common";
 import BN from "bn.js";
-import { Height, Issue, IssueCancellation, IssueExecution, IssueRequest } from "../generated/model";
+import { Height, Issue, IssueCancellation, IssueExecution, IssueRequest, IssueStatus } from "../generated/model";
 import { Issue as IssueCrate } from "../types";
 import { blockToHeight } from "./_utils";
 

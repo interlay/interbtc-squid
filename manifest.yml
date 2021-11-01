@@ -6,6 +6,7 @@ typegen:
   metadata:
     source: ./parachain.json
   events:
+    - bTCRelay.StoreMainChainHeader # wtf casing
     - issue.RequestIssue
     - issue.ExecuteIssue
     - issue.CancelIssue
@@ -30,6 +31,8 @@ mappings:
       handler: registerVault
     - event: security.UpdateActiveBlock
       handler: updateActiveBlock
+    - event: btcRelay.StoreMainChainHeader
+      handler: storeMainChainHeader
   extrinsicHandlers:
   preBlockHooks:
   postBlockHooks:

@@ -1,5 +1,6 @@
 export * from "./model/vaultRegistration.model"
 export * from "./model/height.model"
+export * from "./model/relayedBlock.model"
 export * from "./model/issue.model"
 export * from "./model/issueRequest"
 export * from "./model/issueStatus"
