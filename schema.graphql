@@ -3,10 +3,7 @@ enum IssueStatus {
     Cancelled
     RequestedRefund
     Expired
-    PendingWithBtcTxNotFound
-    PendingWithBtcTxNotIncluded
-    PendingWithTooFewConfirmations
-    PendingWithEnoughConfirmations
+    Pending
 }
 
 enum RedeemStatus {
@@ -28,7 +25,7 @@ type VaultRegistration @entity {
 
 type Height @entity {
     id: ID!
-    absolute: BigInt! @unique # Apparently Int cannot be unique
+    absolute: Int!
     active: Int!
 }
 

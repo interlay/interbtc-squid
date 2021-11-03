@@ -40,7 +40,7 @@ export class Issue {
   @OneToOne_(() => IssuePayment)
   backingPayment!: IssuePayment | undefined | null
 
-  @Column_("varchar", {length: 30, nullable: true})
+  @Column_("varchar", {length: 15, nullable: true})
   status!: IssueStatus | undefined | null
 
   @OneToOne_(() => IssueExecution)

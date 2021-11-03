@@ -3,8 +3,5 @@ export enum IssueStatus {
   Cancelled = "Cancelled",
   RequestedRefund = "RequestedRefund",
   Expired = "Expired",
-  PendingWithBtcTxNotFound = "PendingWithBtcTxNotFound",
-  PendingWithBtcTxNotIncluded = "PendingWithBtcTxNotIncluded",
-  PendingWithTooFewConfirmations = "PendingWithTooFewConfirmations",
-  PendingWithEnoughConfirmations = "PendingWithEnoughConfirmations",
+  Pending = "Pending",
 }

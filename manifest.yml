@@ -42,3 +42,4 @@ mappings:
   extrinsicHandlers:
   preBlockHooks:
   postBlockHooks:
+    # - handler: postBlockHook

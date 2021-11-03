@@ -1,5 +1,4 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_} from "typeorm"
-import * as marshal from "../marshal"
 
 @Entity_()
 export class Height {
@@ -10,8 +9,8 @@ export class Height {
   @PrimaryColumn_()
   id!: string
 
-  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-  absolute!: bigint
+  @Column_("integer", {nullable: false})
+  absolute!: number
 
   @Column_("integer", {nullable: false})
   active!: number

@@ -1,6 +1,12 @@
 import { EventContext, StoreContext } from "@subsquid/hydra-common";
-import BN from "bn.js";
-import { Height, Issue, IssueCancellation, IssueExecution, IssueRequest, IssueStatus, Refund } from "../generated/model";
+import {
+    Issue,
+    IssueCancellation,
+    IssueExecution,
+    IssueRequest,
+    IssueStatus,
+    Refund,
+} from "../generated/model";
 import { Issue as IssueCrate, Refund as RefundCrate } from "../types";
 import { blockToHeight } from "./_utils";
 
@@ -27,14 +33,9 @@ export async function requestIssue({
         vaultParachainAddress: vaultParachainAddress.toString(),
         vaultBackingAddress: vaultBackingAddress.toString(),
         vaultWalletPubkey: vaultWalletPubkey.toString(),
+        status: IssueStatus.Pending,
     });
-    const height = await store.get(Height, {
-        where: { absolute: new BN(block.height) },
-    });
-    if (height === undefined)
-        throw new Error(
-            `Did not find Height entity for absolute block ${block.height}; this should never happen, unless the parachain has not produced a single active block yet!`
-        );
+    const height = await blockToHeight({ store }, block.height, "RequestIssue");
 
     issue.request = new IssueRequest({
         amountWrapped: amountWrapped.toBigInt(),
@@ -106,7 +107,11 @@ export async function requestRefund({
         throw new Error(
             "RequestRefund event did not match any existing issue requests"
         );
-    const height = await blockToHeight({store}, block.height, "RequestRefund");
+    const height = await blockToHeight(
+        { store },
+        block.height,
+        "RequestRefund"
+    );
     const refund = new Refund({
         id: id.toString(),
         issue,
@@ -114,7 +119,7 @@ export async function requestRefund({
         amountPaid: amountPaid.toBigInt(),
         btcFee: btcFee.toBigInt(),
         requestHeight: height,
-        requestTimestamp: new Date(block.timestamp)
+        requestTimestamp: new Date(block.timestamp),
     });
     issue.status = IssueStatus.RequestedRefund;
     await Promise.all([store.save(refund), store.save(issue)]);
@@ -125,19 +130,24 @@ export async function executeRefund({
     event,
     block,
 }: EventContext & StoreContext): Promise<void> {
-    const [id] =
-        new RefundCrate.ExecuteRefundEvent(event).params;
-    const refund = await store.get(Refund, {where: {id: id.toString()}});
+    const [id] = new RefundCrate.ExecuteRefundEvent(event).params;
+    const refund = await store.get(Refund, { where: { id: id.toString() } });
     if (refund === undefined)
         throw new Error(
             "ExecuteRefund event did not match any existing refund requests"
         );
-    const issue = await store.get(Issue, {where: {id: refund.issue.id.toString()}});
+    const issue = await store.get(Issue, {
+        where: { id: refund.issue.id.toString() },
+    });
     if (issue === undefined)
         throw new Error(
             "ExecuteRefund event did not match any existing issue requests"
         );
-    const height = await blockToHeight({store}, block.height, "ExecuteRefund");
+    const height = await blockToHeight(
+        { store },
+        block.height,
+        "ExecuteRefund"
+    );
     refund.executionHeight = height;
     refund.executionTimestamp = new Date(block.timestamp);
     issue.status = IssueStatus.Completed;
