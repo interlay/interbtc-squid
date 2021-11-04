@@ -2,9 +2,6 @@ import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, O
 import {Issue} from "./issue.model"
 import {Height} from "./height.model"
 
-/**
- * Cancellation of an issue request
- */
 @Entity_()
 export class IssueCancellation {
   constructor(props?: Partial<IssueCancellation>) {

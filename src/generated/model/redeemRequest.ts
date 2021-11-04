@@ -2,9 +2,6 @@ import assert from "assert"
 import * as marshal from "../marshal"
 import {Height} from "./height.model"
 
-/**
- * Request for redeeming
- */
 export class RedeemRequest {
   private _requestedAmountBacking!: bigint
   private _height!: string

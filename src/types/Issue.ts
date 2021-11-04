@@ -1,6 +1,7 @@
 import {create} from './_registry'
 import {AccountId, H256} from '@polkadot/types/interfaces'
-import {SubstrateEvent} from '@subsquid/hydra-common'
+import {Bytes} from '@polkadot/types'
+import {SubstrateEvent, SubstrateExtrinsic} from '@subsquid/hydra-common'
 import {BtcAddress, BtcPublicKey, Collateral, Wrapped} from '@interlay/interbtc-api'
 
 export namespace Issue {
@@ -28,4 +29,53 @@ export namespace Issue {
     }
   }
 
+  /**
+   *  Finalize the issuance of tokens
+   * 
+   *  # Arguments
+   * 
+   *  * `origin` - sender of the transaction
+   *  * `issue_id` - identifier of issue request as output from request_issue
+   *  * `tx_block_height` - block number of collateral chain
+   *  * `merkle_proof` - raw bytes
+   *  * `raw_tx` - raw bytes
+   */
+  export class Execute_issueCall {
+    private _extrinsic: SubstrateExtrinsic
+
+    constructor(extrinsic: SubstrateExtrinsic) {
+      this._extrinsic = extrinsic
+    }
+
+    get issue_id(): H256 {
+      return create('H256', this._extrinsic.args[0].value)
+    }
+
+    get merkle_proof(): Bytes {
+      return create('Bytes', this._extrinsic.args[1].value)
+    }
+
+    get raw_tx(): Bytes {
+      return create('Bytes', this._extrinsic.args[2].value)
+    }
+  }
+  /**
+   *  Cancel the issuance of tokens if expired
+   * 
+   *  # Arguments
+   * 
+   *  * `origin` - sender of the transaction
+   *  * `issue_id` - identifier of issue request as output from request_issue
+   */
+  export class Cancel_issueCall {
+    private _extrinsic: SubstrateExtrinsic
+
+    constructor(extrinsic: SubstrateExtrinsic) {
+      this._extrinsic = extrinsic
+    }
+
+    get issue_id(): H256 {
+      return create('H256', this._extrinsic.args[0].value)
+    }
+  }
 }

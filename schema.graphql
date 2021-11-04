@@ -7,28 +7,28 @@ enum IssueStatus {
 }
 
 enum RedeemStatus {
-    Completed,
-    Expired,
-    Reimbursed,
-    Retried,
-    PendingWithBtcTxNotFound,
-    PendingWithBtcTxNotIncluded,
-    PendingWithTooFewConfirmations,
-    PendingWithEnoughConfirmations,
+    Completed
+    Expired
+    Reimbursed
+    Retried
+    Pending
 }
 
-type VaultRegistration @entity {
+type Vault @entity {
     id: ID!
-    block: Int!
-    timestamp: DateTime!
+    registrationBlock: Int!
+    registrationTimestamp: DateTime!
+    lastActivity: Height
 }
 
+"Mapping of parachain raw/absolute blocks to parachain active blocks"
 type Height @entity {
-    id: ID!
+    id: ID! "Should be equal to the absolute value, for determinism"
     absolute: Int!
     active: Int!
 }
 
+"BTC block stored by BTCRelay"
 type RelayedBlock @entity {
     id: ID!
     relayedAtHeight: Height!
@@ -63,14 +63,12 @@ type IssuePayment @entity {
     amount: BigInt!
 }
 
-"Request of an issue"
 type IssueRequest {
     amountWrapped: BigInt!
     height: Height!
     timestamp: DateTime!
 }
 
-"Execution of an issue"
 type IssueExecution @entity {
     issue: Issue! @unique
     amountWrapped: BigInt!
@@ -78,7 +76,6 @@ type IssueExecution @entity {
     timestamp: DateTime!
 }
 
-"Cancellation of an issue request"
 type IssueCancellation @entity {
     issue: Issue! @unique
     height: Height!
@@ -113,7 +110,6 @@ type Redeem @entity {
     cancellation: RedeemCancellation @derivedFrom(field: "redeem")
 }
 
-"Request for redeeming"
 type RedeemRequest {
     requestedAmountBacking: BigInt!
     height: Height!
@@ -128,17 +124,16 @@ type RedeemPayment @entity {
     blockHeight: Int
 }
 
-"Execution of a redeem"
 type RedeemExecution @entity {
     redeem: Redeem! @unique
     height: Height!
     timestamp: DateTime!
 }
 
-"Cancellation of a redeem request"
 type RedeemCancellation @entity {
     redeem: Redeem! @unique
     height: Height!
     timestamp: DateTime!
+    slashedCollateral: BigInt!
     reimbursed: Boolean!
 }

@@ -10,11 +10,18 @@ typegen:
     - issue.RequestIssue
     - issue.ExecuteIssue
     - issue.CancelIssue
+    - redeem.RequestRedeem
+    - redeem.ExecuteRedeem
+    - redeem.CancelRedeem
     - vaultRegistry.RegisterVault
     - security.UpdateActiveBlock
     - refund.RequestRefund
     - refund.ExecuteRefund
   calls:
+    - relay.store_block_header
+    - issue.execute_issue
+    - issue.cancel_issue
+    - redeem.execute_redeem
   customTypes:
     lib: '@interlay/interbtc-api'
     typedefsLoc: indexer/types.json
@@ -39,7 +46,18 @@ mappings:
       handler: requestRefund
     - event: refund.ExecuteRefund
       handler: executeRefund
+    - event: redeem.RequestRedeem
+      handler: requestRedeem
+    - event: redeem.ExecuteRedeem
+      handler: executeRedeem
+    - event: redeem.CancelRedeem
+      handler: cancelRedeem
   extrinsicHandlers:
+    - extrinsic: relay.store_block_header
+      handler: updateVaultActivity
+      triggerEvents:
+        - system.ExtrinsicSuccess
+        - system.ExtrinsicFailure
   preBlockHooks:
   postBlockHooks:
-    # - handler: postBlockHook
+    - handler: postBlockHook

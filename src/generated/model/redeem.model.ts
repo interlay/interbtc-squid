@@ -39,7 +39,7 @@ export class Redeem {
   @OneToOne_(() => RedeemPayment)
   backingPayment!: RedeemPayment | undefined | null
 
-  @Column_("varchar", {length: 30, nullable: true})
+  @Column_("varchar", {length: 10, nullable: true})
   status!: RedeemStatus | undefined | null
 
   @OneToOne_(() => RedeemExecution)

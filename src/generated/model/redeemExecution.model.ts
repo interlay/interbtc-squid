@@ -2,9 +2,6 @@ import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, O
 import {Redeem} from "./redeem.model"
 import {Height} from "./height.model"
 
-/**
- * Execution of a redeem
- */
 @Entity_()
 export class RedeemExecution {
   constructor(props?: Partial<RedeemExecution>) {

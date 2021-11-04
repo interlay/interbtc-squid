@@ -3,9 +3,6 @@ import * as marshal from "../marshal"
 import {Issue} from "./issue.model"
 import {Height} from "./height.model"
 
-/**
- * Execution of an issue
- */
 @Entity_()
 export class IssueExecution {
   constructor(props?: Partial<IssueExecution>) {

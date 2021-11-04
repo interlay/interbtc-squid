@@ -1,6 +1,6 @@
 import { EventContext, StoreContext } from "@subsquid/hydra-common";
-import { Security } from "../types";
-import { Height } from "../generated/model";
+import { Security } from "../../types";
+import { Height } from "../../generated/model";
 
 export async function updateActiveBlock({
     store,

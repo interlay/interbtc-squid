@@ -3,8 +3,5 @@ export enum RedeemStatus {
   Expired = "Expired",
   Reimbursed = "Reimbursed",
   Retried = "Retried",
-  PendingWithBtcTxNotFound = "PendingWithBtcTxNotFound",
-  PendingWithBtcTxNotIncluded = "PendingWithBtcTxNotIncluded",
-  PendingWithTooFewConfirmations = "PendingWithTooFewConfirmations",
-  PendingWithEnoughConfirmations = "PendingWithEnoughConfirmations",
+  Pending = "Pending",
 }

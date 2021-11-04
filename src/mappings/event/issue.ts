@@ -6,9 +6,9 @@ import {
     IssueRequest,
     IssueStatus,
     Refund,
-} from "../generated/model";
-import { Issue as IssueCrate, Refund as RefundCrate } from "../types";
-import { blockToHeight } from "./_utils";
+} from "../../generated/model";
+import { Issue as IssueCrate, Refund as RefundCrate } from "../../types";
+import { blockToHeight } from "../_utils";
 
 export async function requestIssue({
     store,
@@ -90,6 +90,7 @@ export async function cancelIssue({
     const cancellation = new IssueCancellation({
         issue,
         height,
+        timestamp: new Date(block.timestamp),
     });
     issue.status = IssueStatus.Cancelled;
     await Promise.all([store.save(cancellation), store.save(issue)]);

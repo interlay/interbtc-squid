@@ -2,9 +2,6 @@ import assert from "assert"
 import * as marshal from "../marshal"
 import {Height} from "./height.model"
 
-/**
- * Request of an issue
- */
 export class IssueRequest {
   private _amountWrapped!: bigint
   private _height!: string

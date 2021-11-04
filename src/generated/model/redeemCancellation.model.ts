@@ -1,10 +1,8 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, OneToOne as OneToOne_, Index as Index_, JoinColumn as JoinColumn_, ManyToOne as ManyToOne_} from "typeorm"
+import * as marshal from "../marshal"
 import {Redeem} from "./redeem.model"
 import {Height} from "./height.model"
 
-/**
- * Cancellation of a redeem request
- */
 @Entity_()
 export class RedeemCancellation {
   constructor(props?: Partial<RedeemCancellation>) {
@@ -25,6 +23,9 @@ export class RedeemCancellation {
 
   @Column_("timestamp with time zone", {nullable: false})
   timestamp!: Date
+
+  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+  slashedCollateral!: bigint
 
   @Column_("bool", {nullable: false})
   reimbursed!: boolean

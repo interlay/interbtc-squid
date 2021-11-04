@@ -1,5 +1,3 @@
-export * from "./issue";
-export * from "./vault";
-export * from "./security";
-export * from "./btcRelay";
+export * from "./event";
 export * from "./postBlock";
+export * from "./extrinsic";

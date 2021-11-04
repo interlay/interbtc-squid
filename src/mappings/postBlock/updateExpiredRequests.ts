@@ -1,8 +1,8 @@
 import { BlockContext, StoreContext } from "@subsquid/hydra-common";
-import { Issue, IssueStatus, RelayedBlock } from "../generated/model";
-import { blockToHeight, isIssueExpired } from "./_utils";
+import { Issue, IssueStatus, RelayedBlock } from "../../generated/model";
+import { blockToHeight, isIssueExpired } from "./../_utils";
 
-const findAndUpdateExpiredIssues = async ({
+export const findAndUpdateExpiredIssues = async ({
     store,
     block,
 }: StoreContext & BlockContext) => {
@@ -48,10 +48,3 @@ const findAndUpdateExpiredIssues = async ({
 
     await Promise.all(expiredIssues.map((issue) => store.save(issue)));
 };
-
-export async function postBlockHook({
-    store,
-    block,
-}: StoreContext & BlockContext): Promise<void> {
-    await findAndUpdateExpiredIssues({ store, block });
-}

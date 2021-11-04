@@ -1,6 +1,9 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_} from "typeorm"
 import {Height} from "./height.model"
 
+/**
+ * BTC block stored by BTCRelay
+ */
 @Entity_()
 export class RelayedBlock {
   constructor(props?: Partial<RelayedBlock>) {

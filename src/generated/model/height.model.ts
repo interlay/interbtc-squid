@@ -1,5 +1,8 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_} from "typeorm"
 
+/**
+ * Mapping of parachain raw/absolute blocks to parachain active blocks
+ */
 @Entity_()
 export class Height {
   constructor(props?: Partial<Height>) {
@@ -9,6 +12,9 @@ export class Height {
   @PrimaryColumn_()
   id!: string
 
+  /**
+   * Should be equal to the absolute value, for determinism
+   */
   @Column_("integer", {nullable: false})
   absolute!: number
 
