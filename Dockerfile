@@ -10,6 +10,7 @@ RUN yarn
 
 COPY ./indexer/ ./indexer
 COPY ./src/ ./src
+COPY ./db/ ./db
 COPY tsconfig.json .
 COPY manifest.yml .
 COPY parachain.json .
