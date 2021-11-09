@@ -11,13 +11,23 @@ export async function blockToHeight(
     eventName = ""
 ): Promise<Height> {
     const height = await store.get(Height, {
-        where: { absolute: absoluteBlock },
+        where: { absolute: LessThanOrEqual(absoluteBlock) },
+        order: { active: "DESC" },
     });
     if (height === undefined)
         throw new Error(
             `Did not find Height entity for absolute block ${absoluteBlock} while processing ${eventName}; this should never happen, unless the parachain has not produced a single active block yet!`
         );
-    return height;
+    if (height.absolute === absoluteBlock) {
+        return height;
+    } else {
+        const lazyBackfill = new Height({
+            absolute: absoluteBlock,
+            active: height.active,
+        });
+        await store.save(lazyBackfill);
+        return lazyBackfill;
+    }
 }
 
 export async function isIssueExpired(
@@ -32,8 +42,8 @@ export async function isIssueExpired(
     });
     if (requestHeight === undefined) return false; // no active blocks yet
     const requestBtcBlock = await store.get(RelayedBlock, {
-        order: {backingHeight: "DESC"},
-        relations: ['relayedAtHeight'],
+        order: { backingHeight: "DESC" },
+        relations: ["relayedAtHeight"],
         where: {
             relayedAtHeight: {
                 absolute: LessThanOrEqual(requestHeight.absolute),

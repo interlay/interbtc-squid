@@ -17,6 +17,7 @@ typegen:
     - security.UpdateActiveBlock
     - refund.RequestRefund
     - refund.ExecuteRefund
+    # - oracle.FeedValues
   calls:
     - relay.store_block_header
     - issue.execute_issue
@@ -52,6 +53,8 @@ mappings:
       handler: executeRedeem
     - event: redeem.CancelRedeem
       handler: cancelRedeem
+    # - event: oracle.FeedValues
+    #   handler: feedValues
   extrinsicHandlers:
     - extrinsic: relay.store_block_header
       handler: updateVaultActivity

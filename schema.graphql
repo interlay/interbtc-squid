@@ -137,3 +137,12 @@ type RedeemCancellation @entity {
     slashedCollateral: BigInt!
     reimbursed: Boolean!
 }
+
+type OracleUpdate @entity {
+    id: ID!
+    height: Height!
+    timestamp: DateTime!
+    oracleId: String!
+    key: String!
+    value: String!
+}
