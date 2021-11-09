@@ -9,11 +9,13 @@ COPY yarn.lock .
 RUN yarn
 
 COPY ./indexer/ ./indexer
+COPY ./src/ ./src
+COPY ./db/ ./db
 COPY tsconfig.json .
 COPY manifest.yml .
 COPY parachain.json .
 COPY schema.graphql .
 
-RUN yarn gen:all
+RUN yarn build && yarn gen:all
 
 ENTRYPOINT [ "./node_modules/.bin/hydra-processor" ]
