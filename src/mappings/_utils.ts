@@ -4,6 +4,7 @@ import { LessThanOrEqual } from "typeorm";
 
 const issuePeriod = 14400; // TODO: HARDCODED - fetch from chain once event is implemented
 const parachainBlocksPerBitcoinBlock = 100; // TODO: HARDCODED - find better way to set?
+const btcPeriod = Math.ceil(issuePeriod / parachainBlocksPerBitcoinBlock);
 
 export async function blockToHeight(
     { store }: StoreContext,
@@ -36,7 +37,6 @@ export async function isIssueExpired(
     latestBtcBlock: number,
     latestActiveBlock: number
 ): Promise<boolean> {
-    const btcPeriod = Math.ceil(issuePeriod / parachainBlocksPerBitcoinBlock);
     const requestHeight = await store.get(Height, {
         where: { id: issue.request.height },
     });
@@ -52,8 +52,10 @@ export async function isIssueExpired(
     });
     if (requestBtcBlock === undefined) return false; // no BTC blocks yet
 
+    // console.log(`Checking expiry: opened at height ${requestHeight.active}, current latest block is ${latestActiveBlock}, issue period is ${issuePeriod}; btc height is ${requestBtcBlock.backingHeight}, latest btc is ${latestBtcBlock}, btc period is ${btcPeriod}`)
+
     return (
-        requestBtcBlock.backingHeight + btcPeriod > latestBtcBlock &&
-        requestHeight.active + issuePeriod > latestActiveBlock
+        requestBtcBlock.backingHeight + btcPeriod < latestBtcBlock &&
+        requestHeight.active + issuePeriod < latestActiveBlock
     );
 }
