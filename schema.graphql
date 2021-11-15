@@ -23,7 +23,8 @@ type Vault @entity {
 
 "Mapping of parachain raw/absolute blocks to parachain active blocks"
 type Height @entity {
-    id: ID! "Should be equal to the absolute value, for determinism"
+    id: ID!
+    "Should be equal to the absolute value, for determinism"
     absolute: Int!
     active: Int!
 }
@@ -138,11 +139,17 @@ type RedeemCancellation @entity {
     reimbursed: Boolean!
 }
 
+enum OracleUpdateType {
+    ExchangeRate
+    FeeEstimation
+}
+
 type OracleUpdate @entity {
     id: ID!
     height: Height!
     timestamp: DateTime!
     oracleId: String!
-    key: String!
-    value: String!
+    type: OracleUpdateType!
+    typeKey: String
+    updateValue: String!
 }

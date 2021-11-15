@@ -1,3 +1,4 @@
+import Debug from "debug";
 import { EventContext, StoreContext } from "@subsquid/hydra-common";
 import {
     Redeem,
@@ -8,6 +9,8 @@ import {
 } from "../../generated/model";
 import { Redeem as RedeemCrate } from "../../types";
 import { blockToHeight } from "../_utils";
+
+const debug = Debug("interbtc-mappings:redeem");
 
 export async function requestRedeem({
     store,
@@ -52,10 +55,12 @@ export async function executeRedeem({
 }: EventContext & StoreContext): Promise<void> {
     const [id] = new RedeemCrate.ExecuteRedeemEvent(event).params;
     const redeem = await store.get(Redeem, { where: { id: id.toString() } });
-    if (redeem === undefined)
-        throw new Error(
-            "ExecuteRedeem event did not match any existing redeem requests"
+    if (redeem === undefined) {
+        debug(
+            "WARNING: ExecuteRedeem event did not match any existing redeem requests! Skipping."
         );
+        return;
+    }
     const height = await blockToHeight(
         { store },
         block.height,
@@ -85,10 +90,12 @@ export async function cancelRedeem({
         newStatus,
     ] = new RedeemCrate.CancelRedeemEvent(event).params;
     const redeem = await store.get(Redeem, { where: { id: id.toString() } });
-    if (redeem === undefined)
-        throw new Error(
-            "CancelRedeem event did not match any existing redeem requests"
+    if (redeem === undefined) {
+        debug(
+            "WARNING: CancelRedeem event did not match any existing redeem requests! Skipping."
         );
+        return;
+    }
     const height = await blockToHeight({ store }, block.height, "CancelIssue");
     const cancellation = new RedeemCancellation({
         redeem,

@@ -1,3 +1,4 @@
+import Debug from "debug";
 import { EventContext, StoreContext } from "@subsquid/hydra-common";
 import {
     Issue,
@@ -9,6 +10,8 @@ import {
 } from "../../generated/model";
 import { Issue as IssueCrate, Refund as RefundCrate } from "../../types";
 import { blockToHeight } from "../_utils";
+
+const debug = Debug("interbtc-mappings:issue");
 
 export async function requestIssue({
     store,
@@ -57,10 +60,12 @@ export async function executeIssue({
         amountWrapped, // TODO: double-check
     ] = new IssueCrate.ExecuteIssueEvent(event).params;
     const issue = await store.get(Issue, { where: { id: id.toString() } });
-    if (issue === undefined)
-        throw new Error(
-            "ExecuteIssue event did not match any existing issue requests"
+    if (issue === undefined) {
+        debug(
+            "WARNING: ExecuteIssue event did not match any existing issue requests! Skipping."
         );
+        return;
+    }
     const height = await blockToHeight({ store }, block.height, "ExecuteIssue");
     const execution = new IssueExecution({
         issue,
@@ -82,10 +87,12 @@ export async function cancelIssue({
     const [id, _userParachainAddress, _griefingCollateral] =
         new IssueCrate.CancelIssueEvent(event).params;
     const issue = await store.get(Issue, { where: { id: id.toString() } });
-    if (issue === undefined)
-        throw new Error(
-            "CancelIssue event did not match any existing issue requests"
+    if (issue === undefined) {
+        debug(
+            "WARNING: CancelIssue event did not match any existing issue requests! Skipping."
         );
+        return;
+    }
     const height = await blockToHeight({ store }, block.height, "CancelIssue");
     const cancellation = new IssueCancellation({
         issue,
@@ -104,10 +111,12 @@ export async function requestRefund({
     const [id, _issuer, amountPaid, _vault, btcAddress, issueId, btcFee] =
         new RefundCrate.RequestRefundEvent(event).params;
     const issue = await store.get(Issue, { where: { id: issueId.toString() } });
-    if (issue === undefined)
-        throw new Error(
-            "RequestRefund event did not match any existing issue requests"
+    if (issue === undefined) {
+        debug(
+            "WARNING: RequestRefund event did not match any existing issue requests! Skipping."
         );
+        return;
+    }
     const height = await blockToHeight(
         { store },
         block.height,
@@ -133,17 +142,21 @@ export async function executeRefund({
 }: EventContext & StoreContext): Promise<void> {
     const [id] = new RefundCrate.ExecuteRefundEvent(event).params;
     const refund = await store.get(Refund, { where: { id: id.toString() } });
-    if (refund === undefined)
-        throw new Error(
-            "ExecuteRefund event did not match any existing refund requests"
+    if (refund === undefined) {
+        debug(
+            "WARNING: ExecuteRefund event did not match any existing refund requests! Skipping."
         );
+        return;
+    }
     const issue = await store.get(Issue, {
         where: { id: refund.issue.id.toString() },
     });
-    if (issue === undefined)
-        throw new Error(
-            "ExecuteRefund event did not match any existing issue requests"
+    if (issue === undefined) {
+        debug(
+            "WARNING: ExecuteRefund event did not match any existing issue requests! Skipping."
         );
+        return;
+    }
     const height = await blockToHeight(
         { store },
         block.height,
