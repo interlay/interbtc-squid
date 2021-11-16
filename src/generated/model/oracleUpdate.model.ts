@@ -1,4 +1,6 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_} from "typeorm"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_} from "typeorm"
+import {Height} from "./height.model"
+import {OracleUpdateType} from "./oracleUpdateType"
 
 @Entity_()
 export class OracleUpdate {
@@ -9,12 +11,22 @@ export class OracleUpdate {
   @PrimaryColumn_()
   id!: string
 
+  @Index_()
+  @ManyToOne_(() => Height, {nullable: false})
+  height!: Height
+
+  @Column_("timestamp with time zone", {nullable: false})
+  timestamp!: Date
+
   @Column_("text", {nullable: false})
   oracleId!: string
 
-  @Column_("text", {nullable: false})
-  key!: string
+  @Column_("varchar", {length: 13, nullable: false})
+  type!: OracleUpdateType
+
+  @Column_("text", {nullable: true})
+  typeKey!: string | undefined | null
 
   @Column_("text", {nullable: false})
-  value!: string
+  updateValue!: string
 }

@@ -21,6 +21,9 @@ export class Refund {
   issue!: Issue
 
   @Column_("text", {nullable: false})
+  issueID!: string
+
+  @Column_("text", {nullable: false})
   btcAddress!: string
 
   @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})

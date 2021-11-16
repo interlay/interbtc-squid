@@ -20,6 +20,9 @@ export class IssueExecution {
   @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
   amountWrapped!: bigint
 
+  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+  bridgeFeeWrapped!: bigint
+
   @Index_()
   @ManyToOne_(() => Height, {nullable: false})
   height!: Height

@@ -20,9 +20,6 @@ export class Issue {
   request!: IssueRequest
 
   @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-  bridgeFee!: bigint
-
-  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
   griefingCollateral!: bigint
 
   @Column_("text", {nullable: false})

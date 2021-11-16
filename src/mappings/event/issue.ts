@@ -30,7 +30,6 @@ export async function requestIssue({
     ] = new IssueCrate.RequestIssueEvent(event).params;
     const issue = new Issue({
         id: id.toString(),
-        bridgeFee: bridgeFee.toBigInt(),
         griefingCollateral: griefingCollateral.toBigInt(),
         userParachainAddress: userParachainAddress.toString(),
         vaultParachainAddress: vaultParachainAddress.toString(),
@@ -42,6 +41,7 @@ export async function requestIssue({
 
     issue.request = new IssueRequest({
         amountWrapped: amountWrapped.toBigInt(),
+        bridgeFeeWrapped: bridgeFee.toBigInt(),
         height: height.id,
         timestamp: new Date(block.timestamp),
     });
@@ -58,6 +58,8 @@ export async function executeIssue({
         id,
         _userParachainAddress,
         amountWrapped, // TODO: double-check
+        _vaultParachainAddress,
+        fee,
     ] = new IssueCrate.ExecuteIssueEvent(event).params;
     const issue = await store.get(Issue, { where: { id: id.toString() } });
     if (issue === undefined) {
@@ -69,7 +71,8 @@ export async function executeIssue({
     const height = await blockToHeight({ store }, block.height, "ExecuteIssue");
     const execution = new IssueExecution({
         issue,
-        amountWrapped: amountWrapped.toBigInt(),
+        amountWrapped: amountWrapped.toBigInt() - fee.toBigInt(),
+        bridgeFeeWrapped: fee.toBigInt(),
         height,
         timestamp: new Date(block.timestamp),
     });
@@ -125,6 +128,7 @@ export async function requestRefund({
     const refund = new Refund({
         id: id.toString(),
         issue,
+        issueID: issue.id,
         btcAddress: btcAddress.toString(),
         amountPaid: amountPaid.toBigInt(),
         btcFee: btcFee.toBigInt(),
@@ -149,7 +153,7 @@ export async function executeRefund({
         return;
     }
     const issue = await store.get(Issue, {
-        where: { id: refund.issue.id.toString() },
+        where: { id: refund.issueID },
     });
     if (issue === undefined) {
         debug(

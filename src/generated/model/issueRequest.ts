@@ -4,6 +4,7 @@ import {Height} from "./height.model"
 
 export class IssueRequest {
   private _amountWrapped!: bigint
+  private _bridgeFeeWrapped!: bigint
   private _height!: string
   private _timestamp!: Date
 
@@ -11,6 +12,7 @@ export class IssueRequest {
     Object.assign(this, props)
     if (json != null) {
       this._amountWrapped = marshal.bigint.fromJSON(json.amountWrapped)
+      this._bridgeFeeWrapped = marshal.bigint.fromJSON(json.bridgeFeeWrapped)
       this._height = marshal.string.fromJSON(json.height)
       this._timestamp = marshal.datetime.fromJSON(json.timestamp)
     }
@@ -23,6 +25,15 @@ export class IssueRequest {
 
   set amountWrapped(value: bigint) {
     this._amountWrapped = value
+  }
+
+  get bridgeFeeWrapped(): bigint {
+    assert(this._bridgeFeeWrapped != null, 'uninitialized access')
+    return this._bridgeFeeWrapped
+  }
+
+  set bridgeFeeWrapped(value: bigint) {
+    this._bridgeFeeWrapped = value
   }
 
   get height(): string {
@@ -46,6 +57,7 @@ export class IssueRequest {
   toJSON(): object {
     return {
       amountWrapped: marshal.bigint.toJSON(this.amountWrapped),
+      bridgeFeeWrapped: marshal.bigint.toJSON(this.bridgeFeeWrapped),
       height: this.height,
       timestamp: marshal.datetime.toJSON(this.timestamp),
     }

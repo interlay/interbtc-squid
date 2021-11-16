@@ -42,7 +42,6 @@ type RelayedBlock @entity {
 type Issue @entity {
     id: ID!
     request: IssueRequest!
-    bridgeFee: BigInt!
     griefingCollateral: BigInt!
     userParachainAddress: String!
     vaultWalletPubkey: String!
@@ -66,6 +65,7 @@ type IssuePayment @entity {
 
 type IssueRequest {
     amountWrapped: BigInt!
+    bridgeFeeWrapped: BigInt!
     height: Height!
     timestamp: DateTime!
 }
@@ -73,6 +73,7 @@ type IssueRequest {
 type IssueExecution @entity {
     issue: Issue! @unique
     amountWrapped: BigInt!
+    bridgeFeeWrapped: BigInt!
     height: Height!
     timestamp: DateTime!
 }
@@ -87,6 +88,7 @@ type IssueCancellation @entity {
 type Refund @entity {
     id: ID!
     issue: Issue! @unique
+    issueID: String! # bootleg way to add a 2-way looking with minimal fuss
     btcAddress: String!
     amountPaid: BigInt!
     btcFee: BigInt!
