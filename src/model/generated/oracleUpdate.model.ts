@@ -1,6 +1,6 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_} from "typeorm"
 import {Height} from "./height.model"
-import {OracleUpdateType} from "./oracleUpdateType"
+import {OracleUpdateType} from "./_oracleUpdateType"
 
 @Entity_()
 export class OracleUpdate {

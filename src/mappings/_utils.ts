@@ -1,5 +1,5 @@
-import { StoreContext } from "@subsquid/hydra-common";
-import { Height, Issue, RelayedBlock } from "../generated/model";
+import { Store } from "@subsquid/substrate-processor";
+import { Height, Issue, RelayedBlock } from "../model";
 import { LessThanOrEqual } from "typeorm";
 
 const issuePeriod = 14400; // TODO: HARDCODED - fetch from chain once event is implemented
@@ -7,7 +7,7 @@ const parachainBlocksPerBitcoinBlock = 100; // TODO: HARDCODED - find better way
 const btcPeriod = Math.ceil(issuePeriod / parachainBlocksPerBitcoinBlock);
 
 export async function blockToHeight(
-    { store }: StoreContext,
+    store: Store,
     absoluteBlock: number,
     eventName = ""
 ): Promise<Height> {
@@ -32,7 +32,7 @@ export async function blockToHeight(
 }
 
 export async function isIssueExpired(
-    { store }: StoreContext,
+    store: Store,
     issue: Issue,
     latestBtcBlock: number,
     latestActiveBlock: number

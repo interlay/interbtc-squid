@@ -1,27 +1,28 @@
-import { EventContext, StoreContext } from "@subsquid/hydra-common";
-import { RelayedBlock } from "../../generated/model/relayedBlock.model";
-import { BTCRelay } from "../../types/BTCRelay";
-import { blockToHeight } from "./../_utils";
+import * as ss58 from "@subsquid/ss58";
+import { EventHandlerContext, toHex } from "@subsquid/substrate-processor";
+import { RelayedBlock } from "../../model";
+import { BtcRelayStoreMainChainHeaderEvent } from "../../types/events";
+import { blockToHeight } from "../_utils";
 
-export async function storeMainChainHeader({
-    store,
-    event,
-    block,
-}: EventContext & StoreContext): Promise<void> {
-    const [backingHeight, blockHash, relayer] =
-        new BTCRelay.StoreMainChainHeaderEvent(event).params;
+export async function storeMainChainHeader(ctx: EventHandlerContext): Promise<void> {
+    // const [backingHeight, blockHash, relayer] =
+    //     new BTCRelay.StoreMainChainHeaderEvent(event).params;
+    const e = new BtcRelayStoreMainChainHeaderEvent(ctx).asLatest
+
     const relayedAtHeight = await blockToHeight(
-        { store },
-        block.height,
+        ctx.store,
+        ctx.block.height,
         "StoreMainChainHeader"
     );
+
     const relayedBlock = new RelayedBlock({
-        id: backingHeight.toString(),
+        id: e.blockHeight.toString(),
         relayedAtHeight,
-        timestamp: new Date(block.timestamp),
-        blockHash: blockHash.toString(),
-        backingHeight: backingHeight.toNumber(),
-        relayer: relayer.toString(),
+        timestamp: new Date(ctx.block.timestamp),
+        blockHash: toHex(e.blockHash.content),
+        backingHeight: e.blockHeight,
+        relayer: ss58.codec(42).encode(e.relayerId),
     });
-    await store.save(relayedBlock);
+
+    await ctx.store.save(relayedBlock);
 }

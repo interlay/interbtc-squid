@@ -1,11 +1,11 @@
-import { BlockContext, StoreContext } from "@subsquid/hydra-common";
-import { Issue, IssueStatus, RelayedBlock } from "../../generated/model";
-import { blockToHeight, isIssueExpired } from "./../_utils";
+import { Store, SubstrateBlock } from "@subsquid/substrate-processor";
+import { Issue, IssueStatus, RelayedBlock } from "../../model";
+import { blockToHeight, isIssueExpired } from "../_utils";
 
-export const findAndUpdateExpiredIssues = async ({
-    store,
-    block,
-}: StoreContext & BlockContext) => {
+export async function findAndUpdateExpiredIssues(
+    store: Store,
+    block: SubstrateBlock
+): Promise<void> {
     const latestBtcBlock = (
         await store.get(RelayedBlock, {
             order: {
@@ -17,34 +17,29 @@ export const findAndUpdateExpiredIssues = async ({
 
     let latestActiveBlock: number;
     try {
-        latestActiveBlock = (await blockToHeight({ store }, block.height))
+        latestActiveBlock = (await blockToHeight(store, block.height))
             .active;
     } catch (e) {
         return; // likely first few blocks, before any active blocks were generated yet
     }
 
-    const pendingIssues = await store.getMany(Issue, {
+    const pendingIssues = await store.find(Issue, {
         where: {
             status: IssueStatus.Pending,
         },
     });
-    const expiredIssues = (
-        await Promise.all(
-            pendingIssues.map(async (issue) => {
-                if (
-                    await isIssueExpired(
-                        { store },
-                        issue,
-                        latestBtcBlock,
-                        latestActiveBlock
-                    )
-                ) {
-                    issue.status = IssueStatus.Expired;
-                }
-                return issue;
-            })
-        )
-    ).filter((issue) => issue.status === IssueStatus.Expired);
 
-    await Promise.all(expiredIssues.map((issue) => store.save(issue)));
+    for (const issue of pendingIssues) {
+        if (
+            await isIssueExpired(
+                store,
+                issue,
+                latestBtcBlock,
+                latestActiveBlock
+            )
+        ) {
+            issue.status = IssueStatus.Expired;
+            await store.save(issue);
+        }
+    }
 };

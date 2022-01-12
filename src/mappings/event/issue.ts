@@ -1,119 +1,115 @@
+import * as ss58 from "@subsquid/ss58";
+import { EventHandlerContext, toHex } from "@subsquid/substrate-processor";
 import Debug from "debug";
-import { EventContext, StoreContext } from "@subsquid/hydra-common";
+import { Issue, IssueCancellation, IssueExecution, IssueRequest, IssueStatus, Refund } from "../../model";
 import {
-    Issue,
-    IssueCancellation,
-    IssueExecution,
-    IssueRequest,
-    IssueStatus,
-    Refund,
-} from "../../generated/model";
-import { Issue as IssueCrate, Refund as RefundCrate } from "../../types";
+    IssueCancelIssueEvent,
+    IssueExecuteIssueEvent,
+    IssueRequestIssueEvent,
+    RefundExecuteRefundEvent,
+    RefundRequestRefundEvent
+} from "../../types/events";
 import { blockToHeight } from "../_utils";
 
 const debug = Debug("interbtc-mappings:issue");
 
-export async function requestIssue({
-    store,
-    event,
-    block,
-}: EventContext & StoreContext): Promise<void> {
-    const [
-        id,
-        userParachainAddress,
-        amountWrapped,
-        bridgeFee,
-        griefingCollateral,
-        vaultParachainAddress,
-        vaultBackingAddress,
-        vaultWalletPubkey,
-    ] = new IssueCrate.RequestIssueEvent(event).params;
+export async function requestIssue(ctx: EventHandlerContext): Promise<void> {
+    // const [
+    //     id,
+    //     userParachainAddress,
+    //     amountWrapped,
+    //     bridgeFee,
+    //     griefingCollateral,
+    //     vaultParachainAddress,
+    //     vaultBackingAddress,
+    //     vaultWalletPubkey,
+    // ] = new IssueCrate.RequestIssueEvent(event).params;
+
+    const e = new IssueRequestIssueEvent(ctx).asLatest;
+
     const issue = new Issue({
-        id: id.toString(),
-        griefingCollateral: griefingCollateral.toBigInt(),
-        userParachainAddress: userParachainAddress.toString(),
-        vaultParachainAddress: vaultParachainAddress.toString(),
-        vaultBackingAddress: vaultBackingAddress.toString(),
-        vaultWalletPubkey: vaultWalletPubkey.toString(),
+        id: toHex(e.issueId),
+        griefingCollateral: e.griefingCollateral,
+        userParachainAddress: ss58.codec(42).encode(e.requester), // TODO: what address format to use here?
+        vaultParachainAddress: ss58.codec(42).encode(e.vaultId.accountId),
+        vaultBackingAddress: ss58.codec(42).encode(e.vaultAddress.value),
+        vaultWalletPubkey: ss58.codec(42).encode(e.vaultPublicKey),
         status: IssueStatus.Pending,
     });
-    const height = await blockToHeight({ store }, block.height, "RequestIssue");
+
+    const height = await blockToHeight(ctx.store, ctx.block.height, "RequestIssue");
 
     issue.request = new IssueRequest({
-        amountWrapped: amountWrapped.toBigInt(),
-        bridgeFeeWrapped: bridgeFee.toBigInt(),
+        amountWrapped: e.amount,
+        bridgeFeeWrapped: e.fee,
         height: height.id,
-        timestamp: new Date(block.timestamp),
+        timestamp: new Date(ctx.block.timestamp),
     });
 
-    await store.save(issue);
+    await ctx.store.save(issue);
 }
 
-export async function executeIssue({
-    store,
-    event,
-    block,
-}: EventContext & StoreContext): Promise<void> {
-    const [
-        id,
-        _userParachainAddress,
-        amountWrapped, // TODO: double-check
-        _vaultParachainAddress,
-        fee,
-    ] = new IssueCrate.ExecuteIssueEvent(event).params;
-    const issue = await store.get(Issue, { where: { id: id.toString() } });
+export async function executeIssue(ctx: EventHandlerContext): Promise<void> {
+    // const [
+    //     id,
+    //     _userParachainAddress,
+    //     amountWrapped, // TODO: double-check
+    //     _vaultParachainAddress,
+    //     fee,
+    // ] = new IssueCrate.ExecuteIssueEvent(event).params;
+    const e = new IssueExecuteIssueEvent(ctx).asLatest
+    const id = toHex(e.issueId)
+
+    const issue = await ctx.store.get(Issue, { where: { id } });
     if (issue === undefined) {
         debug(
             "WARNING: ExecuteIssue event did not match any existing issue requests! Skipping."
         );
         return;
     }
-    const height = await blockToHeight({ store }, block.height, "ExecuteIssue");
+    const height = await blockToHeight(ctx.store, ctx.block.height, "ExecuteIssue");
     const execution = new IssueExecution({
         issue,
-        amountWrapped: amountWrapped.toBigInt() - fee.toBigInt(),
-        bridgeFeeWrapped: fee.toBigInt(),
+        amountWrapped: e.amount - e.fee,
+        bridgeFeeWrapped: e.fee,
         height,
-        timestamp: new Date(block.timestamp),
+        timestamp: new Date(ctx.block.timestamp),
     });
     issue.status = IssueStatus.Completed;
-    await Promise.all([store.save(execution), store.save(issue)]);
+    await ctx.store.save(execution);
+    await ctx.store.save(issue);
 
     // TODO: call out to electrs and get payment info
 }
 
-export async function cancelIssue({
-    store,
-    event,
-    block,
-}: EventContext & StoreContext): Promise<void> {
-    const [id, _userParachainAddress, _griefingCollateral] =
-        new IssueCrate.CancelIssueEvent(event).params;
-    const issue = await store.get(Issue, { where: { id: id.toString() } });
+export async function cancelIssue(ctx: EventHandlerContext): Promise<void> {
+    // const [id, _userParachainAddress, _griefingCollateral] =
+    //     new IssueCrate.CancelIssueEvent(event).params;
+    const e = new IssueCancelIssueEvent(ctx).asLatest
+    const issue = await ctx.store.get(Issue, { where: { id: toHex(e.issueId) } });
     if (issue === undefined) {
         debug(
             "WARNING: CancelIssue event did not match any existing issue requests! Skipping."
         );
         return;
     }
-    const height = await blockToHeight({ store }, block.height, "CancelIssue");
+    const height = await blockToHeight(ctx.store, ctx.block.height, "CancelIssue");
     const cancellation = new IssueCancellation({
         issue,
         height,
-        timestamp: new Date(block.timestamp),
+        timestamp: new Date(ctx.block.timestamp),
     });
     issue.status = IssueStatus.Cancelled;
-    await Promise.all([store.save(cancellation), store.save(issue)]);
+    await ctx.store.save(cancellation)
+    await ctx.store.save(issue)
 }
 
-export async function requestRefund({
-    store,
-    event,
-    block,
-}: EventContext & StoreContext): Promise<void> {
-    const [id, _issuer, amountPaid, _vault, btcAddress, issueId, btcFee] =
-        new RefundCrate.RequestRefundEvent(event).params;
-    const issue = await store.get(Issue, { where: { id: issueId.toString() } });
+export async function requestRefund(ctx: EventHandlerContext): Promise<void> {
+    // const [id, _issuer, amountPaid, _vault, btcAddress, issueId, btcFee] =
+    //     new RefundCrate.RequestRefundEvent(event).params;
+    const e = new RefundRequestRefundEvent(ctx).asLatest
+    const id = toHex(e.refundId)
+    const issue = await ctx.store.get(Issue, { where: { id: toHex(e.issueId) } });
     if (issue === undefined) {
         debug(
             "WARNING: RequestRefund event did not match any existing issue requests! Skipping."
@@ -121,38 +117,36 @@ export async function requestRefund({
         return;
     }
     const height = await blockToHeight(
-        { store },
-        block.height,
+        ctx.store,
+        ctx.block.height,
         "RequestRefund"
     );
     const refund = new Refund({
-        id: id.toString(),
+        id,
         issue,
         issueID: issue.id,
-        btcAddress: btcAddress.toString(),
-        amountPaid: amountPaid.toBigInt(),
-        btcFee: btcFee.toBigInt(),
+        btcAddress: toHex(e.btcAddress.value),
+        amountPaid: e.amount,
+        btcFee: e.fee,
         requestHeight: height,
-        requestTimestamp: new Date(block.timestamp),
+        requestTimestamp: new Date(ctx.block.timestamp),
     });
     issue.status = IssueStatus.RequestedRefund;
-    await Promise.all([store.save(refund), store.save(issue)]);
+    await ctx.store.save(refund);
+    await ctx.store.save(issue);
 }
 
-export async function executeRefund({
-    store,
-    event,
-    block,
-}: EventContext & StoreContext): Promise<void> {
-    const [id] = new RefundCrate.ExecuteRefundEvent(event).params;
-    const refund = await store.get(Refund, { where: { id: id.toString() } });
+export async function executeRefund(ctx: EventHandlerContext): Promise<void> {
+    // const [id] = new RefundCrate.ExecuteRefundEvent(event).params;
+    const e = new RefundExecuteRefundEvent(ctx).asLatest
+    const refund = await ctx.store.get(Refund, { where: { id: toHex(e.refundId) } });
     if (refund === undefined) {
         debug(
             "WARNING: ExecuteRefund event did not match any existing refund requests! Skipping."
         );
         return;
     }
-    const issue = await store.get(Issue, {
+    const issue = await ctx.store.get(Issue, {
         where: { id: refund.issueID },
     });
     if (issue === undefined) {
@@ -161,13 +155,13 @@ export async function executeRefund({
         );
         return;
     }
-    const height = await blockToHeight(
-        { store },
-        block.height,
+    refund.executionHeight = await blockToHeight(
+        ctx.store,
+        ctx.block.height,
         "ExecuteRefund"
     );
-    refund.executionHeight = height;
-    refund.executionTimestamp = new Date(block.timestamp);
+    refund.executionTimestamp = new Date(ctx.block.timestamp);
     issue.status = IssueStatus.Completed;
-    await Promise.all([store.save(refund), store.save(issue)]);
+    await ctx.store.save(refund);
+    await ctx.store.save(issue);
 }
