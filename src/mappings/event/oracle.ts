@@ -20,13 +20,13 @@ export async function feedValues({
     const values = JSON.parse(event.params[1].value as string) as OracleValues;
     console.log("AAAAAAAAAAAAAAAAAAAAAAAAA");
     console.log(JSON.stringify(values));
-    // const height = blockToHeight({ store }, block.height, "FeedValues");
-    // const updateEntities = updates.map((update) => {
-    //     console.log(update);
-    //     // const key =
-    //     // new OracleUpdate({
-    //     //     id: `${oracleId}${block.height}`
-    //     // })
-    //     return;
-    // });
+    const height = blockToHeight({ store }, block.height, "FeedValues");
+    const updateEntities = updates.map((update) => {
+        console.log(update);
+        // const key =
+        // new OracleUpdate({
+        //     id: `${oracleId}${block.height}`
+        // })
+        return;
+    });
 }

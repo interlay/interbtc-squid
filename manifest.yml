@@ -4,7 +4,7 @@ repository: https://github.com/
 
 typegen:
   metadata:
-    source: ./parachain.json
+    source: ./node_modules/@interlay/interbtc-api/src/json/parachain.json
   events:
     - bTCRelay.StoreMainChainHeader # wtf casing
     - issue.RequestIssue
