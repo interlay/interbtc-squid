@@ -1,6 +1,8 @@
-import { Store } from "@subsquid/substrate-processor";
+import * as ss58 from "@subsquid/ss58";
+import { Store, toHex } from "@subsquid/substrate-processor";
 import { Height, Issue, RelayedBlock } from "../model";
 import { LessThanOrEqual } from "typeorm";
+import { Address } from "../types/v1";
 
 const issuePeriod = 14400; // TODO: HARDCODED - fetch from chain once event is implemented
 const parachainBlocksPerBitcoinBlock = 100; // TODO: HARDCODED - find better way to set?
@@ -59,3 +61,12 @@ export async function isIssueExpired(
         requestHeight.active + issuePeriod < latestActiveBlock
     );
 }
+
+export const address = {
+    interlay: ss58.codec('interlay'),
+    btc: {
+        encode(address: Address): string {
+            return toHex(address.value)
+        }
+    }
+};

@@ -42,4 +42,4 @@ export async function findAndUpdateExpiredIssues(
             await store.save(issue);
         }
     }
-};
+}

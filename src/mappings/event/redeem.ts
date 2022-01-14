@@ -1,15 +1,8 @@
-import * as ss58 from "@subsquid/ss58"
 import { EventHandlerContext, toHex } from "@subsquid/substrate-processor";
 import Debug from "debug";
-import {
-    Redeem,
-    RedeemCancellation,
-    RedeemExecution,
-    RedeemRequest,
-    RedeemStatus,
-} from "../../model";
+import { Redeem, RedeemCancellation, RedeemExecution, RedeemRequest, RedeemStatus } from "../../model";
 import { RedeemCancelRedeemEvent, RedeemExecuteRedeemEvent, RedeemRequestRedeemEvent } from "../../types/events";
-import { blockToHeight } from "../_utils";
+import { address, blockToHeight } from "../_utils";
 
 const debug = Debug("interbtc-mappings:redeem");
 
@@ -30,9 +23,9 @@ export async function requestRedeem(ctx: EventHandlerContext): Promise<void> {
         id: toHex(e.redeemId),
         bridgeFee: e.fee,
         collateralPremium: e.premium,
-        userParachainAddress: ss58.codec(42).encode(e.redeemer),
-        vaultParachainAddress: ss58.codec(42).encode(e.vaultId.accountId),
-        userBackingAddress: toHex(e.btcAddress.value),
+        userParachainAddress: address.interlay.encode(e.redeemer),
+        vaultParachainAddress: address.interlay.encode(e.vaultId.accountId),
+        userBackingAddress: address.btc.encode(e.btcAddress),
         btcTransferFee: e.transferFee,
         status: RedeemStatus.Pending,
     });

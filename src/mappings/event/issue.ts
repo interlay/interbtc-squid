@@ -1,4 +1,3 @@
-import * as ss58 from "@subsquid/ss58";
 import { EventHandlerContext, toHex } from "@subsquid/substrate-processor";
 import Debug from "debug";
 import { Issue, IssueCancellation, IssueExecution, IssueRequest, IssueStatus, Refund } from "../../model";
@@ -9,7 +8,7 @@ import {
     RefundExecuteRefundEvent,
     RefundRequestRefundEvent
 } from "../../types/events";
-import { blockToHeight } from "../_utils";
+import { address, blockToHeight } from "../_utils";
 
 const debug = Debug("interbtc-mappings:issue");
 
@@ -30,10 +29,10 @@ export async function requestIssue(ctx: EventHandlerContext): Promise<void> {
     const issue = new Issue({
         id: toHex(e.issueId),
         griefingCollateral: e.griefingCollateral,
-        userParachainAddress: ss58.codec(42).encode(e.requester), // TODO: what address format to use here?
-        vaultParachainAddress: ss58.codec(42).encode(e.vaultId.accountId),
-        vaultBackingAddress: ss58.codec(42).encode(e.vaultAddress.value),
-        vaultWalletPubkey: ss58.codec(42).encode(e.vaultPublicKey),
+        userParachainAddress: address.interlay.encode(e.requester),
+        vaultParachainAddress: address.interlay.encode(e.vaultId.accountId),
+        vaultBackingAddress: address.interlay.encode(e.vaultAddress.value),
+        vaultWalletPubkey: toHex(e.vaultPublicKey),
         status: IssueStatus.Pending,
     });
 
@@ -125,7 +124,7 @@ export async function requestRefund(ctx: EventHandlerContext): Promise<void> {
         id,
         issue,
         issueID: issue.id,
-        btcAddress: toHex(e.btcAddress.value),
+        btcAddress: address.btc.encode(e.btcAddress),
         amountPaid: e.amount,
         btcFee: e.fee,
         requestHeight: height,

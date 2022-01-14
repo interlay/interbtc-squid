@@ -1,8 +1,7 @@
-import * as ss58 from "@subsquid/ss58";
 import { EventHandlerContext, toHex } from "@subsquid/substrate-processor";
 import { RelayedBlock } from "../../model";
 import { BtcRelayStoreMainChainHeaderEvent } from "../../types/events";
-import { blockToHeight } from "../_utils";
+import { address, blockToHeight } from "../_utils";
 
 export async function storeMainChainHeader(ctx: EventHandlerContext): Promise<void> {
     // const [backingHeight, blockHash, relayer] =
@@ -21,7 +20,7 @@ export async function storeMainChainHeader(ctx: EventHandlerContext): Promise<vo
         timestamp: new Date(ctx.block.timestamp),
         blockHash: toHex(e.blockHash.content),
         backingHeight: e.blockHeight,
-        relayer: ss58.codec(42).encode(e.relayerId),
+        relayer: address.interlay.encode(e.relayerId),
     });
 
     await ctx.store.save(relayedBlock);
