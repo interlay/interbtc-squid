@@ -755,10 +755,10 @@
   dependencies:
     websocket "^1.0.34"
 
-"@subsquid/scale-codec-json@^0.0.2":
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/@subsquid/scale-codec-json/-/scale-codec-json-0.0.2.tgz#35fdf4b87f1e0ca8ab2134cf8b0871d6d2e67093"
-  integrity sha512-t+RgoPQAwIvzTs/IJe5xue4BKdO9X6ouD0T6wuwXivfpZYkmGhvsCmRxXamuxlMDNeDPLrXnbwo273pbrNGKew==
+"@subsquid/scale-codec-json@^0.0.3":
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/@subsquid/scale-codec-json/-/scale-codec-json-0.0.3.tgz#7558adf020d5de9682b3cf5122e70c5bfe55edd6"
+  integrity sha512-zE2F+HlDySSOQsbv4ohNVw5P1+vtIdRxve13PdPGZboaWHMqG5aJYGJ+1ZgKR6bvH1R038ciE8eIHKvOvhc43Q==
   dependencies:
     "@subsquid/scale-codec" "^0.2.0"
     "@subsquid/ss58-codec" "^0.0.0"
@@ -803,13 +803,13 @@
     "@subsquid/scale-codec" "^0.2.0"
     "@subsquid/util" "^0.0.1"
 
-"@subsquid/substrate-processor@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@subsquid/substrate-processor/-/substrate-processor-0.2.0.tgz#1f31cdb25152e92c3822ddaeb6266bc55fd35660"
-  integrity sha512-uGG1OJNDXcdPuFpQu8kwoib+0k+mgfCbE/Rql2Coo/gLnhQWI5NaZ24nDeY7Oe0/UqnMrx8Y+fG2imdth3X7ZQ==
+"@subsquid/substrate-processor@^0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@subsquid/substrate-processor/-/substrate-processor-0.2.1.tgz#12e6d3534c36b612879b6dcbeb411a097c0de4e1"
+  integrity sha512-4+dR5zgDgjvonztaR+zgZ1egcHumtvpbYoDPy6gufcrUAnXF/HmWC3wfBwDssQ/zyE511yUjoe4fzOv5HLp3KQ==
   dependencies:
     "@subsquid/rpc-client" "^0.1.0"
-    "@subsquid/scale-codec-json" "^0.0.2"
+    "@subsquid/scale-codec-json" "^0.0.3"
     "@subsquid/substrate-metadata" "^0.1.0"
     "@subsquid/typeorm-config" "^0.0.1"
     "@subsquid/util" "^0.0.1"
