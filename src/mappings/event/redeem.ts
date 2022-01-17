@@ -1,60 +1,48 @@
+import { EventHandlerContext, toHex } from "@subsquid/substrate-processor";
 import Debug from "debug";
-import { EventContext, StoreContext } from "@subsquid/hydra-common";
-import {
-    Redeem,
-    RedeemCancellation,
-    RedeemExecution,
-    RedeemRequest,
-    RedeemStatus,
-} from "../../generated/model";
-import { Redeem as RedeemCrate } from "../../types";
-import { blockToHeight } from "../_utils";
+import { Redeem, RedeemCancellation, RedeemExecution, RedeemRequest, RedeemStatus } from "../../model";
+import { RedeemCancelRedeemEvent, RedeemExecuteRedeemEvent, RedeemRequestRedeemEvent } from "../../types/events";
+import { address, blockToHeight } from "../_utils";
 
 const debug = Debug("interbtc-mappings:redeem");
 
-export async function requestRedeem({
-    store,
-    event,
-    block,
-}: EventContext & StoreContext): Promise<void> {
-    const [
-        id,
-        userParachainAddress,
-        requestedAmountBacking,
-        bridgeFee,
-        collateralPremium,
-        vaultParachainAddress,
-        userBackingAddress,
-        btcTransferFee,
-    ] = new RedeemCrate.RequestRedeemEvent(event).params;
+export async function requestRedeem(ctx: EventHandlerContext): Promise<void> {
+    // const [
+    //     id,
+    //     userParachainAddress,
+    //     requestedAmountBacking,
+    //     bridgeFee,
+    //     collateralPremium,
+    //     vaultParachainAddress,
+    //     userBackingAddress,
+    //     btcTransferFee,
+    // ] = new RedeemCrate.RequestRedeemEvent(event).params;
+    const e = new RedeemRequestRedeemEvent(ctx).asLatest
+
     const redeem = new Redeem({
-        id: id.toString(),
-        bridgeFee: bridgeFee.toBigInt(),
-        collateralPremium: collateralPremium.toBigInt(),
-        userParachainAddress: userParachainAddress.toString(),
-        vaultParachainAddress: vaultParachainAddress.toString(),
-        userBackingAddress: userBackingAddress.toString(),
-        btcTransferFee: btcTransferFee.toBigInt(),
+        id: toHex(e.redeemId),
+        bridgeFee: e.fee,
+        collateralPremium: e.premium,
+        userParachainAddress: address.interlay.encode(e.redeemer),
+        vaultParachainAddress: address.interlay.encode(e.vaultId.accountId),
+        userBackingAddress: address.btc.encode(e.btcAddress),
+        btcTransferFee: e.transferFee,
         status: RedeemStatus.Pending,
     });
-    const height = await blockToHeight({ store }, block.height, "RequestIssue");
+    const height = await blockToHeight(ctx.store, ctx.block.height, "RequestIssue");
 
     redeem.request = new RedeemRequest({
-        requestedAmountBacking: requestedAmountBacking.toBigInt(),
+        requestedAmountBacking: e.amount,
         height: height.id,
-        timestamp: new Date(block.timestamp),
+        timestamp: new Date(ctx.block.timestamp),
     });
 
-    await store.save(redeem);
+    await ctx.store.save(redeem);
 }
 
-export async function executeRedeem({
-    store,
-    event,
-    block,
-}: EventContext & StoreContext): Promise<void> {
-    const [id] = new RedeemCrate.ExecuteRedeemEvent(event).params;
-    const redeem = await store.get(Redeem, { where: { id: id.toString() } });
+export async function executeRedeem(ctx: EventHandlerContext): Promise<void> {
+    const e = new RedeemExecuteRedeemEvent(ctx).asLatest;
+    const redeem = await ctx.store.get(Redeem, { where: { id: toHex(e.redeemId) } });
     if (redeem === undefined) {
         debug(
             "WARNING: ExecuteRedeem event did not match any existing redeem requests! Skipping."
@@ -62,50 +50,49 @@ export async function executeRedeem({
         return;
     }
     const height = await blockToHeight(
-        { store },
-        block.height,
+        ctx.store,
+        ctx.block.height,
         "ExecuteRedeem"
     );
     const execution = new RedeemExecution({
         redeem,
         height,
-        timestamp: new Date(block.timestamp),
+        timestamp: new Date(ctx.block.timestamp),
     });
     redeem.status = RedeemStatus.Completed;
-    await Promise.all([store.save(execution), store.save(redeem)]);
+    await ctx.store.save(execution);
+    await ctx.store.save(redeem);
 
     // TODO: call out to electrs and get payment info
 }
 
-export async function cancelRedeem({
-    store,
-    event,
-    block,
-}: EventContext & StoreContext): Promise<void> {
-    const [
-        id,
-        _userParachainAddress,
-        _vaultParachainAddress,
-        slashedCollateral,
-        newStatus,
-    ] = new RedeemCrate.CancelRedeemEvent(event).params;
-    const redeem = await store.get(Redeem, { where: { id: id.toString() } });
+export async function cancelRedeem(ctx: EventHandlerContext): Promise<void> {
+    // const [
+    //     id,
+    //     _userParachainAddress,
+    //     _vaultParachainAddress,
+    //     slashedCollateral,
+    //     newStatus,
+    // ] = new RedeemCrate.CancelRedeemEvent(event).params;
+    const e = new RedeemCancelRedeemEvent(ctx).asLatest
+    const redeem = await ctx.store.get(Redeem, { where: { id: toHex(e.redeemId) } });
     if (redeem === undefined) {
         debug(
             "WARNING: CancelRedeem event did not match any existing redeem requests! Skipping."
         );
         return;
     }
-    const height = await blockToHeight({ store }, block.height, "CancelIssue");
+    const height = await blockToHeight(ctx.store, ctx.block.height, "CancelIssue");
     const cancellation = new RedeemCancellation({
         redeem,
         height,
-        timestamp: new Date(block.timestamp),
-        slashedCollateral: slashedCollateral.toBigInt(),
-        reimbursed: newStatus.isReimbursed,
+        timestamp: new Date(ctx.block.timestamp),
+        slashedCollateral: e.slashedAmount,
+        reimbursed: e.status.__kind === 'Reimbursed',
     });
-    redeem.status = newStatus.isReimbursed
+    redeem.status = e.status.__kind === 'Reimbursed'
         ? RedeemStatus.Reimbursed
         : RedeemStatus.Retried;
-    await Promise.all([store.save(cancellation), store.save(redeem)]);
+    await ctx.store.save(cancellation);
+    await ctx.store.save(redeem);
 }

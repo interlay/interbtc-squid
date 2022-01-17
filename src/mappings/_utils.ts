@@ -1,13 +1,15 @@
-import { StoreContext } from "@subsquid/hydra-common";
-import { Height, Issue, RelayedBlock } from "../generated/model";
+import * as ss58 from "@subsquid/ss58";
+import { Store, toHex } from "@subsquid/substrate-processor";
+import { Height, Issue, RelayedBlock } from "../model";
 import { LessThanOrEqual } from "typeorm";
+import { Address } from "../types/v1";
 
 const issuePeriod = 14400; // TODO: HARDCODED - fetch from chain once event is implemented
 const parachainBlocksPerBitcoinBlock = 100; // TODO: HARDCODED - find better way to set?
 const btcPeriod = Math.ceil(issuePeriod / parachainBlocksPerBitcoinBlock);
 
 export async function blockToHeight(
-    { store }: StoreContext,
+    store: Store,
     absoluteBlock: number,
     eventName = ""
 ): Promise<Height> {
@@ -32,7 +34,7 @@ export async function blockToHeight(
 }
 
 export async function isIssueExpired(
-    { store }: StoreContext,
+    store: Store,
     issue: Issue,
     latestBtcBlock: number,
     latestActiveBlock: number
@@ -59,3 +61,12 @@ export async function isIssueExpired(
         requestHeight.active + issuePeriod < latestActiveBlock
     );
 }
+
+export const address = {
+    interlay: ss58.codec('interlay'),
+    btc: {
+        encode(address: Address): string {
+            return toHex(address.value)
+        }
+    }
+};

@@ -33,7 +33,7 @@ services:
    #
      - TYPES_JSON=/types.json
    volumes:
-     - ${PWD}/types.json:/types.json
+     - ./types.json:/types.json
 
    depends_on:
      - hydra-db

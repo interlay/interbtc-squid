@@ -1,3 +1,10 @@
 const fs = require("fs");
 const definitions = require("@interlay/interbtc-types").default
-fs.writeFileSync('./indexer/types.json', JSON.stringify(definitions.types[0].types, null, 4));
+const types = definitions.types[0].types
+
+writeJson('./indexer/types.json', types);
+writeJson('./indexer/typesBundle.json', {types})
+
+function writeJson(file, obj) {
+    fs.writeFileSync(file, JSON.stringify(obj, null, 2));
+}

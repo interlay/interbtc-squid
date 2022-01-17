@@ -1,17 +1,15 @@
-import { EventContext, StoreContext } from "@subsquid/hydra-common";
-import { Security } from "../../types";
-import { Height } from "../../generated/model";
+import { EventHandlerContext } from "@subsquid/substrate-processor";
+import { Height } from "../../model";
+import { SecurityUpdateActiveBlockEvent } from "../../types/events";
 
-export async function updateActiveBlock({
-    store,
-    event,
-    block,
-}: EventContext & StoreContext): Promise<void> {
-    const [blockNumber] = new Security.UpdateActiveBlockEvent(event).params;
+export async function updateActiveBlock(ctx: EventHandlerContext): Promise<void> {
+    const e = new SecurityUpdateActiveBlockEvent(ctx).asLatest;
+
     const newHeight = new Height({
-        id: block.height.toString(),
-        absolute: block.height,
-        active: blockNumber.toNumber(),
+        id: e.blockNumber.toString(),
+        absolute: ctx.block.height,
+        active: e.blockNumber,
     });
-    await store.save(newHeight);
+
+    await ctx.store.save(newHeight);
 }

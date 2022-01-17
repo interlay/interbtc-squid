@@ -1,0 +1,20 @@
+{
+    "outDir": "src/types",
+    "chainVersions": "indexer/chainVersions.json",
+    "typesBundle": "indexer/typesBundle.json",
+    "events": [
+        "btcRelay.StoreMainChainHeader",
+        "issue.CancelIssue",
+        "issue.ExecuteIssue",
+        "issue.RequestIssue",
+        "oracle.FeedValues",
+        "redeem.CancelRedeem",
+        "redeem.ExecuteRedeem",
+        "redeem.RequestRedeem",
+        "refund.ExecuteRefund",
+        "refund.RequestRefund",
+        "security.UpdateActiveBlock",
+        "vaultRegistry.RegisterVault"
+    ],
+    "calls": []
+}

@@ -1,8 +1,8 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, OneToOne as OneToOne_} from "typeorm"
-import * as marshal from "../marshal"
-import {RedeemRequest} from "./redeemRequest"
+import * as marshal from "./marshal"
+import {RedeemRequest} from "./_redeemRequest"
 import {RedeemPayment} from "./redeemPayment.model"
-import {RedeemStatus} from "./redeemStatus"
+import {RedeemStatus} from "./_redeemStatus"
 import {RedeemExecution} from "./redeemExecution.model"
 import {RedeemCancellation} from "./redeemCancellation.model"
 
