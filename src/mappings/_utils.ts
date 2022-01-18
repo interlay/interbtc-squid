@@ -13,23 +13,27 @@ export async function blockToHeight(
     absoluteBlock: number,
     eventName = ""
 ): Promise<Height> {
+    const createPlusSave = async (absolute: number, active: number) => {
+        const height = new Height({ id: absolute.toString(), absolute, active });
+        await store.save(height);
+        return height;
+    };
+
+    if (absoluteBlock === 1) {
+        return createPlusSave(1, 1);
+    }
+
     const height = await store.get(Height, {
         where: { absolute: LessThanOrEqual(absoluteBlock) },
         order: { active: "DESC" },
     });
     if (height === undefined)
-        throw new Error(
-            `Did not find Height entity for absolute block ${absoluteBlock} while processing ${eventName}; this should never happen, unless the parachain has not produced a single active block yet!`
-        );
+        throw new Error(`Did not find Height entity for absolute block ${absoluteBlock} while processing ${eventName}; this should never happen!`);
+
     if (height.absolute === absoluteBlock) {
         return height;
     } else {
-        const lazyBackfill = new Height({
-            absolute: absoluteBlock,
-            active: height.active,
-        });
-        await store.save(lazyBackfill);
-        return lazyBackfill;
+        return createPlusSave(absoluteBlock, height.active);
     }
 }
 
@@ -63,10 +67,10 @@ export async function isIssueExpired(
 }
 
 export const address = {
-    interlay: ss58.codec('interlay'),
+    interlay: ss58.codec("substrate"),
     btc: {
         encode(address: Address): string {
-            return toHex(address.value)
-        }
-    }
+            return toHex(address.value);
+        },
+    },
 };

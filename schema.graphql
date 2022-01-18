@@ -153,5 +153,5 @@ type OracleUpdate @entity {
     oracleId: String!
     type: OracleUpdateType!
     typeKey: String
-    updateValue: String!
+    updateValue: BigInt!
 }

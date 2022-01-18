@@ -6,7 +6,7 @@ export async function updateActiveBlock(ctx: EventHandlerContext): Promise<void>
     const e = new SecurityUpdateActiveBlockEvent(ctx).asLatest;
 
     const newHeight = new Height({
-        id: e.blockNumber.toString(),
+        id: ctx.block.height.toString(),
         absolute: ctx.block.height,
         active: e.blockNumber,
     });

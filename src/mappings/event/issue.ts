@@ -13,17 +13,6 @@ import { address, blockToHeight } from "../_utils";
 const debug = Debug("interbtc-mappings:issue");
 
 export async function requestIssue(ctx: EventHandlerContext): Promise<void> {
-    // const [
-    //     id,
-    //     userParachainAddress,
-    //     amountWrapped,
-    //     bridgeFee,
-    //     griefingCollateral,
-    //     vaultParachainAddress,
-    //     vaultBackingAddress,
-    //     vaultWalletPubkey,
-    // ] = new IssueCrate.RequestIssueEvent(event).params;
-
     const e = new IssueRequestIssueEvent(ctx).asLatest;
 
     const issue = new Issue({
