@@ -31,7 +31,7 @@ export async function requestIssue(ctx: EventHandlerContext): Promise<void> {
         griefingCollateral: e.griefingCollateral,
         userParachainAddress: address.interlay.encode(e.requester),
         vaultParachainAddress: address.interlay.encode(e.vaultId.accountId),
-        vaultBackingAddress: address.interlay.encode(e.vaultAddress.value),
+        vaultBackingAddress: address.btc.encode(e.vaultAddress),
         vaultWalletPubkey: toHex(e.vaultPublicKey),
         status: IssueStatus.Pending,
     });
