@@ -1,5 +1,5 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, OneToOne as OneToOne_, Index as Index_, JoinColumn as JoinColumn_, ManyToOne as ManyToOne_} from "typeorm"
-import * as marshal from "../marshal"
+import * as marshal from "./marshal"
 import {Redeem} from "./redeem.model"
 import {Height} from "./height.model"
 

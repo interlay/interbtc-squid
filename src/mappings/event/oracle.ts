@@ -1,32 +1,26 @@
-import { EventContext, StoreContext } from "@subsquid/hydra-common";
-import { OracleUpdate, Vault } from "../../generated/model";
-import { blockToHeight } from "../_utils";
-import {create} from "../../types/_registry";
+import { EventHandlerContext } from "@subsquid/substrate-processor";
+import {OracleUpdate, OracleUpdateType} from "../../model";
+import { OracleFeedValuesEvent } from "../../types/events";
+import { address, blockToHeight } from "../_utils";
 
-type OracleValues = [
-    {
-        feeEstimation?: any,
-        exchangeRate?: string
-    },
-    string
-][]
-
-export async function feedValues({
-    store,
-    event,
-    block,
-}: EventContext & StoreContext): Promise<void> {
-    const oracleId = create('AccountId', event.params[0].value).toString();
-    const values = JSON.parse(event.params[1].value as string) as OracleValues;
-    console.log("AAAAAAAAAAAAAAAAAAAAAAAAA");
-    console.log(JSON.stringify(values));
-    // const height = blockToHeight({ store }, block.height, "FeedValues");
-    // const updateEntities = updates.map((update) => {
-    //     console.log(update);
-    //     // const key =
-    //     // new OracleUpdate({
-    //     //     id: `${oracleId}${block.height}`
-    //     // })
-    //     return;
-    // });
+export async function feedValues(ctx: EventHandlerContext): Promise<void> {
+    const e = new OracleFeedValuesEvent(ctx).asLatest;
+    for (const [key, value] of e.values) {
+        const height = await blockToHeight(ctx.store, ctx.block.height, "FeedValues");
+        const oracleAddress = address.interlay.encode(e.oracleId);
+        const update = new OracleUpdate({
+            height,
+            timestamp: new Date(ctx.block.timestamp),
+            oracleId: oracleAddress,
+            type: OracleUpdateType[key.__kind],
+            updateValue: value,
+        });
+        let keyToString = key.__kind.toString();
+        if (key.__kind === 'ExchangeRate') {
+            update.typeKey = key.value.value.__kind;
+            keyToString += key.value.value.__kind;
+        }
+        update.id = oracleAddress + height.absolute.toString() + keyToString;
+        await ctx.store.save(update);
+    }
 }

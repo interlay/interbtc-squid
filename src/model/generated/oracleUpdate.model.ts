@@ -1,6 +1,7 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_} from "typeorm"
+import * as marshal from "./marshal"
 import {Height} from "./height.model"
-import {OracleUpdateType} from "./oracleUpdateType"
+import {OracleUpdateType} from "./_oracleUpdateType"
 
 @Entity_()
 export class OracleUpdate {
@@ -27,6 +28,6 @@ export class OracleUpdate {
   @Column_("text", {nullable: true})
   typeKey!: string | undefined | null
 
-  @Column_("text", {nullable: false})
-  updateValue!: string
+  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+  updateValue!: bigint
 }

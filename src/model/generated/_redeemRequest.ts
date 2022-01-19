@@ -1,5 +1,5 @@
 import assert from "assert"
-import * as marshal from "../marshal"
+import * as marshal from "./marshal"
 import {Height} from "./height.model"
 
 export class RedeemRequest {

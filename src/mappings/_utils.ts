@@ -1,38 +1,44 @@
-import { StoreContext } from "@subsquid/hydra-common";
-import { Height, Issue, RelayedBlock } from "../generated/model";
+import * as ss58 from "@subsquid/ss58";
+import { Store, toHex } from "@subsquid/substrate-processor";
+import { Height, Issue, RelayedBlock } from "../model";
 import { LessThanOrEqual } from "typeorm";
+import { Address } from "../types/v1";
 
 const issuePeriod = 14400; // TODO: HARDCODED - fetch from chain once event is implemented
 const parachainBlocksPerBitcoinBlock = 100; // TODO: HARDCODED - find better way to set?
 const btcPeriod = Math.ceil(issuePeriod / parachainBlocksPerBitcoinBlock);
 
 export async function blockToHeight(
-    { store }: StoreContext,
+    store: Store,
     absoluteBlock: number,
     eventName = ""
 ): Promise<Height> {
+    const createPlusSave = async (absolute: number, active: number) => {
+        const height = new Height({ id: absolute.toString(), absolute, active });
+        await store.save(height);
+        return height;
+    };
+
+    if (absoluteBlock === 1) {
+        return createPlusSave(1, 1);
+    }
+
     const height = await store.get(Height, {
         where: { absolute: LessThanOrEqual(absoluteBlock) },
         order: { active: "DESC" },
     });
     if (height === undefined)
-        throw new Error(
-            `Did not find Height entity for absolute block ${absoluteBlock} while processing ${eventName}; this should never happen, unless the parachain has not produced a single active block yet!`
-        );
+        throw new Error(`Did not find Height entity for absolute block ${absoluteBlock} while processing ${eventName}; this should never happen!`);
+
     if (height.absolute === absoluteBlock) {
         return height;
     } else {
-        const lazyBackfill = new Height({
-            absolute: absoluteBlock,
-            active: height.active,
-        });
-        await store.save(lazyBackfill);
-        return lazyBackfill;
+        return createPlusSave(absoluteBlock, height.active);
     }
 }
 
 export async function isIssueExpired(
-    { store }: StoreContext,
+    store: Store,
     issue: Issue,
     latestBtcBlock: number,
     latestActiveBlock: number
@@ -59,3 +65,12 @@ export async function isIssueExpired(
         requestHeight.active + issuePeriod < latestActiveBlock
     );
 }
+
+export const address = {
+    interlay: ss58.codec("substrate"),
+    btc: {
+        encode(address: Address): string {
+            return toHex(address.value);
+        },
+    },
+};

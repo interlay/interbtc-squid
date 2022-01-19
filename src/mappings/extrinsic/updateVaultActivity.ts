@@ -1,13 +1,12 @@
-import { ExtrinsicContext, StoreContext } from "@subsquid/hydra-common";
-import { Vault } from "../../generated/model";
+import { ExtrinsicHandlerContext } from "@subsquid/substrate-processor/lib/interfaces/handlerContext";
+import { Vault } from "../../model";
 import { blockToHeight } from "../_utils";
 
 export async function updateVaultActivity({
     store,
-    event: _event,
     extrinsic,
-    block,
-}: StoreContext & ExtrinsicContext): Promise<void> {
+    block
+}: ExtrinsicHandlerContext): Promise<void> {
     const vault = await store.get(Vault, { where: { id: extrinsic.signer } });
     if (vault === undefined) {
         console.info(
@@ -15,11 +14,10 @@ export async function updateVaultActivity({
         );
         return;
     }
-    const height = await blockToHeight(
-        { store },
+    vault.lastActivity = await blockToHeight(
+        store,
         block.height,
         extrinsic.method
     );
-    vault.lastActivity = height;
     await store.save(vault);
 }

@@ -1,0 +1,53 @@
+{
+  "types": {
+    "BalanceWrapper": {
+      "currencyId": "CurrencyId",
+      "amount": "i128"
+    },
+    "CurrencyId": {
+      "_enum": {
+        "Token": "TokenSymbol"
+      }
+    },
+    "InterbtcPrimitivesCurrencyId": {
+      "_enum": {
+        "Token": "InterbtcPrimitivesTokenSymbol"
+      }
+    },
+    "FundAccountJsonRpcRequest": {
+      "account_id": "AccountId",
+      "currency_id": "InterbtcPrimitivesCurrencyId"
+    },
+    "H256Le": "H256",
+    "SignedFixedPoint": "FixedU128",
+    "TokenSymbol": {
+      "_enum": {
+        "DOT": 0,
+        "INTERBTC": 1,
+        "INTR": 2,
+        "KSM": 10,
+        "KBTC": 11,
+        "KINT": 12
+      }
+    },
+    "InterbtcPrimitivesTokenSymbol": {
+      "_enum": {
+        "DOT": 0,
+        "INTERBTC": 1,
+        "INTR": 2,
+        "KSM": 10,
+        "KBTC": 11,
+        "KINT": 12
+      }
+    },
+    "UnsignedFixedPoint": "FixedU128",
+    "VaultCurrencyPair": {
+      "collateral": "CurrencyId",
+      "wrapped": "CurrencyId"
+    },
+    "VaultId": {
+      "account_id": "AccountId",
+      "currencies": "VaultCurrencyPair"
+    }
+  }
+}
