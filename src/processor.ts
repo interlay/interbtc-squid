@@ -7,7 +7,7 @@ import {
     executeRedeem,
     executeRefund,
     feedValues,
-    postBlockHook,
+    findAndUpdateExpiredIssues,
     registerVault,
     requestIssue,
     requestRedeem,
@@ -43,6 +43,6 @@ processor.addExtrinsicHandler('relay.store_block_header', {
     triggerEvents: ['system.ExtrinsicSuccess', 'system.ExtrinsicFailure']
 }, updateVaultActivity);
 
-processor.addPostHook(postBlockHook);
+processor.addPostHook(findAndUpdateExpiredIssues);
 
 processor.run();

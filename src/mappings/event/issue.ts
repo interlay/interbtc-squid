@@ -1,31 +1,44 @@
 import { EventHandlerContext, toHex } from "@subsquid/substrate-processor";
 import Debug from "debug";
-import { Issue, IssueCancellation, IssueExecution, IssueRequest, IssueStatus, Refund } from "../../model";
+import {
+    Issue,
+    IssueCancellation,
+    IssueExecution,
+    IssueRequest,
+    IssueStatus,
+    Refund,
+} from "../../model";
 import {
     IssueCancelIssueEvent,
     IssueExecuteIssueEvent,
     IssueRequestIssueEvent,
     RefundExecuteRefundEvent,
-    RefundRequestRefundEvent
+    RefundRequestRefundEvent,
 } from "../../types/events";
-import { address, blockToHeight } from "../_utils";
+import { address } from "../encoding";
+import { blockToHeight, getVaultId } from "../_utils";
 
 const debug = Debug("interbtc-mappings:issue");
 
 export async function requestIssue(ctx: EventHandlerContext): Promise<void> {
     const e = new IssueRequestIssueEvent(ctx).asLatest;
 
+    const vaultId = await getVaultId(ctx.store, e.vaultId);
     const issue = new Issue({
         id: toHex(e.issueId),
         griefingCollateral: e.griefingCollateral,
         userParachainAddress: address.interlay.encode(e.requester),
-        vaultParachainAddress: address.interlay.encode(e.vaultId.accountId),
+        vault: vaultId,
         vaultBackingAddress: address.btc.encode(e.vaultAddress),
         vaultWalletPubkey: toHex(e.vaultPublicKey),
         status: IssueStatus.Pending,
     });
 
-    const height = await blockToHeight(ctx.store, ctx.block.height, "RequestIssue");
+    const height = await blockToHeight(
+        ctx.store,
+        ctx.block.height,
+        "RequestIssue"
+    );
 
     issue.request = new IssueRequest({
         amountWrapped: e.amount,
@@ -45,8 +58,8 @@ export async function executeIssue(ctx: EventHandlerContext): Promise<void> {
     //     _vaultParachainAddress,
     //     fee,
     // ] = new IssueCrate.ExecuteIssueEvent(event).params;
-    const e = new IssueExecuteIssueEvent(ctx).asLatest
-    const id = toHex(e.issueId)
+    const e = new IssueExecuteIssueEvent(ctx).asLatest;
+    const id = toHex(e.issueId);
 
     const issue = await ctx.store.get(Issue, { where: { id } });
     if (issue === undefined) {
@@ -55,8 +68,13 @@ export async function executeIssue(ctx: EventHandlerContext): Promise<void> {
         );
         return;
     }
-    const height = await blockToHeight(ctx.store, ctx.block.height, "ExecuteIssue");
+    const height = await blockToHeight(
+        ctx.store,
+        ctx.block.height,
+        "ExecuteIssue"
+    );
     const execution = new IssueExecution({
+        id: issue.id,
         issue,
         amountWrapped: e.amount - e.fee,
         bridgeFeeWrapped: e.fee,
@@ -73,31 +91,40 @@ export async function executeIssue(ctx: EventHandlerContext): Promise<void> {
 export async function cancelIssue(ctx: EventHandlerContext): Promise<void> {
     // const [id, _userParachainAddress, _griefingCollateral] =
     //     new IssueCrate.CancelIssueEvent(event).params;
-    const e = new IssueCancelIssueEvent(ctx).asLatest
-    const issue = await ctx.store.get(Issue, { where: { id: toHex(e.issueId) } });
+    const e = new IssueCancelIssueEvent(ctx).asLatest;
+    const issue = await ctx.store.get(Issue, {
+        where: { id: toHex(e.issueId) },
+    });
     if (issue === undefined) {
         debug(
             "WARNING: CancelIssue event did not match any existing issue requests! Skipping."
         );
         return;
     }
-    const height = await blockToHeight(ctx.store, ctx.block.height, "CancelIssue");
+    const height = await blockToHeight(
+        ctx.store,
+        ctx.block.height,
+        "CancelIssue"
+    );
     const cancellation = new IssueCancellation({
+        id: issue.id,
         issue,
         height,
         timestamp: new Date(ctx.block.timestamp),
     });
     issue.status = IssueStatus.Cancelled;
-    await ctx.store.save(cancellation)
-    await ctx.store.save(issue)
+    await ctx.store.save(cancellation);
+    await ctx.store.save(issue);
 }
 
 export async function requestRefund(ctx: EventHandlerContext): Promise<void> {
     // const [id, _issuer, amountPaid, _vault, btcAddress, issueId, btcFee] =
     //     new RefundCrate.RequestRefundEvent(event).params;
-    const e = new RefundRequestRefundEvent(ctx).asLatest
-    const id = toHex(e.refundId)
-    const issue = await ctx.store.get(Issue, { where: { id: toHex(e.issueId) } });
+    const e = new RefundRequestRefundEvent(ctx).asLatest;
+    const id = toHex(e.refundId);
+    const issue = await ctx.store.get(Issue, {
+        where: { id: toHex(e.issueId) },
+    });
     if (issue === undefined) {
         debug(
             "WARNING: RequestRefund event did not match any existing issue requests! Skipping."
@@ -126,8 +153,10 @@ export async function requestRefund(ctx: EventHandlerContext): Promise<void> {
 
 export async function executeRefund(ctx: EventHandlerContext): Promise<void> {
     // const [id] = new RefundCrate.ExecuteRefundEvent(event).params;
-    const e = new RefundExecuteRefundEvent(ctx).asLatest
-    const refund = await ctx.store.get(Refund, { where: { id: toHex(e.refundId) } });
+    const e = new RefundExecuteRefundEvent(ctx).asLatest;
+    const refund = await ctx.store.get(Refund, {
+        where: { id: toHex(e.refundId) },
+    });
     if (refund === undefined) {
         debug(
             "WARNING: ExecuteRefund event did not match any existing refund requests! Skipping."

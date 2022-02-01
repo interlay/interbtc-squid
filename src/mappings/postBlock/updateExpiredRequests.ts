@@ -1,11 +1,10 @@
-import { Store, SubstrateBlock } from "@subsquid/substrate-processor";
+import { BlockHandlerContext } from "@subsquid/substrate-processor";
 import { Issue, IssueStatus, RelayedBlock } from "../../model";
 import { blockToHeight, isIssueExpired } from "../_utils";
 
-export async function findAndUpdateExpiredIssues(
-    store: Store,
-    block: SubstrateBlock
-): Promise<void> {
+export async function findAndUpdateExpiredIssues(ctx: BlockHandlerContext): Promise<void> {
+    const store = ctx.store;
+    const block = ctx.block;
     const latestBtcBlock = (
         await store.get(RelayedBlock, {
             order: {

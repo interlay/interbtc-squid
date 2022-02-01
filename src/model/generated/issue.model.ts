@@ -1,6 +1,7 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, OneToOne as OneToOne_} from "typeorm"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_, OneToOne as OneToOne_} from "typeorm"
 import * as marshal from "./marshal"
 import {IssueRequest} from "./_issueRequest"
+import {Vault} from "./vault.model"
 import {IssuePayment} from "./issuePayment.model"
 import {IssueStatus} from "./_issueStatus"
 import {IssueExecution} from "./issueExecution.model"
@@ -31,8 +32,9 @@ export class Issue {
   @Column_("text", {nullable: false})
   vaultBackingAddress!: string
 
-  @Column_("text", {nullable: false})
-  vaultParachainAddress!: string
+  @Index_()
+  @ManyToOne_(() => Vault, {nullable: false})
+  vault!: Vault
 
   @OneToOne_(() => IssuePayment)
   backingPayment!: IssuePayment | undefined | null
