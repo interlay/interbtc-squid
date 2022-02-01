@@ -1,7 +1,7 @@
 version: "3.4"
 
 services:
- hydra-db:
+ squid-db:
    image: postgres:12
    restart: always
    volumes:
@@ -11,13 +11,13 @@ services:
      POSTGRES_PASSWORD: postgres
      PGPORT: 5434
 
- hydra-indexer:
+ squid-indexer:
    image: subsquid/hydra-indexer:5
    restart: unless-stopped
    environment:
      - WORKERS_NUMBER=5
      - DB_NAME=indexer
-     - DB_HOST=hydra-db
+     - DB_HOST=squid-db
      - DB_USER=postgres
      - DB_PASS=postgres
      - DB_PORT=5434
@@ -36,31 +36,31 @@ services:
      - ./types.json:/types.json
 
    depends_on:
-     - hydra-db
+     - squid-db
      - redis
    command: >
      sh -c "yarn db:bootstrap && yarn start:prod"
 
- hydra-indexer-gateway:
+ squid-indexer-gateway:
    image: subsquid/hydra-indexer-gateway:5
    restart: unless-stopped
    depends_on:
      - redis
-     - hydra-db
-     - hydra-indexer-status-service
-     - hydra-indexer
+     - squid-db
+     - squid-indexer-status-service
+     - squid-indexer
    ports:
      - "4010:8080"
    environment:
      - DEV_MODE=true
      - DB_NAME=indexer
-     - DB_HOST=hydra-db
+     - DB_HOST=squid-db
      - DB_USER=postgres
      - DB_PASS=postgres
      - DB_PORT=5434
-     - HYDRA_INDEXER_STATUS_SERVICE=http://hydra-indexer-status-service:8081/status
+     - HYDRA_INDEXER_STATUS_SERVICE=http://squid-indexer-status-service:8081/status
 
- hydra-indexer-status-service:
+ squid-indexer-status-service:
    image: subsquid/hydra-indexer-status-service:5
    restart: unless-stopped
    depends_on:

@@ -1,34 +1,47 @@
-import * as ss58 from "@subsquid/ss58";
-import { Store, toHex } from "@subsquid/substrate-processor";
-import { Height, Issue, RelayedBlock } from "../model";
+import { Store } from "@subsquid/substrate-processor";
+import { Height, Issue, RelayedBlock, Vault } from "../model";
 import { LessThanOrEqual } from "typeorm";
-import { Address } from "../types/v1";
+import debug from "debug";
+import { VaultId as EventVaultId } from "../types/v1";
+import { encodeVaultId } from "./encoding";
 
 const issuePeriod = 14400; // TODO: HARDCODED - fetch from chain once event is implemented
 const parachainBlocksPerBitcoinBlock = 100; // TODO: HARDCODED - find better way to set?
 const btcPeriod = Math.ceil(issuePeriod / parachainBlocksPerBitcoinBlock);
 
+export async function getVaultId(store: Store, vaultId: EventVaultId) {
+    return store.get(Vault, {
+        where: { id: encodeVaultId(vaultId) },
+    });
+}
+
 export async function blockToHeight(
     store: Store,
     absoluteBlock: number,
-    eventName = ""
+    eventName?: string // for logging purposes
 ): Promise<Height> {
     const createPlusSave = async (absolute: number, active: number) => {
-        const height = new Height({ id: absolute.toString(), absolute, active });
+        const height = new Height({
+            id: absolute.toString(),
+            absolute,
+            active,
+        });
         await store.save(height);
         return height;
     };
-
-    if (absoluteBlock === 1) {
-        return createPlusSave(1, 1);
-    }
 
     const height = await store.get(Height, {
         where: { absolute: LessThanOrEqual(absoluteBlock) },
         order: { active: "DESC" },
     });
-    if (height === undefined)
-        throw new Error(`Did not find Height entity for absolute block ${absoluteBlock} while processing ${eventName}; this should never happen!`);
+    if (height === undefined) {
+        debug(
+            `WARNING: Did not find Height entity for absolute block ${absoluteBlock}. This means the chain did not generate UpdateActiveBlock events priorly, yet other events are being processed${
+                eventName ? ` (such as ${eventName})` : ""
+            }, which may not be normal.`
+        );
+        return createPlusSave(absoluteBlock, 0);
+    }
 
     if (height.absolute === absoluteBlock) {
         return height;
@@ -65,12 +78,3 @@ export async function isIssueExpired(
         requestHeight.active + issuePeriod < latestActiveBlock
     );
 }
-
-export const address = {
-    interlay: ss58.codec("substrate"),
-    btc: {
-        encode(address: Address): string {
-            return toHex(address.value);
-        },
-    },
-};

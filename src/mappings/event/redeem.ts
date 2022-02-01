@@ -1,35 +1,41 @@
 import { EventHandlerContext, toHex } from "@subsquid/substrate-processor";
 import Debug from "debug";
-import { Redeem, RedeemCancellation, RedeemExecution, RedeemRequest, RedeemStatus } from "../../model";
-import { RedeemCancelRedeemEvent, RedeemExecuteRedeemEvent, RedeemRequestRedeemEvent } from "../../types/events";
-import { address, blockToHeight } from "../_utils";
+import {
+    Redeem,
+    RedeemCancellation,
+    RedeemExecution,
+    RedeemRequest,
+    RedeemStatus,
+} from "../../model";
+import {
+    RedeemCancelRedeemEvent,
+    RedeemExecuteRedeemEvent,
+    RedeemRequestRedeemEvent,
+} from "../../types/events";
+import { address } from "../encoding";
+import { blockToHeight, getVaultId } from "../_utils";
 
 const debug = Debug("interbtc-mappings:redeem");
 
 export async function requestRedeem(ctx: EventHandlerContext): Promise<void> {
-    // const [
-    //     id,
-    //     userParachainAddress,
-    //     requestedAmountBacking,
-    //     bridgeFee,
-    //     collateralPremium,
-    //     vaultParachainAddress,
-    //     userBackingAddress,
-    //     btcTransferFee,
-    // ] = new RedeemCrate.RequestRedeemEvent(event).params;
-    const e = new RedeemRequestRedeemEvent(ctx).asLatest
+    const e = new RedeemRequestRedeemEvent(ctx).asLatest;
 
+    const vaultId = await getVaultId(ctx.store, e.vaultId);
     const redeem = new Redeem({
         id: toHex(e.redeemId),
         bridgeFee: e.fee,
         collateralPremium: e.premium,
         userParachainAddress: address.interlay.encode(e.redeemer),
-        vaultParachainAddress: address.interlay.encode(e.vaultId.accountId),
+        vault: vaultId,
         userBackingAddress: address.btc.encode(e.btcAddress),
         btcTransferFee: e.transferFee,
         status: RedeemStatus.Pending,
     });
-    const height = await blockToHeight(ctx.store, ctx.block.height, "RequestIssue");
+    const height = await blockToHeight(
+        ctx.store,
+        ctx.block.height,
+        "RequestIssue"
+    );
 
     redeem.request = new RedeemRequest({
         requestedAmountBacking: e.amount,
@@ -42,7 +48,9 @@ export async function requestRedeem(ctx: EventHandlerContext): Promise<void> {
 
 export async function executeRedeem(ctx: EventHandlerContext): Promise<void> {
     const e = new RedeemExecuteRedeemEvent(ctx).asLatest;
-    const redeem = await ctx.store.get(Redeem, { where: { id: toHex(e.redeemId) } });
+    const redeem = await ctx.store.get(Redeem, {
+        where: { id: toHex(e.redeemId) },
+    });
     if (redeem === undefined) {
         debug(
             "WARNING: ExecuteRedeem event did not match any existing redeem requests! Skipping."
@@ -55,6 +63,7 @@ export async function executeRedeem(ctx: EventHandlerContext): Promise<void> {
         "ExecuteRedeem"
     );
     const execution = new RedeemExecution({
+        id: redeem.id,
         redeem,
         height,
         timestamp: new Date(ctx.block.timestamp),
@@ -74,25 +83,33 @@ export async function cancelRedeem(ctx: EventHandlerContext): Promise<void> {
     //     slashedCollateral,
     //     newStatus,
     // ] = new RedeemCrate.CancelRedeemEvent(event).params;
-    const e = new RedeemCancelRedeemEvent(ctx).asLatest
-    const redeem = await ctx.store.get(Redeem, { where: { id: toHex(e.redeemId) } });
+    const e = new RedeemCancelRedeemEvent(ctx).asLatest;
+    const redeem = await ctx.store.get(Redeem, {
+        where: { id: toHex(e.redeemId) },
+    });
     if (redeem === undefined) {
         debug(
             "WARNING: CancelRedeem event did not match any existing redeem requests! Skipping."
         );
         return;
     }
-    const height = await blockToHeight(ctx.store, ctx.block.height, "CancelIssue");
+    const height = await blockToHeight(
+        ctx.store,
+        ctx.block.height,
+        "CancelIssue"
+    );
     const cancellation = new RedeemCancellation({
+        id: redeem.id,
         redeem,
         height,
         timestamp: new Date(ctx.block.timestamp),
         slashedCollateral: e.slashedAmount,
-        reimbursed: e.status.__kind === 'Reimbursed',
+        reimbursed: e.status.__kind === "Reimbursed",
     });
-    redeem.status = e.status.__kind === 'Reimbursed'
-        ? RedeemStatus.Reimbursed
-        : RedeemStatus.Retried;
+    redeem.status =
+        e.status.__kind === "Reimbursed"
+            ? RedeemStatus.Reimbursed
+            : RedeemStatus.Retried;
     await ctx.store.save(cancellation);
     await ctx.store.save(redeem);
 }

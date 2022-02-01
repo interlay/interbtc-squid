@@ -1,0 +1,9 @@
+{
+    "name": "interbtc-indexer-distributables",
+    "private": "true",
+    "version": "0.1.0",
+    "description": "Helper files for running a docker-based deployment of interbtc-indexer",
+    "author": "",
+    "license": "ISC",
+    "files": ["types.json", "schema.graphql"]
+}
