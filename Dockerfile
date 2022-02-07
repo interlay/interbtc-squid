@@ -16,7 +16,7 @@ FROM node-with-gyp AS deps
 WORKDIR /app
 ADD package.json .
 ADD yarn.lock .
-RUN yarn --frozen-lockfile --production
+RUN yarn cache clean && yarn install --frozen-lockfile --production
 
 FROM node AS processor
 WORKDIR /app
