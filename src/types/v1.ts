@@ -1,3 +1,4 @@
+import type {Result} from './support'
 
 export interface H256Le {
   content: Uint8Array

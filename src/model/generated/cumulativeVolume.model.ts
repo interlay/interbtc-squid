@@ -1,6 +1,6 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_} from "typeorm"
 import * as marshal from "./marshal"
-import {RequestType} from "./_requestType"
+import {VolumeType} from "./_volumeType"
 
 @Entity_()
 export class CumulativeVolume {
@@ -11,8 +11,8 @@ export class CumulativeVolume {
   @PrimaryColumn_()
   id!: string
 
-  @Column_("varchar", {length: 6, nullable: false})
-  type!: RequestType
+  @Column_("varchar", {length: 10, nullable: false})
+  type!: VolumeType
 
   @Column_("timestamp with time zone", {nullable: false})
   tillTimestamp!: Date

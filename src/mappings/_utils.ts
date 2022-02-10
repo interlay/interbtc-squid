@@ -1,5 +1,14 @@
 import { Store } from "@subsquid/substrate-processor";
-import { Height, Issue, RelayedBlock, Vault } from "../model";
+import {
+    CumulativeVolume,
+    CumulativeVolumePerCollateral,
+    Height,
+    Issue,
+    RelayedBlock,
+    Token,
+    Vault,
+    VolumeType,
+} from "../model";
 import { LessThanOrEqual } from "typeorm";
 import debug from "debug";
 import { VaultId as EventVaultId } from "../types/v1";
@@ -77,4 +86,48 @@ export async function isIssueExpired(
         requestBtcBlock.backingHeight + btcPeriod < latestBtcBlock &&
         requestHeight.active + issuePeriod < latestActiveBlock
     );
+}
+
+export async function updateCumulativeVolumes(
+    store: Store,
+    type: VolumeType,
+    amount: bigint,
+    timestamp: Date,
+    collateralCurrency?: Token
+): Promise<void> {
+    const whereCommon = {
+        tillTimestamp: LessThanOrEqual(timestamp),
+        type: type,
+    };
+    const newVolumeCommon = {
+        id: `${type.toString()}-${timestamp.getTime().toString()}`,
+        type: type,
+        tillTimestamp: timestamp,
+    };
+
+    // save the total sum (important for issue and redeem)
+    const existingCumulativeVolume =
+        (await store.get(CumulativeVolume, { where: whereCommon }))?.amount ||
+        0n;
+    let cumulativeVolume = new CumulativeVolume({
+        ...newVolumeCommon,
+        amount: existingCumulativeVolume + amount,
+    });
+    await store.save(cumulativeVolume);
+
+    // also save the collateral-specific sum
+    if (collateralCurrency) {
+        const existingCumulativeVolumeForCollateral =
+            (
+                await store.get(CumulativeVolumePerCollateral, {
+                    where: { ...whereCommon, collateralCurrency },
+                })
+            )?.amount || 0n;
+        let cumulativeVolumeForCollateral = new CumulativeVolumePerCollateral({
+            ...newVolumeCommon,
+            amount: existingCumulativeVolumeForCollateral + amount,
+            collateralCurrency
+        });
+        await store.save(cumulativeVolumeForCollateral);
+    }
 }

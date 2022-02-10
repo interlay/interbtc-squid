@@ -7,6 +7,7 @@ import {
     IssueRequest,
     IssueStatus,
     Refund,
+    VolumeType,
 } from "../../model";
 import {
     IssueCancelIssueEvent,
@@ -15,8 +16,8 @@ import {
     RefundExecuteRefundEvent,
     RefundRequestRefundEvent,
 } from "../../types/events";
-import { address } from "../encoding";
-import { blockToHeight, getVaultId } from "../_utils";
+import { address, currencyId } from "../encoding";
+import { blockToHeight, getVaultId, updateCumulativeVolumes } from "../_utils";
 
 const debug = Debug("interbtc-mappings:issue");
 
@@ -51,13 +52,6 @@ export async function requestIssue(ctx: EventHandlerContext): Promise<void> {
 }
 
 export async function executeIssue(ctx: EventHandlerContext): Promise<void> {
-    // const [
-    //     id,
-    //     _userParachainAddress,
-    //     amountWrapped, // TODO: double-check
-    //     _vaultParachainAddress,
-    //     fee,
-    // ] = new IssueCrate.ExecuteIssueEvent(event).params;
     const e = new IssueExecuteIssueEvent(ctx).asLatest;
     const id = toHex(e.issueId);
 
@@ -73,10 +67,11 @@ export async function executeIssue(ctx: EventHandlerContext): Promise<void> {
         ctx.block.height,
         "ExecuteIssue"
     );
+    const amountWrapped = e.amount - e.fee; // potentially clean up event on parachain side?
     const execution = new IssueExecution({
         id: issue.id,
         issue,
-        amountWrapped: e.amount - e.fee,
+        amountWrapped,
         bridgeFeeWrapped: e.fee,
         height,
         timestamp: new Date(ctx.block.timestamp),
@@ -85,7 +80,13 @@ export async function executeIssue(ctx: EventHandlerContext): Promise<void> {
     await ctx.store.save(execution);
     await ctx.store.save(issue);
 
-    // TODO: call out to electrs and get payment info
+    updateCumulativeVolumes(
+        ctx.store,
+        VolumeType.Issued,
+        amountWrapped,
+        new Date(ctx.block.timestamp),
+        currencyId.token.encode(e.vaultId.currencies.collateral)
+    );
 }
 
 export async function cancelIssue(ctx: EventHandlerContext): Promise<void> {
