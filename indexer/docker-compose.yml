@@ -24,13 +24,6 @@ services:
      - REDIS_URI=redis://redis:6379/0
      - BLOCK_HEIGHT=0
      - WS_PROVIDER_ENDPOINT_URI=ws://interbtc:9944
-
-   # # If your chain uses custom types you need to provide those
-   # # as detailed here - https://polkadot.js.org/docs/api/start/types.extend
-   # #
-   # # Json files below are passed verbatim to ApiPromise.create() from @polkadot/api.
-   # # Use any combination of those
-   #
      - TYPES_JSON=/types.json
    volumes:
      - ./types.json:/types.json
@@ -76,7 +69,7 @@ services:
      - "6379"
 
  interbtc:
-   image: "interlayhq/interbtc:interbtc-standalone-1.5.13"
+   image: "interlayhq/interbtc:interbtc-standalone-1.7.1"
    command:
      - interbtc-standalone
      - --unsafe-rpc-external
@@ -134,9 +127,9 @@ services:
    ports:
      - '3002:3002'
  oracle:
-   image: "interlayhq/interbtc-clients:oracle-1-5-0"
+   image: "interlayhq/interbtc-clients:oracle-standalone-metadata-1-5-6"
    command:
-     - oracle
+     - oracle-standalone-metadata
      - --keyring
      - bob
      - --btc-parachain-url
@@ -150,10 +143,27 @@ services:
    environment:
      RUST_LOG: info
    restart: unless-stopped
- faucet:
-   image: "interlayhq/interbtc-clients:faucet-1-5-0"
+ oracleIntr:
+   image: "interlayhq/interbtc-clients:oracle-standalone-metadata-1-5-6"
    command:
-     - faucet
+     - oracle-standalone-metadata
+     - --keyring
+     - ferdie
+     - --btc-parachain-url
+     - "ws://interbtc:9944"
+     - --currency-id
+     - 'INTR'
+     - --exchange-rate
+     - "3120"
+     - --blockstream
+     - "https://blockstream.info/testnet/api/"
+   environment:
+     RUST_LOG: info
+   restart: unless-stopped
+ faucet:
+   image: "interlayhq/interbtc-clients:faucet-standalone-metadata-1-5-6"
+   command:
+     - faucet-standalone-metadata
      - --keyring
      - ferdie
      - --btc-parachain-url
@@ -164,13 +174,15 @@ services:
      - "500"
      - --http-addr
      - "[::0]:3035"
+     - --native-currency-id
+     - 'INTR'
    environment:
      RUST_LOG: info
    ports:
      - '3035:3035'
    restart: unless-stopped
  vault:
-   image: "interlayhq/interbtc-clients:vault-1-5-0"
+   image: "interlayhq/interbtc-clients:vault-standalone-metadata-1-5-6"
    command:
      - /bin/sh
      - -c
@@ -180,7 +192,7 @@ services:
          # sleep for 30s to wait for bitcoin to create the Charlie wallet
          # and also to ensure that the issue period and redeem period are set
          sleep 30
-         vault --keyfile="keyfile.json" --keyname=charlie_stash --auto-register-with-collateral 1000000000000 --btc-parachain-url 'ws://interbtc:9944' --collateral-currency-id 'DOT' --bitcoin-relay-start-height 1 --wrapped-currency-id 'INTERBTC'
+         vault-standalone-metadata --keyfile="keyfile.json" --keyname=charlie_stash --auto-register-with-collateral 1000000000000 --btc-parachain-url 'ws://interbtc:9944' --collateral-currency-id 'DOT' --bitcoin-relay-start-height 1 --wrapped-currency-id 'INTERBTC'
    environment: &client-env
      BITCOIN_RPC_URL: http://bitcoind:18443
      BITCOIN_RPC_USER: rpcuser

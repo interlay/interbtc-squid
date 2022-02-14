@@ -6,14 +6,15 @@ import {
     RedeemExecution,
     RedeemRequest,
     RedeemStatus,
+    VolumeType,
 } from "../../model";
 import {
     RedeemCancelRedeemEvent,
     RedeemExecuteRedeemEvent,
     RedeemRequestRedeemEvent,
 } from "../../types/events";
-import { address } from "../encoding";
-import { blockToHeight, getVaultId } from "../_utils";
+import { address, currencyId } from "../encoding";
+import { blockToHeight, getVaultId, updateCumulativeVolumes } from "../_utils";
 
 const debug = Debug("interbtc-mappings:redeem");
 
@@ -72,17 +73,16 @@ export async function executeRedeem(ctx: EventHandlerContext): Promise<void> {
     await ctx.store.save(execution);
     await ctx.store.save(redeem);
 
-    // TODO: call out to electrs and get payment info
+    updateCumulativeVolumes(
+        ctx.store,
+        VolumeType.Redeemed,
+        redeem.request.requestedAmountBacking,
+        new Date(ctx.block.timestamp),
+        currencyId.token.encode(e.vaultId.currencies.collateral)
+    );
 }
 
 export async function cancelRedeem(ctx: EventHandlerContext): Promise<void> {
-    // const [
-    //     id,
-    //     _userParachainAddress,
-    //     _vaultParachainAddress,
-    //     slashedCollateral,
-    //     newStatus,
-    // ] = new RedeemCrate.CancelRedeemEvent(event).params;
     const e = new RedeemCancelRedeemEvent(ctx).asLatest;
     const redeem = await ctx.store.get(Redeem, {
         where: { id: toHex(e.redeemId) },

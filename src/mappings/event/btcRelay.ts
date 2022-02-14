@@ -1,3 +1,4 @@
+import { reverseEndiannessHex } from "@interlay/interbtc-api";
 import { EventHandlerContext, toHex } from "@subsquid/substrate-processor";
 import { RelayedBlock } from "../../model";
 import { BtcRelayStoreMainChainHeaderEvent } from "../../types/events";
@@ -21,7 +22,7 @@ export async function storeMainChainHeader(
         id: e.blockHeight.toString(),
         relayedAtHeight,
         timestamp: new Date(ctx.block.timestamp),
-        blockHash: toHex(e.blockHash.content),
+        blockHash: reverseEndiannessHex(toHex(e.blockHash.content)),
         backingHeight: e.blockHeight,
         relayer: address.interlay.encode(e.relayerId),
     });
