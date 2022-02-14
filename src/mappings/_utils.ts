@@ -1,7 +1,7 @@
 import { Store } from "@subsquid/substrate-processor";
 import {
     CumulativeVolume,
-    CumulativeVolumePerCollateral,
+    CumulativeVolumePerCurrencyPair,
     Height,
     Issue,
     RelayedBlock,
@@ -93,7 +93,8 @@ export async function updateCumulativeVolumes(
     type: VolumeType,
     amount: bigint,
     timestamp: Date,
-    collateralCurrency?: Token
+    collateralCurrency?: Token,
+    wrappedCurrency?: Token
 ): Promise<void> {
     const whereCommon = {
         tillTimestamp: LessThanOrEqual(timestamp),
@@ -116,18 +117,28 @@ export async function updateCumulativeVolumes(
     await store.save(cumulativeVolume);
 
     // also save the collateral-specific sum
-    if (collateralCurrency) {
+    if (collateralCurrency || wrappedCurrency) {
         const existingCumulativeVolumeForCollateral =
             (
-                await store.get(CumulativeVolumePerCollateral, {
-                    where: { ...whereCommon, collateralCurrency },
+                await store.get(CumulativeVolumePerCurrencyPair, {
+                    where: {
+                        ...whereCommon,
+                        collateralCurrency,
+                        wrappedCurrency,
+                    },
                 })
             )?.amount || 0n;
-        let cumulativeVolumeForCollateral = new CumulativeVolumePerCollateral({
-            ...newVolumeCommon,
-            amount: existingCumulativeVolumeForCollateral + amount,
-            collateralCurrency
-        });
+        let cumulativeVolumeForCollateral = new CumulativeVolumePerCurrencyPair(
+            {
+                ...newVolumeCommon,
+                id: `${
+                    newVolumeCommon.id
+                }-${collateralCurrency?.toString()}-${wrappedCurrency?.toString()}`,
+                amount: existingCumulativeVolumeForCollateral + amount,
+                collateralCurrency,
+                wrappedCurrency,
+            }
+        );
         await store.save(cumulativeVolumeForCollateral);
     }
 }

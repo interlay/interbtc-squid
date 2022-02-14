@@ -14,7 +14,9 @@
         "refund.ExecuteRefund",
         "refund.RequestRefund",
         "security.UpdateActiveBlock",
-        "vaultRegistry.RegisterVault"
+        "vaultRegistry.RegisterVault",
+        "vaultRegistry.IncreaseLockedCollateral",
+        "vaultRegistry.DecreaseLockedCollateral"
     ],
     "calls": []
 }

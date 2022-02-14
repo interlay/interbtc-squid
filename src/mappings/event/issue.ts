@@ -85,7 +85,8 @@ export async function executeIssue(ctx: EventHandlerContext): Promise<void> {
         VolumeType.Issued,
         amountWrapped,
         new Date(ctx.block.timestamp),
-        currencyId.token.encode(e.vaultId.currencies.collateral)
+        currencyId.token.encode(e.vaultId.currencies.collateral),
+        currencyId.token.encode(e.vaultId.currencies.wrapped)
     );
 }
 

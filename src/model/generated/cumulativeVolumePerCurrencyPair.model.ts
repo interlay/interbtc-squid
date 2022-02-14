@@ -4,8 +4,8 @@ import {VolumeType} from "./_volumeType"
 import {Token} from "./_token"
 
 @Entity_()
-export class CumulativeVolumePerCollateral {
-  constructor(props?: Partial<CumulativeVolumePerCollateral>) {
+export class CumulativeVolumePerCurrencyPair {
+  constructor(props?: Partial<CumulativeVolumePerCurrencyPair>) {
     Object.assign(this, props)
   }
 
@@ -21,6 +21,9 @@ export class CumulativeVolumePerCollateral {
   @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
   amount!: bigint
 
-  @Column_("varchar", {length: 8, nullable: false})
-  collateralCurrency!: Token
+  @Column_("varchar", {length: 8, nullable: true})
+  wrappedCurrency!: Token | undefined | null
+
+  @Column_("varchar", {length: 8, nullable: true})
+  collateralCurrency!: Token | undefined | null
 }
