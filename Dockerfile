@@ -1,7 +1,7 @@
-FROM docker.io/library/node:lts-alpine AS node
+FROM docker.io/library/node:lts AS node
 
 FROM node AS node-with-gyp
-RUN apk add g++ make python3
+RUN apt install -y g++ make python3
 
 FROM node-with-gyp AS builder
 WORKDIR /app
