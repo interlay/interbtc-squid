@@ -78,7 +78,8 @@ export async function executeRedeem(ctx: EventHandlerContext): Promise<void> {
         VolumeType.Redeemed,
         redeem.request.requestedAmountBacking,
         new Date(ctx.block.timestamp),
-        currencyId.token.encode(e.vaultId.currencies.collateral)
+        currencyId.token.encode(e.vaultId.currencies.collateral),
+        currencyId.token.encode(e.vaultId.currencies.wrapped)
     );
 }
 

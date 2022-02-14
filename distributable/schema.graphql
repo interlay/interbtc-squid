@@ -167,21 +167,24 @@ type OracleUpdate @entity {
     updateValue: BigInt!
 }
 
-enum RequestType {
-    Issue
-    Redeem
-}
-
-type DailyVolume @entity {
-    id: ID!
-    type: RequestType!
-    fromMidnight: DateTime! "UTC+0 midnight timestamp of the start of day"
-    amount: BigInt!
+enum VolumeType {
+    Issued
+    Redeemed
+    Collateral
 }
 
 type CumulativeVolume @entity {
     id: ID!
-    type: RequestType!
+    type: VolumeType!
     tillTimestamp: DateTime!
     amount: BigInt!
+}
+
+type CumulativeVolumePerCurrencyPair @entity {
+    id: ID!
+    type: VolumeType!
+    tillTimestamp: DateTime!
+    amount: BigInt!
+    wrappedCurrency: Token
+    collateralCurrency: Token
 }

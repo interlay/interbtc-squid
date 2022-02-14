@@ -180,10 +180,11 @@ type CumulativeVolume @entity {
     amount: BigInt!
 }
 
-type CumulativeVolumePerCollateral @entity {
+type CumulativeVolumePerCurrencyPair @entity {
     id: ID!
     type: VolumeType!
     tillTimestamp: DateTime!
     amount: BigInt!
-    collateralCurrency: Token!
+    wrappedCurrency: Token
+    collateralCurrency: Token
 }

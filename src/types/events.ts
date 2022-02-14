@@ -283,6 +283,56 @@ export class SecurityUpdateActiveBlockEvent {
   }
 }
 
+export class VaultRegistryDecreaseLockedCollateralEvent {
+  constructor(private ctx: EventContext) {
+    assert(this.ctx.event.name === 'vaultRegistry.DecreaseLockedCollateral')
+  }
+
+  get isV1(): boolean {
+    return this.ctx._chain.getEventHash('vaultRegistry.DecreaseLockedCollateral') === '63bd33e0a9d55896541f08d420b91ec127eab8b5433a33e7af88626d2bb66932'
+  }
+
+  get asV1(): {currencyPair: v1.VaultCurrencyPair, delta: bigint, total: bigint} {
+    assert(this.isV1)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
+    deprecateLatest()
+    return this.isV1
+  }
+
+  get asLatest(): {currencyPair: v1.VaultCurrencyPair, delta: bigint, total: bigint} {
+    deprecateLatest()
+    return this.asV1
+  }
+}
+
+export class VaultRegistryIncreaseLockedCollateralEvent {
+  constructor(private ctx: EventContext) {
+    assert(this.ctx.event.name === 'vaultRegistry.IncreaseLockedCollateral')
+  }
+
+  get isV1(): boolean {
+    return this.ctx._chain.getEventHash('vaultRegistry.IncreaseLockedCollateral') === '1c2276163979cd5c1d6df91d75b68c06f029c075f50c0eb719badbcdf6bec5c8'
+  }
+
+  get asV1(): {currencyPair: v1.VaultCurrencyPair, delta: bigint, total: bigint} {
+    assert(this.isV1)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
+    deprecateLatest()
+    return this.isV1
+  }
+
+  get asLatest(): {currencyPair: v1.VaultCurrencyPair, delta: bigint, total: bigint} {
+    deprecateLatest()
+    return this.asV1
+  }
+}
+
 export class VaultRegistryRegisterVaultEvent {
   constructor(private ctx: EventContext) {
     assert(this.ctx.event.name === 'vaultRegistry.RegisterVault')
