@@ -73,7 +73,7 @@ export async function executeRedeem(ctx: EventHandlerContext): Promise<void> {
     await ctx.store.save(execution);
     await ctx.store.save(redeem);
 
-    updateCumulativeVolumes(
+    await updateCumulativeVolumes(
         ctx.store,
         VolumeType.Redeemed,
         redeem.request.requestedAmountBacking,

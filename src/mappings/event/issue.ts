@@ -80,7 +80,7 @@ export async function executeIssue(ctx: EventHandlerContext): Promise<void> {
     await ctx.store.save(execution);
     await ctx.store.save(issue);
 
-    updateCumulativeVolumes(
+    await updateCumulativeVolumes(
         ctx.store,
         VolumeType.Issued,
         amountWrapped,
