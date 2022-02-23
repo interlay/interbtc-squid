@@ -2,10 +2,17 @@ import { BlockHandlerContext } from "@subsquid/substrate-processor";
 import { Issue, IssueStatus, RelayedBlock } from "../../model";
 import { blockToHeight, isIssueExpired } from "../_utils";
 
+const MIN_DELAY = 5000; // ms
+let lastTimestamp = 0;
+
 export async function findAndUpdateExpiredIssues(ctx: BlockHandlerContext): Promise<void> {
+    const now = Date.now();
+    if (now < lastTimestamp + MIN_DELAY) {
+        return; // only run it at most once ever MIN_DELAY ms
+    }
+    lastTimestamp = now;
     const store = ctx.store;
     const block = ctx.block;
-    if (block.height % 20 !== 0) return; // only run once every 20 blocks, as a performance hack
 
     const latestBtcBlock = (
         await store.get(RelayedBlock, {

@@ -4,7 +4,6 @@ import {
     CumulativeVolumePerCurrencyPair,
     Height,
     Issue,
-    RelayedBlock,
     Token,
     Vault,
     VolumeType,
@@ -29,33 +28,33 @@ export async function blockToHeight(
     absoluteBlock: number,
     eventName?: string // for logging purposes
 ): Promise<Height> {
-    const createPlusSave = async (absolute: number, active: number) => {
+    const existingBlockHeight = await store.get(Height, {
+        where: { absolute: absoluteBlock }
+    });
+    if (existingBlockHeight !== undefined) {
+        // was already set for current block, either by UpdateActiveBlock or previous invocation of blockToHeight
+        return existingBlockHeight;
+    }
+    else {
+        // not set for current block - get latest value of `active` and save Height for current block (if exists)
+        const currentActive = (await store.get(Height, {
+            where: { absolute: LessThanOrEqual(absoluteBlock) },
+            order: { active: "DESC" },
+        }))?.active;
+        if (currentActive === undefined) {
+            debug(
+                `WARNING: Did not find Height entity for absolute block ${absoluteBlock}. This means the chain did not generate UpdateActiveBlock events priorly, yet other events are being processed${
+                    eventName ? ` (such as ${eventName})` : ""
+                }, which may not be normal.`
+            );
+        }
         const height = new Height({
-            id: absolute.toString(),
-            absolute,
-            active,
+            id: absoluteBlock.toString(),
+            absolute: absoluteBlock,
+            active: currentActive || 0,
         });
         await store.save(height);
         return height;
-    };
-
-    const height = await store.get(Height, {
-        where: { absolute: LessThanOrEqual(absoluteBlock) },
-        order: { active: "DESC" },
-    });
-    if (height === undefined) {
-        debug(
-            `WARNING: Did not find Height entity for absolute block ${absoluteBlock}. This means the chain did not generate UpdateActiveBlock events priorly, yet other events are being processed${
-                eventName ? ` (such as ${eventName})` : ""
-            }, which may not be normal.`
-        );
-        return createPlusSave(absoluteBlock, 0);
-    }
-
-    if (height.absolute === absoluteBlock) {
-        return height;
-    } else {
-        return createPlusSave(absoluteBlock, height.active);
     }
 }
 
