@@ -24,7 +24,8 @@ enum Token {
 }
 
 type Vault @entity {
-    accountId: String!
+    id: ID!
+    accountId: String! @index
     collateralToken: Token!
     wrappedToken: Token!
     registrationBlock: Height!
@@ -36,17 +37,17 @@ type Vault @entity {
 type Height @entity {
     id: ID!
     "Should be equal to the absolute value, for determinism"
-    absolute: Int!
+    absolute: Int! @index
     active: Int!
 }
 
 "BTC block stored by BTCRelay"
 type RelayedBlock @entity {
     id: ID!
-    relayedAtHeight: Height!
+    relayedAtHeight: Height! @index
     timestamp: DateTime!
     blockHash: String!
-    backingHeight: Int!
+    backingHeight: Int! @index
     relayer: String
 }
 
@@ -59,7 +60,7 @@ type Issue @entity {
     vaultBackingAddress: String!
     vault: Vault!
     backingPayment: IssuePayment @derivedFrom(field: "issue")
-    status: IssueStatus
+    status: IssueStatus @index # TODO: find a way to optimise queries by status
     execution: IssueExecution @derivedFrom(field: "issue")
     cancellation: IssueCancellation @derivedFrom(field: "issue")
     refund: Refund @derivedFrom(field: "issue")
@@ -79,6 +80,7 @@ type IssueRequest {
     bridgeFeeWrapped: BigInt!
     height: Height!
     timestamp: DateTime!
+    backingHeight: Int!
 }
 
 type IssueExecution @entity {

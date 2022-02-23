@@ -1,5 +1,6 @@
 import { EventHandlerContext, toHex } from "@subsquid/substrate-processor";
 import Debug from "debug";
+import { LessThanOrEqual } from "typeorm";
 import {
     Issue,
     IssueCancellation,
@@ -7,6 +8,7 @@ import {
     IssueRequest,
     IssueStatus,
     Refund,
+    RelayedBlock,
     VolumeType,
 } from "../../model";
 import {
@@ -41,11 +43,28 @@ export async function requestIssue(ctx: EventHandlerContext): Promise<void> {
         "RequestIssue"
     );
 
+    const backingBlock = await ctx.store.get(RelayedBlock, {
+        order: { backingHeight: "DESC" },
+        relations: ["relayedAtHeight"],
+        where: {
+            relayedAtHeight: {
+                absolute: LessThanOrEqual(height.absolute),
+            },
+        },
+    });
+
+    if (backingBlock === undefined) {
+        debug(
+            `WARNING: no BTC blocks relayed before issue request ${issue.id} (at parachain absolute height ${height.absolute}`
+        );
+    }
+
     issue.request = new IssueRequest({
         amountWrapped: e.amount,
         bridgeFeeWrapped: e.fee,
         height: height.id,
         timestamp: new Date(ctx.block.timestamp),
+        backingHeight: backingBlock?.backingHeight || 0,
     });
 
     await ctx.store.save(issue);

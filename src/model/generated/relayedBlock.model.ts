@@ -23,6 +23,7 @@ export class RelayedBlock {
   @Column_("text", {nullable: false})
   blockHash!: string
 
+  @Index_()
   @Column_("integer", {nullable: false})
   backingHeight!: number
 

@@ -1,4 +1,4 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_} from "typeorm"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_} from "typeorm"
 
 /**
  * Mapping of parachain raw/absolute blocks to parachain active blocks
@@ -15,6 +15,7 @@ export class Height {
   /**
    * Should be equal to the absolute value, for determinism
    */
+  @Index_()
   @Column_("integer", {nullable: false})
   absolute!: number
 
