@@ -11,7 +11,7 @@ import {
 } from "../model";
 import { LessThanOrEqual } from "typeorm";
 import debug from "debug";
-import { VaultId as EventVaultId } from "../types/v1";
+import { VaultId as EventVaultId } from "../types/v0";
 import { encodeVaultId } from "./encoding";
 
 const issuePeriod = 14400; // TODO: HARDCODED - fetch from chain once event is implemented

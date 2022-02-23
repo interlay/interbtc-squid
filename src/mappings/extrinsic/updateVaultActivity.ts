@@ -1,16 +1,19 @@
 import { ExtrinsicHandlerContext } from "@subsquid/substrate-processor/lib/interfaces/handlerContext";
+import Debug from "debug";
 import { Vault } from "../../model";
 import { blockToHeight } from "../_utils";
+
+const debug = Debug("interbtc-mappings:extrinsics:vaultActivity");
 
 export async function updateVaultActivity({
     store,
     extrinsic,
     block
 }: ExtrinsicHandlerContext): Promise<void> {
-    const vault = await store.get(Vault, { where: { id: extrinsic.signer } });
+    const vault = await store.get(Vault, { where: { accountId: extrinsic.signer } });
     if (vault === undefined) {
-        console.info(
-            `Extrinsic ${extrinsic.section}.${extrinsic.method} called by non-vault registered account ${extrinsic.signer}`
+        debug(
+            `INFO: Extrinsic ${extrinsic.section}.${extrinsic.method} called by non-vault registered account ${extrinsic.signer}`
         );
         return;
     }

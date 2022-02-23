@@ -8,8 +8,6 @@ import { blockToHeight } from "../_utils";
 export async function storeMainChainHeader(
     ctx: EventHandlerContext
 ): Promise<void> {
-    // const [backingHeight, blockHash, relayer] =
-    //     new BTCRelay.StoreMainChainHeaderEvent(event).params;
     const e = new BtcRelayStoreMainChainHeaderEvent(ctx).asLatest;
 
     const relayedAtHeight = await blockToHeight(

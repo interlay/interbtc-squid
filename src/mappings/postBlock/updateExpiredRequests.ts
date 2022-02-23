@@ -5,6 +5,8 @@ import { blockToHeight, isIssueExpired } from "../_utils";
 export async function findAndUpdateExpiredIssues(ctx: BlockHandlerContext): Promise<void> {
     const store = ctx.store;
     const block = ctx.block;
+    if (block.height % 20 !== 0) return; // only run once every 20 blocks, as a performance hack
+
     const latestBtcBlock = (
         await store.get(RelayedBlock, {
             order: {
