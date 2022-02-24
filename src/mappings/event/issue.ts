@@ -18,7 +18,7 @@ import {
     RefundExecuteRefundEvent,
     RefundRequestRefundEvent,
 } from "../../types/events";
-import { address, currencyId } from "../encoding";
+import { address, currencyId, encodeVaultId } from "../encoding";
 import { blockToHeight, getVaultId, updateCumulativeVolumes } from "../_utils";
 
 const debug = Debug("interbtc-mappings:issue");
@@ -27,6 +27,13 @@ export async function requestIssue(ctx: EventHandlerContext): Promise<void> {
     const e = new IssueRequestIssueEvent(ctx).asLatest;
 
     const vaultId = await getVaultId(ctx.store, e.vaultId);
+    if (vaultId === undefined) {
+        debug(
+            `WARNING: no vault ID found for issue request ${toHex(e.issueId)}, with encoded account-wrapped-collateral ID of ${encodeVaultId(e.vaultId)} (at parachain absolute height ${ctx.block.height}`
+        );
+        return;
+    }
+
     const issue = new Issue({
         id: toHex(e.issueId),
         griefingCollateral: e.griefingCollateral,

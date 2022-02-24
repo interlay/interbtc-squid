@@ -13,7 +13,7 @@ import {
     RedeemExecuteRedeemEvent,
     RedeemRequestRedeemEvent,
 } from "../../types/events";
-import { address, currencyId } from "../encoding";
+import { address, currencyId, encodeVaultId } from "../encoding";
 import { blockToHeight, getVaultId, updateCumulativeVolumes } from "../_utils";
 
 const debug = Debug("interbtc-mappings:redeem");
@@ -22,6 +22,13 @@ export async function requestRedeem(ctx: EventHandlerContext): Promise<void> {
     const e = new RedeemRequestRedeemEvent(ctx).asLatest;
 
     const vaultId = await getVaultId(ctx.store, e.vaultId);
+    if (vaultId === undefined) {
+        debug(
+            `WARNING: no vault ID found for issue request ${toHex(e.redeemId)}, with encoded account-wrapped-collateral ID of ${encodeVaultId(e.vaultId)} (at parachain absolute height ${ctx.block.height}`
+        );
+        return;
+    }
+
     const redeem = new Redeem({
         id: toHex(e.redeemId),
         bridgeFee: e.fee,
