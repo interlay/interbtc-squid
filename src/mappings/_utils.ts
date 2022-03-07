@@ -9,9 +9,11 @@ import {
     VolumeType,
 } from "../model";
 import { LessThanOrEqual } from "typeorm";
-import debug from "debug";
+import Debug from "debug";
 import { VaultId as EventVaultId } from "../types/v0";
 import { encodeVaultId } from "./encoding";
+
+const debug = Debug("interbtc-mappings:_utils");
 
 const issuePeriod = 14400; // TODO: HARDCODED - fetch from chain once event is implemented
 const parachainBlocksPerBitcoinBlock = 100; // TODO: HARDCODED - find better way to set?
@@ -29,18 +31,19 @@ export async function blockToHeight(
     eventName?: string // for logging purposes
 ): Promise<Height> {
     const existingBlockHeight = await store.get(Height, {
-        where: { absolute: absoluteBlock }
+        where: { absolute: absoluteBlock },
     });
     if (existingBlockHeight !== undefined) {
         // was already set for current block, either by UpdateActiveBlock or previous invocation of blockToHeight
         return existingBlockHeight;
-    }
-    else {
+    } else {
         // not set for current block - get latest value of `active` and save Height for current block (if exists)
-        const currentActive = (await store.get(Height, {
-            where: { absolute: LessThanOrEqual(absoluteBlock) },
-            order: { active: "DESC" },
-        }))?.active;
+        const currentActive = (
+            await store.get(Height, {
+                where: { absolute: LessThanOrEqual(absoluteBlock) },
+                order: { active: "DESC" },
+            })
+        )?.active;
         if (currentActive === undefined) {
             debug(
                 `WARNING: Did not find Height entity for absolute block ${absoluteBlock}. This means the chain did not generate UpdateActiveBlock events priorly, yet other events are being processed${
@@ -83,44 +86,46 @@ export async function updateCumulativeVolumes(
     collateralCurrency?: Token,
     wrappedCurrency?: Token
 ): Promise<void> {
-    const whereCommon = {
-        tillTimestamp: LessThanOrEqual(timestamp),
-        type: type,
-    };
-    const newVolumeCommon = {
-        id: `${type.toString()}-${timestamp.getTime().toString()}`,
-        type: type,
-        tillTimestamp: timestamp,
-    };
+    const id = `${type.toString()}-${timestamp.getTime().toString()}`;
 
     // save the total sum (important for issue and redeem)
     const existingCumulativeVolume =
-        (await store.get(CumulativeVolume, { where: whereCommon }))?.amount ||
-        0n;
+        (
+            await store.get(CumulativeVolume, {
+                where: {
+                    tillTimestamp: LessThanOrEqual(timestamp),
+                    type: type,
+                },
+                order: { tillTimestamp: "DESC" },
+            })
+        )?.amount || 0n;
     let cumulativeVolume = new CumulativeVolume({
-        ...newVolumeCommon,
+        id,
+        type,
+        tillTimestamp: timestamp,
         amount: existingCumulativeVolume + amount,
     });
     await store.save(cumulativeVolume);
 
-    // also save the collateral-specific sum
     if (collateralCurrency || wrappedCurrency) {
+        // also save the collateral-specific sum
         const existingCumulativeVolumeForCollateral =
             (
                 await store.get(CumulativeVolumePerCurrencyPair, {
                     where: {
-                        ...whereCommon,
+                        tillTimestamp: LessThanOrEqual(timestamp),
+                        type: type,
                         collateralCurrency,
                         wrappedCurrency,
                     },
+                    order: { tillTimestamp: "DESC" },
                 })
             )?.amount || 0n;
         let cumulativeVolumeForCollateral = new CumulativeVolumePerCurrencyPair(
             {
-                ...newVolumeCommon,
-                id: `${
-                    newVolumeCommon.id
-                }-${collateralCurrency?.toString()}-${wrappedCurrency?.toString()}`,
+                id: `${id}-${collateralCurrency?.toString()}-${wrappedCurrency?.toString()}`,
+                type,
+                tillTimestamp: timestamp,
                 amount: existingCumulativeVolumeForCollateral + amount,
                 collateralCurrency,
                 wrappedCurrency,
