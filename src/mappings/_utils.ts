@@ -4,6 +4,7 @@ import {
     CumulativeVolumePerCurrencyPair,
     Height,
     Issue,
+    Redeem,
     Token,
     Vault,
     VolumeType,
@@ -61,19 +62,19 @@ export async function blockToHeight(
     }
 }
 
-export async function isIssueExpired(
+export async function isRequestExpired(
     store: Store,
-    issue: Issue,
+    request: Issue | Redeem,
     latestBtcBlock: number,
     latestActiveBlock: number
 ): Promise<boolean> {
     const requestHeight = await store.get(Height, {
-        where: { id: issue.request.height },
+        where: { id: request.request.height },
     });
     if (requestHeight === undefined) return false; // no active blocks yet
 
     return (
-        issue.request.backingHeight + btcPeriod < latestBtcBlock &&
+        request.request.backingHeight + btcPeriod < latestBtcBlock &&
         requestHeight.active + issuePeriod < latestActiveBlock
     );
 }

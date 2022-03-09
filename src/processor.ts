@@ -8,7 +8,7 @@ import {
     executeRedeem,
     executeRefund,
     feedValues,
-    findAndUpdateExpiredIssues,
+    findAndUpdateExpiredRequests,
     increaseLockedCollateral,
     registerVault,
     requestIssue,
@@ -62,6 +62,6 @@ processor.addExtrinsicHandler(
     updateVaultActivity
 );
 
-processor.addPostHook(findAndUpdateExpiredIssues);
+processor.addPostHook(findAndUpdateExpiredRequests);
 
 processor.run();

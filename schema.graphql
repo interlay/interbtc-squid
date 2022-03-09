@@ -130,6 +130,7 @@ type RedeemRequest {
     requestedAmountBacking: BigInt!
     height: Height!
     timestamp: DateTime!
+    backingHeight: Int!
 }
 
 "Bitcoin payment executing a redeem"

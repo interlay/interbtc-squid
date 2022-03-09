@@ -1,11 +1,13 @@
 import { EventHandlerContext, toHex } from "@subsquid/substrate-processor";
 import Debug from "debug";
+import { LessThanOrEqual } from "typeorm";
 import {
     Redeem,
     RedeemCancellation,
     RedeemExecution,
     RedeemRequest,
     RedeemStatus,
+    RelayedBlock,
     VolumeType,
 } from "../../model";
 import {
@@ -24,7 +26,11 @@ export async function requestRedeem(ctx: EventHandlerContext): Promise<void> {
     const vaultId = await getVaultId(ctx.store, e.vaultId);
     if (vaultId === undefined) {
         debug(
-            `WARNING: no vault ID found for issue request ${toHex(e.redeemId)}, with encoded account-wrapped-collateral ID of ${encodeVaultId(e.vaultId)} (at parachain absolute height ${ctx.block.height}`
+            `WARNING: no vault ID found for issue request ${toHex(
+                e.redeemId
+            )}, with encoded account-wrapped-collateral ID of ${encodeVaultId(
+                e.vaultId
+            )} (at parachain absolute height ${ctx.block.height}`
         );
         return;
     }
@@ -45,10 +51,27 @@ export async function requestRedeem(ctx: EventHandlerContext): Promise<void> {
         "RequestIssue"
     );
 
+    const backingBlock = await ctx.store.get(RelayedBlock, {
+        order: { backingHeight: "DESC" },
+        relations: ["relayedAtHeight"],
+        where: {
+            relayedAtHeight: {
+                absolute: LessThanOrEqual(height.absolute),
+            },
+        },
+    });
+
+    if (backingBlock === undefined) {
+        debug(
+            `WARNING: no BTC blocks relayed before redeem request ${redeem.id} (at parachain absolute height ${height.absolute})`
+        );
+    }
+
     redeem.request = new RedeemRequest({
         requestedAmountBacking: e.amount,
         height: height.id,
         timestamp: new Date(ctx.block.timestamp),
+        backingHeight: backingBlock?.backingHeight || 0,
     });
 
     await ctx.store.save(redeem);

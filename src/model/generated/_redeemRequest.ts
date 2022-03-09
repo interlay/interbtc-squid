@@ -6,6 +6,7 @@ export class RedeemRequest {
   private _requestedAmountBacking!: bigint
   private _height!: string
   private _timestamp!: Date
+  private _backingHeight!: number
 
   constructor(props?: Partial<Omit<RedeemRequest, 'toJSON'>>, json?: any) {
     Object.assign(this, props)
@@ -13,6 +14,7 @@ export class RedeemRequest {
       this._requestedAmountBacking = marshal.bigint.fromJSON(json.requestedAmountBacking)
       this._height = marshal.string.fromJSON(json.height)
       this._timestamp = marshal.datetime.fromJSON(json.timestamp)
+      this._backingHeight = marshal.int.fromJSON(json.backingHeight)
     }
   }
 
@@ -43,11 +45,21 @@ export class RedeemRequest {
     this._timestamp = value
   }
 
+  get backingHeight(): number {
+    assert(this._backingHeight != null, 'uninitialized access')
+    return this._backingHeight
+  }
+
+  set backingHeight(value: number) {
+    this._backingHeight = value
+  }
+
   toJSON(): object {
     return {
       requestedAmountBacking: marshal.bigint.toJSON(this.requestedAmountBacking),
       height: this.height,
       timestamp: marshal.datetime.toJSON(this.timestamp),
+      backingHeight: this.backingHeight,
     }
   }
 }

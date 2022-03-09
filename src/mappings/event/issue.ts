@@ -29,7 +29,11 @@ export async function requestIssue(ctx: EventHandlerContext): Promise<void> {
     const vaultId = await getVaultId(ctx.store, e.vaultId);
     if (vaultId === undefined) {
         debug(
-            `WARNING: no vault ID found for issue request ${toHex(e.issueId)}, with encoded account-wrapped-collateral ID of ${encodeVaultId(e.vaultId)} (at parachain absolute height ${ctx.block.height}`
+            `WARNING: no vault ID found for issue request ${toHex(
+                e.issueId
+            )}, with encoded account-wrapped-collateral ID of ${encodeVaultId(
+                e.vaultId
+            )} (at parachain absolute height ${ctx.block.height}`
         );
         return;
     }
@@ -62,7 +66,7 @@ export async function requestIssue(ctx: EventHandlerContext): Promise<void> {
 
     if (backingBlock === undefined) {
         debug(
-            `WARNING: no BTC blocks relayed before issue request ${issue.id} (at parachain absolute height ${height.absolute}`
+            `WARNING: no BTC blocks relayed before issue request ${issue.id} (at parachain absolute height ${height.absolute})`
         );
     }
 
