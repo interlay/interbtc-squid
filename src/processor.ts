@@ -30,6 +30,9 @@ assert(!!chain);
 processor.setDataSource({ archive, chain });
 processor.setTypesBundle("indexer/typesBundle.json");
 
+const processFrom = Number(process.env.PROCESS_FROM) || 0;
+processor.setBlockRange({ from: processFrom });
+
 processor.addEventHandler(
     "btcRelay.StoreMainChainHeader",
     storeMainChainHeader
