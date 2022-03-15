@@ -6,9 +6,10 @@ import { Address, CurrencyId_Token, VaultId } from "../types/v0";
 import { encodeBtcAddress, getBtcNetwork } from "./bitcoinUtils";
 
 const bitcoinNetwork: Network = getBtcNetwork(process.env.BITCOIN_NETWORK);
+const ss58format = process.env.SS58_CODEC || "substrate";
 
 export const address = {
-    interlay: ss58.codec("substrate"),
+    interlay: ss58.codec(ss58format),
     btc: {
         encode(address: Address): string | undefined {
             return encodeBtcAddress(address, bitcoinNetwork);
