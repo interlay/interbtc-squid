@@ -19,7 +19,7 @@ enum Token {
     INTR
     KSM
     KINT
-    INTERBTC
+    IBTC
     KBTC
 }
 

@@ -8,7 +8,7 @@
     "scripts": {
         "build": "rm -rf lib && tsc",
         "gen:json": "node indexer/generateTypes.js",
-        "gen:explore": "squid-substrate-metadata-explorer --chain ws://localhost:9944 --out indexer/chainVersions.json",
+        "gen:explore": "squid-substrate-metadata-explorer --chain wss://api-testnet.interlay.io/parachain --out indexer/chainVersions.json",
         "gen:types": "squid-substrate-typegen typegen.json",
         "gen:code": "sqd codegen",
         "gen:all": "yarn gen:json && yarn gen:code && yarn gen:types",

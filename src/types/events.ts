@@ -2,6 +2,7 @@ import assert from 'assert'
 import {EventContext, Result, deprecateLatest} from './support'
 import * as v0 from './v0'
 import * as v1 from './v1'
+import * as v6 from './v6'
 
 export class BtcRelayStoreMainChainHeaderEvent {
   constructor(private ctx: EventContext) {
@@ -67,14 +68,23 @@ export class IssueExecuteIssueEvent {
     return this.ctx._chain.decodeEvent(this.ctx.event)
   }
 
-  get isLatest(): boolean {
-    deprecateLatest()
-    return this.isV0
+  get isV6(): boolean {
+    return this.ctx._chain.getEventHash('issue.ExecuteIssue') === '2a949650f14b74e697a164b680bca04d84f10a51ebe05d9809ddd4fe0d99cc88'
   }
 
-  get asLatest(): {issueId: v0.H256, requester: v0.AccountId32, vaultId: v0.VaultId, amount: bigint, fee: bigint} {
+  get asV6(): {issueId: v6.H256, requester: v6.AccountId32, vaultId: v6.VaultId, amount: bigint, fee: bigint} {
+    assert(this.isV6)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
     deprecateLatest()
-    return this.asV0
+    return this.isV6
+  }
+
+  get asLatest(): {issueId: v6.H256, requester: v6.AccountId32, vaultId: v6.VaultId, amount: bigint, fee: bigint} {
+    deprecateLatest()
+    return this.asV6
   }
 }
 
@@ -92,14 +102,23 @@ export class IssueRequestIssueEvent {
     return this.ctx._chain.decodeEvent(this.ctx.event)
   }
 
-  get isLatest(): boolean {
-    deprecateLatest()
-    return this.isV0
+  get isV6(): boolean {
+    return this.ctx._chain.getEventHash('issue.RequestIssue') === '755f95b7566cb28d736005d847edb0e2d61716fe8d172318f25ad15cc9d761cf'
   }
 
-  get asLatest(): {issueId: v0.H256, requester: v0.AccountId32, amount: bigint, fee: bigint, griefingCollateral: bigint, vaultId: v0.VaultId, vaultAddress: v0.Address, vaultPublicKey: v0.PublicKey} {
+  get asV6(): {issueId: v6.H256, requester: v6.AccountId32, amount: bigint, fee: bigint, griefingCollateral: bigint, vaultId: v6.VaultId, vaultAddress: v6.Address, vaultPublicKey: v6.PublicKey} {
+    assert(this.isV6)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
     deprecateLatest()
-    return this.asV0
+    return this.isV6
+  }
+
+  get asLatest(): {issueId: v6.H256, requester: v6.AccountId32, amount: bigint, fee: bigint, griefingCollateral: bigint, vaultId: v6.VaultId, vaultAddress: v6.Address, vaultPublicKey: v6.PublicKey} {
+    deprecateLatest()
+    return this.asV6
   }
 }
 
@@ -123,14 +142,29 @@ export class OracleFeedValuesEvent {
     return this.ctx._chain.decodeEvent(this.ctx.event)
   }
 
-  get isLatest(): boolean {
-    deprecateLatest()
-    return this.isV0
+  /**
+   * Event emitted when exchange rate is set
+   */
+  get isV6(): boolean {
+    return this.ctx._chain.getEventHash('oracle.FeedValues') === '8f1cf2446cdd43af96cd2c0fb837b7f37e97e19c1f2c4406d5f7f2ddc4d06ca4'
   }
 
-  get asLatest(): {oracleId: v0.AccountId32, values: [v0.Key, v0.FixedU128][]} {
+  /**
+   * Event emitted when exchange rate is set
+   */
+  get asV6(): {oracleId: v6.AccountId32, values: [v6.Key, v6.FixedU128][]} {
+    assert(this.isV6)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
     deprecateLatest()
-    return this.asV0
+    return this.isV6
+  }
+
+  get asLatest(): {oracleId: v6.AccountId32, values: [v6.Key, v6.FixedU128][]} {
+    deprecateLatest()
+    return this.asV6
   }
 }
 
@@ -148,14 +182,23 @@ export class RedeemCancelRedeemEvent {
     return this.ctx._chain.decodeEvent(this.ctx.event)
   }
 
-  get isLatest(): boolean {
-    deprecateLatest()
-    return this.isV0
+  get isV6(): boolean {
+    return this.ctx._chain.getEventHash('redeem.CancelRedeem') === '4de55d3c405d3e7fa40c57d5b7ee83cf17d0c5debfd31d3df4d4f95b49317cdb'
   }
 
-  get asLatest(): {redeemId: v0.H256, redeemer: v0.AccountId32, vaultId: v0.VaultId, slashedAmount: bigint, status: v0.RedeemRequestStatus} {
+  get asV6(): {redeemId: v6.H256, redeemer: v6.AccountId32, vaultId: v6.VaultId, slashedAmount: bigint, status: v6.RedeemRequestStatus} {
+    assert(this.isV6)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
     deprecateLatest()
-    return this.asV0
+    return this.isV6
+  }
+
+  get asLatest(): {redeemId: v6.H256, redeemer: v6.AccountId32, vaultId: v6.VaultId, slashedAmount: bigint, status: v6.RedeemRequestStatus} {
+    deprecateLatest()
+    return this.asV6
   }
 }
 
@@ -173,14 +216,23 @@ export class RedeemExecuteRedeemEvent {
     return this.ctx._chain.decodeEvent(this.ctx.event)
   }
 
-  get isLatest(): boolean {
-    deprecateLatest()
-    return this.isV0
+  get isV6(): boolean {
+    return this.ctx._chain.getEventHash('redeem.ExecuteRedeem') === '64dc6a9b5f18ba2fd9fe3c25738a0324720b57c7db7d23ce29c02b72e0f68e43'
   }
 
-  get asLatest(): {redeemId: v0.H256, redeemer: v0.AccountId32, vaultId: v0.VaultId, amount: bigint, fee: bigint, transferFee: bigint} {
+  get asV6(): {redeemId: v6.H256, redeemer: v6.AccountId32, vaultId: v6.VaultId, amount: bigint, fee: bigint, transferFee: bigint} {
+    assert(this.isV6)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
     deprecateLatest()
-    return this.asV0
+    return this.isV6
+  }
+
+  get asLatest(): {redeemId: v6.H256, redeemer: v6.AccountId32, vaultId: v6.VaultId, amount: bigint, fee: bigint, transferFee: bigint} {
+    deprecateLatest()
+    return this.asV6
   }
 }
 
@@ -198,14 +250,23 @@ export class RedeemRequestRedeemEvent {
     return this.ctx._chain.decodeEvent(this.ctx.event)
   }
 
-  get isLatest(): boolean {
-    deprecateLatest()
-    return this.isV0
+  get isV6(): boolean {
+    return this.ctx._chain.getEventHash('redeem.RequestRedeem') === '789973ba110827359354e109104fa51c5d63ddec4d27e0ea4ca0925867492be7'
   }
 
-  get asLatest(): {redeemId: v0.H256, redeemer: v0.AccountId32, vaultId: v0.VaultId, amount: bigint, fee: bigint, premium: bigint, btcAddress: v0.Address, transferFee: bigint} {
+  get asV6(): {redeemId: v6.H256, redeemer: v6.AccountId32, vaultId: v6.VaultId, amount: bigint, fee: bigint, premium: bigint, btcAddress: v6.Address, transferFee: bigint} {
+    assert(this.isV6)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
     deprecateLatest()
-    return this.asV0
+    return this.isV6
+  }
+
+  get asLatest(): {redeemId: v6.H256, redeemer: v6.AccountId32, vaultId: v6.VaultId, amount: bigint, fee: bigint, premium: bigint, btcAddress: v6.Address, transferFee: bigint} {
+    deprecateLatest()
+    return this.asV6
   }
 }
 
@@ -223,14 +284,23 @@ export class RefundExecuteRefundEvent {
     return this.ctx._chain.decodeEvent(this.ctx.event)
   }
 
-  get isLatest(): boolean {
-    deprecateLatest()
-    return this.isV0
+  get isV6(): boolean {
+    return this.ctx._chain.getEventHash('refund.ExecuteRefund') === '5938815615474112793a3351e2537a6b823719e2ba7b2cdedc3634ab96b60af8'
   }
 
-  get asLatest(): {refundId: v0.H256, issuer: v0.AccountId32, vaultId: v0.VaultId, amount: bigint, fee: bigint} {
+  get asV6(): {refundId: v6.H256, issuer: v6.AccountId32, vaultId: v6.VaultId, amount: bigint, fee: bigint} {
+    assert(this.isV6)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
     deprecateLatest()
-    return this.asV0
+    return this.isV6
+  }
+
+  get asLatest(): {refundId: v6.H256, issuer: v6.AccountId32, vaultId: v6.VaultId, amount: bigint, fee: bigint} {
+    deprecateLatest()
+    return this.asV6
   }
 }
 
@@ -248,14 +318,23 @@ export class RefundRequestRefundEvent {
     return this.ctx._chain.decodeEvent(this.ctx.event)
   }
 
-  get isLatest(): boolean {
-    deprecateLatest()
-    return this.isV0
+  get isV6(): boolean {
+    return this.ctx._chain.getEventHash('refund.RequestRefund') === 'cac0c5b1ed80807227b578ef1df999a9c713cabc1f2ab5bc2114a80fa26a7f98'
   }
 
-  get asLatest(): {refundId: v0.H256, issuer: v0.AccountId32, amount: bigint, vaultId: v0.VaultId, btcAddress: v0.Address, issueId: v0.H256, fee: bigint, transferFee: bigint} {
+  get asV6(): {refundId: v6.H256, issuer: v6.AccountId32, amount: bigint, vaultId: v6.VaultId, btcAddress: v6.Address, issueId: v6.H256, fee: bigint, transferFee: bigint} {
+    assert(this.isV6)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
     deprecateLatest()
-    return this.asV0
+    return this.isV6
+  }
+
+  get asLatest(): {refundId: v6.H256, issuer: v6.AccountId32, amount: bigint, vaultId: v6.VaultId, btcAddress: v6.Address, issueId: v6.H256, fee: bigint, transferFee: bigint} {
+    deprecateLatest()
+    return this.asV6
   }
 }
 
@@ -298,14 +377,23 @@ export class VaultRegistryDecreaseLockedCollateralEvent {
     return this.ctx._chain.decodeEvent(this.ctx.event)
   }
 
-  get isLatest(): boolean {
-    deprecateLatest()
-    return this.isV1
+  get isV6(): boolean {
+    return this.ctx._chain.getEventHash('vaultRegistry.DecreaseLockedCollateral') === '8459984e0f8f0b589467b5dff9d063e02f046c83e218927977f00f2333fc8880'
   }
 
-  get asLatest(): {currencyPair: v1.VaultCurrencyPair, delta: bigint, total: bigint} {
+  get asV6(): {currencyPair: v6.VaultCurrencyPair, delta: bigint, total: bigint} {
+    assert(this.isV6)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
     deprecateLatest()
-    return this.asV1
+    return this.isV6
+  }
+
+  get asLatest(): {currencyPair: v6.VaultCurrencyPair, delta: bigint, total: bigint} {
+    deprecateLatest()
+    return this.asV6
   }
 }
 
@@ -323,14 +411,23 @@ export class VaultRegistryIncreaseLockedCollateralEvent {
     return this.ctx._chain.decodeEvent(this.ctx.event)
   }
 
-  get isLatest(): boolean {
-    deprecateLatest()
-    return this.isV1
+  get isV6(): boolean {
+    return this.ctx._chain.getEventHash('vaultRegistry.IncreaseLockedCollateral') === 'df07bb2be6f98c8ef2f3b7b0e13e586828b796f0323a528af7306a8915b0b110'
   }
 
-  get asLatest(): {currencyPair: v1.VaultCurrencyPair, delta: bigint, total: bigint} {
+  get asV6(): {currencyPair: v6.VaultCurrencyPair, delta: bigint, total: bigint} {
+    assert(this.isV6)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
     deprecateLatest()
-    return this.asV1
+    return this.isV6
+  }
+
+  get asLatest(): {currencyPair: v6.VaultCurrencyPair, delta: bigint, total: bigint} {
+    deprecateLatest()
+    return this.asV6
   }
 }
 
@@ -348,13 +445,22 @@ export class VaultRegistryRegisterVaultEvent {
     return this.ctx._chain.decodeEvent(this.ctx.event)
   }
 
-  get isLatest(): boolean {
-    deprecateLatest()
-    return this.isV0
+  get isV6(): boolean {
+    return this.ctx._chain.getEventHash('vaultRegistry.RegisterVault') === 'c4ec1d37bef41a47ff9c320b3e297408a470d89c8cb082b299ef617335fd05de'
   }
 
-  get asLatest(): {vaultId: v0.VaultId, collateral: bigint} {
+  get asV6(): {vaultId: v6.VaultId, collateral: bigint} {
+    assert(this.isV6)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
     deprecateLatest()
-    return this.asV0
+    return this.isV6
+  }
+
+  get asLatest(): {vaultId: v6.VaultId, collateral: bigint} {
+    deprecateLatest()
+    return this.asV6
   }
 }

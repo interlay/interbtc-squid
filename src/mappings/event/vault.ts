@@ -37,7 +37,7 @@ export async function registerVault(ctx: EventHandlerContext): Promise<void> {
 export async function increaseLockedCollateral(
     ctx: EventHandlerContext
 ): Promise<void> {
-    const e = new VaultRegistryIncreaseLockedCollateralEvent(ctx).asV1;
+    const e = new VaultRegistryIncreaseLockedCollateralEvent(ctx).asV6;
     const collateralToken = currencyId.token.encode(e.currencyPair.collateral);
     const wrappedToken = currencyId.token.encode(e.currencyPair.wrapped);
 
@@ -56,7 +56,7 @@ export async function increaseLockedCollateral(
 export async function decreaseLockedCollateral(
     ctx: EventHandlerContext
 ): Promise<void> {
-    const e = new VaultRegistryDecreaseLockedCollateralEvent(ctx).asV1;
+    const e = new VaultRegistryDecreaseLockedCollateralEvent(ctx).asV6;
     const collateralToken = currencyId.token.encode(e.currencyPair.collateral);
     const wrappedToken = currencyId.token.encode(e.currencyPair.wrapped);
 
