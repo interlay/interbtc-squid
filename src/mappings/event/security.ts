@@ -3,7 +3,10 @@ import { Height } from "../../model";
 import { SecurityUpdateActiveBlockEvent } from "../../types/events";
 
 export async function updateActiveBlock(ctx: EventHandlerContext): Promise<void> {
-    const e = new SecurityUpdateActiveBlockEvent(ctx).asLatest;
+    const rawEvent = new SecurityUpdateActiveBlockEvent(ctx);
+    let e;
+    if (rawEvent.isV4) e = rawEvent.asV4;
+    else throw Error("Unknown event version");
 
     const newHeight = new Height({
         id: ctx.block.height.toString(),

@@ -28,7 +28,7 @@
         "@interlay/interbtc-types": "1.1.1",
         "@subsquid/graphql-server": "^0.1.5",
         "@subsquid/ss58": "^0.0.4",
-        "@subsquid/substrate-processor": "^0.3.0",
+        "@subsquid/substrate-processor": "^0.7.1",
         "bitcoinjs-lib": "^5.2.0",
         "debug": "^4.3.3",
         "dotenv": "^10.0.0",

@@ -8,7 +8,10 @@ import { blockToHeight } from "../_utils";
 export async function storeMainChainHeader(
     ctx: EventHandlerContext
 ): Promise<void> {
-    const e = new BtcRelayStoreMainChainHeaderEvent(ctx).asLatest;
+    const rawEvent = new BtcRelayStoreMainChainHeaderEvent(ctx);
+    let e;
+    if (rawEvent.isV4) e = rawEvent.asV4;
+    else throw Error("Unknown event version");
 
     const relayedAtHeight = await blockToHeight(
         ctx.store,

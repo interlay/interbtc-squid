@@ -5,7 +5,11 @@ import { address } from "../encoding";
 import { blockToHeight } from "../_utils";
 
 export async function feedValues(ctx: EventHandlerContext): Promise<void> {
-    const e = new OracleFeedValuesEvent(ctx).asLatest;
+    const rawEvent = new OracleFeedValuesEvent(ctx);
+    let e;
+    if (rawEvent.isV6) e = rawEvent.asV6;
+    else if (rawEvent.isV15) e = rawEvent.asV15;
+    else throw Error("Unknown event version");
     for (const [key, value] of e.values) {
         const height = await blockToHeight(
             ctx.store,

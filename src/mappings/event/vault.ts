@@ -13,7 +13,11 @@ import { currencyId, address, encodeVaultId } from "../encoding";
 import { blockToHeight } from "../_utils";
 
 export async function registerVault(ctx: EventHandlerContext): Promise<void> {
-    const e = new VaultRegistryRegisterVaultEvent(ctx).asLatest;
+    const rawEvent = new VaultRegistryRegisterVaultEvent(ctx);
+    let e;
+    if (rawEvent.isV6) e = rawEvent.asV6;
+    else if (rawEvent.isV15) e = rawEvent.asV15;
+    else throw Error("Unknown event version");
 
     const registrationBlock = await blockToHeight(
         ctx.store,
@@ -37,7 +41,11 @@ export async function registerVault(ctx: EventHandlerContext): Promise<void> {
 export async function increaseLockedCollateral(
     ctx: EventHandlerContext
 ): Promise<void> {
-    const e = new VaultRegistryIncreaseLockedCollateralEvent(ctx).asV15;
+    const rawEvent = new VaultRegistryIncreaseLockedCollateralEvent(ctx);
+    let e;
+    if (rawEvent.isV10) e = rawEvent.asV10;
+    else if (rawEvent.isV15) e = rawEvent.asV15;
+    else throw Error("Unknown event version");
     const collateralToken = currencyId.token.encode(e.currencyPair.collateral);
     const wrappedToken = currencyId.token.encode(e.currencyPair.wrapped);
 
@@ -56,7 +64,12 @@ export async function increaseLockedCollateral(
 export async function decreaseLockedCollateral(
     ctx: EventHandlerContext
 ): Promise<void> {
-    const e = new VaultRegistryDecreaseLockedCollateralEvent(ctx).asV15;
+    const rawEvent = new VaultRegistryDecreaseLockedCollateralEvent(ctx);
+    let e;
+    if (rawEvent.isV10) e = rawEvent.asV10;
+    else if (rawEvent.isV15) e = rawEvent.asV15;
+    else throw Error("Unknown event version");
+
     const collateralToken = currencyId.token.encode(e.currencyPair.collateral);
     const wrappedToken = currencyId.token.encode(e.currencyPair.wrapped);
 
