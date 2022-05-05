@@ -1,5 +1,5 @@
 import { Network, networks, payments } from "bitcoinjs-lib";
-import { Address } from "../types/v0";
+import { Address } from "../types/v15";
 
 export function getBtcNetwork(network?: string): Network {
     switch (network) {

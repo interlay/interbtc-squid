@@ -79,14 +79,14 @@ export interface CurrencyId_Token {
   value: TokenSymbol
 }
 
-export type TokenSymbol = TokenSymbol_DOT | TokenSymbol_IBTC | TokenSymbol_INTR | TokenSymbol_KSM | TokenSymbol_KBTC | TokenSymbol_KINT
+export type TokenSymbol = TokenSymbol_DOT | TokenSymbol_INTERBTC | TokenSymbol_INTR | TokenSymbol_KSM | TokenSymbol_KBTC | TokenSymbol_KINT
 
 export interface TokenSymbol_DOT {
   __kind: 'DOT'
 }
 
-export interface TokenSymbol_IBTC {
-  __kind: 'IBTC'
+export interface TokenSymbol_INTERBTC {
+  __kind: 'INTERBTC'
 }
 
 export interface TokenSymbol_INTR {
