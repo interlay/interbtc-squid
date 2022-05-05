@@ -15,10 +15,10 @@ export class Vault {
   @Column_("text", {nullable: false})
   accountId!: string
 
-  @Column_("varchar", {length: 8, nullable: false})
+  @Column_("varchar", {length: 4, nullable: false})
   collateralToken!: Token
 
-  @Column_("varchar", {length: 8, nullable: false})
+  @Column_("varchar", {length: 4, nullable: false})
   wrappedToken!: Token
 
   @Index_()

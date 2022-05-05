@@ -2,7 +2,7 @@ import * as ss58 from "@subsquid/ss58";
 import { Network } from "bitcoinjs-lib";
 import {Token} from "../model";
 
-import { Address, CurrencyId_Token, VaultId } from "../types/v0";
+import { Address, CurrencyId_Token, VaultId } from "../types/v15";
 import { encodeBtcAddress, getBtcNetwork } from "./bitcoinUtils";
 
 const bitcoinNetwork: Network = getBtcNetwork(process.env.BITCOIN_NETWORK);

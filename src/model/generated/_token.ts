@@ -3,6 +3,6 @@ export enum Token {
   INTR = "INTR",
   KSM = "KSM",
   KINT = "KINT",
-  INTERBTC = "INTERBTC",
+  IBTC = "IBTC",
   KBTC = "KBTC",
 }

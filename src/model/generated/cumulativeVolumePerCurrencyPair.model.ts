@@ -21,9 +21,9 @@ export class CumulativeVolumePerCurrencyPair {
   @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
   amount!: bigint
 
-  @Column_("varchar", {length: 8, nullable: true})
+  @Column_("varchar", {length: 4, nullable: true})
   wrappedCurrency!: Token | undefined | null
 
-  @Column_("varchar", {length: 8, nullable: true})
+  @Column_("varchar", {length: 4, nullable: true})
   collateralCurrency!: Token | undefined | null
 }

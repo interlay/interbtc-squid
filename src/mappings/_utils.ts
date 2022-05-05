@@ -11,7 +11,7 @@ import {
 } from "../model";
 import { LessThanOrEqual } from "typeorm";
 import Debug from "debug";
-import { VaultId as EventVaultId } from "../types/v0";
+import { VaultId as EventVaultId } from "../types/v15";
 import { encodeVaultId } from "./encoding";
 
 const debug = Debug("interbtc-mappings:_utils");
