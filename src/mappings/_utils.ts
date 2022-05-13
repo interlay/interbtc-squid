@@ -17,7 +17,7 @@ import { encodeVaultId } from "./encoding";
 
 const debug = Debug("interbtc-mappings:_utils");
 
-const issuePeriod = 7200; // TODO: HARDCODED - fetch from chain once event is implemented
+const issuePeriod = 14400; // TODO: HARDCODED - fetch from chain once event is implemented
 const parachainBlocksPerBitcoinBlock = 100; // TODO: HARDCODED - find better way to set?
 const btcPeriod = Math.ceil(issuePeriod / parachainBlocksPerBitcoinBlock);
 
