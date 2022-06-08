@@ -1,11 +1,14 @@
+import Debug from "debug";
 import { EventHandlerContext } from "@subsquid/substrate-processor";
 import { Height } from "../../model";
 import { SecurityUpdateActiveBlockEvent } from "../../types/events";
 
-export async function updateActiveBlock(ctx: EventHandlerContext): Promise<void> {
+export async function updateActiveBlock(
+    ctx: EventHandlerContext
+): Promise<void> {
     const rawEvent = new SecurityUpdateActiveBlockEvent(ctx);
     let e;
-    if (rawEvent.isV4) e = rawEvent.asV4;
+    if (rawEvent.isV6) e = rawEvent.asV6;
     else throw Error("Unknown event version");
 
     const newHeight = new Height({

@@ -1,5 +1,4 @@
 import { Network, networks, payments } from "bitcoinjs-lib";
-import { Address as AddressV15 } from "../types/v15";
 import { Address as AddressV6 } from "../types/v6";
 
 export function getBtcNetwork(network?: string): Network {
@@ -16,7 +15,7 @@ export function getBtcNetwork(network?: string): Network {
 }
 
 export function encodeBtcAddress(
-    addressObject: AddressV6 | AddressV15,
+    addressObject: AddressV6,
     network: Network
 ): string | undefined {
     let payment;

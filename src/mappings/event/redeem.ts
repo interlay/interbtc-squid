@@ -24,7 +24,7 @@ export async function requestRedeem(ctx: EventHandlerContext): Promise<void> {
     const rawEvent = new RedeemRequestRedeemEvent(ctx);
     let e;
     if (rawEvent.isV6) e = rawEvent.asV6;
-    else if (rawEvent.isV15) e = rawEvent.asV15;
+    else if (rawEvent.isV8) e = rawEvent.asV8;
     else throw Error("Unknown event version");
 
     const vaultId = await getVaultId(ctx.store, e.vaultId);
@@ -85,7 +85,7 @@ export async function executeRedeem(ctx: EventHandlerContext): Promise<void> {
     const rawEvent = new RedeemExecuteRedeemEvent(ctx);
     let e;
     if (rawEvent.isV6) e = rawEvent.asV6;
-    else if (rawEvent.isV15) e = rawEvent.asV15;
+    else if (rawEvent.isV8) e = rawEvent.asV8;
     else throw Error("Unknown event version");
 
     const redeem = await ctx.store.get(Redeem, {
@@ -126,7 +126,7 @@ export async function cancelRedeem(ctx: EventHandlerContext): Promise<void> {
     const rawEvent = new RedeemCancelRedeemEvent(ctx);
     let e;
     if (rawEvent.isV6) e = rawEvent.asV6;
-    else if (rawEvent.isV15) e = rawEvent.asV15;
+    else if (rawEvent.isV8) e = rawEvent.asV8;
     else throw Error("Unknown event version");
 
     const redeem = await ctx.store.get(Redeem, {

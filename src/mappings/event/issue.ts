@@ -27,7 +27,7 @@ export async function requestIssue(ctx: EventHandlerContext): Promise<void> {
     const rawEvent = new IssueRequestIssueEvent(ctx);
     let e;
     if (rawEvent.isV6) e = rawEvent.asV6;
-    else if (rawEvent.isV15) e = rawEvent.asV15;
+    else if (rawEvent.isV8) e = rawEvent.asV8;
     else throw Error("Unknown event version");
 
     const vaultId = await getVaultId(ctx.store, e.vaultId);
@@ -89,7 +89,7 @@ export async function executeIssue(ctx: EventHandlerContext): Promise<void> {
     const rawEvent = new IssueExecuteIssueEvent(ctx);
     let e;
     if (rawEvent.isV6) e = rawEvent.asV6;
-    else if (rawEvent.isV15) e = rawEvent.asV15;
+    else if (rawEvent.isV8) e = rawEvent.asV8;
     else throw Error("Unknown event version");
 
     const id = toHex(e.issueId);
@@ -134,7 +134,7 @@ export async function cancelIssue(ctx: EventHandlerContext): Promise<void> {
     //     new IssueCrate.CancelIssueEvent(event).params;
     const rawEvent = new IssueCancelIssueEvent(ctx);
     let e;
-    if (rawEvent.isV4) e = rawEvent.asV4;
+    if (rawEvent.isV6) e = rawEvent.asV6;
     else throw Error("Unknown event version");
 
     const issue = await ctx.store.get(Issue, {
@@ -168,7 +168,7 @@ export async function requestRefund(ctx: EventHandlerContext): Promise<void> {
     const rawEvent = new RefundRequestRefundEvent(ctx);
     let e;
     if (rawEvent.isV6) e = rawEvent.asV6;
-    else if (rawEvent.isV15) e = rawEvent.asV15;
+    else if (rawEvent.isV8) e = rawEvent.asV8;
     else throw Error("Unknown event version");
 
     const id = toHex(e.refundId);
@@ -206,7 +206,7 @@ export async function executeRefund(ctx: EventHandlerContext): Promise<void> {
     const rawEvent = new RefundExecuteRefundEvent(ctx);
     let e;
     if (rawEvent.isV6) e = rawEvent.asV6;
-    else if (rawEvent.isV15) e = rawEvent.asV15;
+    else if (rawEvent.isV8) e = rawEvent.asV8;
     else throw Error("Unknown event version");
 
     const refund = await ctx.store.get(Refund, {

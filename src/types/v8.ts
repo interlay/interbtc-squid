@@ -1,12 +1,8 @@
 import type {Result} from './support'
 
-export interface H256Le {
-  content: Uint8Array
-}
+export type H256 = Uint8Array
 
 export type AccountId32 = Uint8Array
-
-export type H256 = Uint8Array
 
 export interface VaultId {
   accountId: AccountId32
@@ -76,28 +72,40 @@ export interface VaultCurrencyPair {
 
 export type H160 = Uint8Array
 
-export type CurrencyId = CurrencyId_DOT | CurrencyId_INTERBTC | CurrencyId_INTR | CurrencyId_KSM | CurrencyId_KBTC | CurrencyId_KINT
+export type CurrencyId = CurrencyId_Token | CurrencyId_ForeignAsset
 
-export interface CurrencyId_DOT {
+export interface CurrencyId_Token {
+  __kind: 'Token'
+  value: TokenSymbol
+}
+
+export interface CurrencyId_ForeignAsset {
+  __kind: 'ForeignAsset'
+  value: number
+}
+
+export type TokenSymbol = TokenSymbol_DOT | TokenSymbol_IBTC | TokenSymbol_INTR | TokenSymbol_KSM | TokenSymbol_KBTC | TokenSymbol_KINT
+
+export interface TokenSymbol_DOT {
   __kind: 'DOT'
 }
 
-export interface CurrencyId_INTERBTC {
-  __kind: 'INTERBTC'
+export interface TokenSymbol_IBTC {
+  __kind: 'IBTC'
 }
 
-export interface CurrencyId_INTR {
+export interface TokenSymbol_INTR {
   __kind: 'INTR'
 }
 
-export interface CurrencyId_KSM {
+export interface TokenSymbol_KSM {
   __kind: 'KSM'
 }
 
-export interface CurrencyId_KBTC {
+export interface TokenSymbol_KBTC {
   __kind: 'KBTC'
 }
 
-export interface CurrencyId_KINT {
+export interface TokenSymbol_KINT {
   __kind: 'KINT'
 }

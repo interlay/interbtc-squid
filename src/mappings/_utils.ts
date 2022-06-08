@@ -11,8 +11,8 @@ import {
 } from "../model";
 import { LessThanOrEqual } from "typeorm";
 import Debug from "debug";
-import { VaultId as VaultIdV15 } from "../types/v15";
 import { VaultId as VaultIdV6 } from "../types/v6";
+import { VaultId as VaultIdV8 } from "../types/v8";
 import { encodeVaultId } from "./encoding";
 
 const debug = Debug("interbtc-mappings:_utils");
@@ -21,7 +21,7 @@ const issuePeriod = 14400; // TODO: HARDCODED - fetch from chain once event is i
 const parachainBlocksPerBitcoinBlock = 100; // TODO: HARDCODED - find better way to set?
 const btcPeriod = Math.ceil(issuePeriod / parachainBlocksPerBitcoinBlock);
 
-export async function getVaultId(store: Store, vaultId: VaultIdV15 | VaultIdV6) {
+export async function getVaultId(store: Store, vaultId: VaultIdV6 | VaultIdV8) {
     return store.get(Vault, {
         where: { id: encodeVaultId(vaultId) },
     });
