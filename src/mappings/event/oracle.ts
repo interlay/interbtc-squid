@@ -1,7 +1,7 @@
 import { EventHandlerContext } from "@subsquid/substrate-processor";
 import { OracleUpdate, OracleUpdateType } from "../../model";
 import { OracleFeedValuesEvent } from "../../types/events";
-import { address } from "../encoding";
+import { address, currencyId } from "../encoding";
 import { blockToHeight } from "../_utils";
 
 export async function feedValues(ctx: EventHandlerContext): Promise<void> {
@@ -9,6 +9,7 @@ export async function feedValues(ctx: EventHandlerContext): Promise<void> {
     let e;
     if (rawEvent.isV6) e = rawEvent.asV6;
     else if (rawEvent.isV15) e = rawEvent.asV15;
+    else if (rawEvent.isV17) e = rawEvent.asV17;
     else throw Error("Unknown event version");
     for (const [key, value] of e.values) {
         const height = await blockToHeight(
@@ -26,8 +27,9 @@ export async function feedValues(ctx: EventHandlerContext): Promise<void> {
         });
         let keyToString = key.__kind.toString();
         if (key.__kind === "ExchangeRate") {
-            update.typeKey = key.value.value.__kind;
-            keyToString += key.value.value.__kind;
+            const typeString = currencyId.token.encode(key.value).toString();
+            update.typeKey = typeString;
+            keyToString += typeString;
         }
         update.id = `${oracleAddress}-${height.absolute.toString()}-${keyToString}`;
         await ctx.store.save(update);

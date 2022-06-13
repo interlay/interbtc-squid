@@ -28,6 +28,7 @@ export async function requestIssue(ctx: EventHandlerContext): Promise<void> {
     let e;
     if (rawEvent.isV6) e = rawEvent.asV6;
     else if (rawEvent.isV15) e = rawEvent.asV15;
+    else if (rawEvent.isV17) e = rawEvent.asV17;
     else throw Error("Unknown event version");
 
     const vaultId = await getVaultId(ctx.store, e.vaultId);
@@ -90,6 +91,7 @@ export async function executeIssue(ctx: EventHandlerContext): Promise<void> {
     let e;
     if (rawEvent.isV6) e = rawEvent.asV6;
     else if (rawEvent.isV15) e = rawEvent.asV15;
+    else if (rawEvent.isV17) e = rawEvent.asV17;
     else throw Error("Unknown event version");
 
     const id = toHex(e.issueId);
@@ -169,6 +171,7 @@ export async function requestRefund(ctx: EventHandlerContext): Promise<void> {
     let e;
     if (rawEvent.isV6) e = rawEvent.asV6;
     else if (rawEvent.isV15) e = rawEvent.asV15;
+    else if (rawEvent.isV17) e = rawEvent.asV17;
     else throw Error("Unknown event version");
 
     const id = toHex(e.refundId);
@@ -207,6 +210,7 @@ export async function executeRefund(ctx: EventHandlerContext): Promise<void> {
     let e;
     if (rawEvent.isV6) e = rawEvent.asV6;
     else if (rawEvent.isV15) e = rawEvent.asV15;
+    else if (rawEvent.isV17) e = rawEvent.asV17;
     else throw Error("Unknown event version");
 
     const refund = await ctx.store.get(Refund, {

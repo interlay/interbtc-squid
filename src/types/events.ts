@@ -3,6 +3,7 @@ import {EventContext, Result, deprecateLatest} from './support'
 import * as v1 from './v1'
 import * as v10 from './v10'
 import * as v15 from './v15'
+import * as v17 from './v17'
 import * as v3 from './v3'
 import * as v4 from './v4'
 import * as v6 from './v6'
@@ -146,14 +147,23 @@ export class IssueExecuteIssueEvent {
     return this.ctx._chain.decodeEvent(this.ctx.event)
   }
 
-  get isLatest(): boolean {
-    deprecateLatest()
-    return this.isV15
+  get isV17(): boolean {
+    return this.ctx._chain.getEventHash('issue.ExecuteIssue') === '566276893c9ed457216387ebf43f6abe618732a1c66cf1fce9ec1e6549b3e23a'
   }
 
-  get asLatest(): {issueId: v15.H256, requester: v15.AccountId32, vaultId: v15.VaultId, amount: bigint, fee: bigint} {
+  get asV17(): {issueId: v17.H256, requester: v17.AccountId32, vaultId: v17.VaultId, amount: bigint, fee: bigint} {
+    assert(this.isV17)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
     deprecateLatest()
-    return this.asV15
+    return this.isV17
+  }
+
+  get asLatest(): {issueId: v17.H256, requester: v17.AccountId32, vaultId: v17.VaultId, amount: bigint, fee: bigint} {
+    deprecateLatest()
+    return this.asV17
   }
 }
 
@@ -207,14 +217,23 @@ export class IssueRequestIssueEvent {
     return this.ctx._chain.decodeEvent(this.ctx.event)
   }
 
-  get isLatest(): boolean {
-    deprecateLatest()
-    return this.isV15
+  get isV17(): boolean {
+    return this.ctx._chain.getEventHash('issue.RequestIssue') === '769ffeb97beaff8fe740f3751c457b8fc376b93ebf99b41c29772f70804e3b37'
   }
 
-  get asLatest(): {issueId: v15.H256, requester: v15.AccountId32, amount: bigint, fee: bigint, griefingCollateral: bigint, vaultId: v15.VaultId, vaultAddress: v15.Address, vaultPublicKey: v15.PublicKey} {
+  get asV17(): {issueId: v17.H256, requester: v17.AccountId32, amount: bigint, fee: bigint, griefingCollateral: bigint, vaultId: v17.VaultId, vaultAddress: v17.Address, vaultPublicKey: v17.PublicKey} {
+    assert(this.isV17)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
     deprecateLatest()
-    return this.asV15
+    return this.isV17
+  }
+
+  get asLatest(): {issueId: v17.H256, requester: v17.AccountId32, amount: bigint, fee: bigint, griefingCollateral: bigint, vaultId: v17.VaultId, vaultAddress: v17.Address, vaultPublicKey: v17.PublicKey} {
+    deprecateLatest()
+    return this.asV17
   }
 }
 
@@ -298,14 +317,29 @@ export class OracleFeedValuesEvent {
     return this.ctx._chain.decodeEvent(this.ctx.event)
   }
 
-  get isLatest(): boolean {
-    deprecateLatest()
-    return this.isV15
+  /**
+   * Event emitted when exchange rate is set
+   */
+  get isV17(): boolean {
+    return this.ctx._chain.getEventHash('oracle.FeedValues') === 'a69282ccd8a5eae74ab42e55b767eebed71035da539edf78068263113d72072e'
   }
 
-  get asLatest(): {oracleId: v15.AccountId32, values: [v15.Key, v15.FixedU128][]} {
+  /**
+   * Event emitted when exchange rate is set
+   */
+  get asV17(): {oracleId: v17.AccountId32, values: [v17.Key, v17.FixedU128][]} {
+    assert(this.isV17)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
     deprecateLatest()
-    return this.asV15
+    return this.isV17
+  }
+
+  get asLatest(): {oracleId: v17.AccountId32, values: [v17.Key, v17.FixedU128][]} {
+    deprecateLatest()
+    return this.asV17
   }
 }
 
@@ -359,14 +393,23 @@ export class RedeemCancelRedeemEvent {
     return this.ctx._chain.decodeEvent(this.ctx.event)
   }
 
-  get isLatest(): boolean {
-    deprecateLatest()
-    return this.isV15
+  get isV17(): boolean {
+    return this.ctx._chain.getEventHash('redeem.CancelRedeem') === '046a69f6b3ee0b3f2ab566a61e763c659684c61891baeb681e8bbd95a6268e50'
   }
 
-  get asLatest(): {redeemId: v15.H256, redeemer: v15.AccountId32, vaultId: v15.VaultId, slashedAmount: bigint, status: v15.RedeemRequestStatus} {
+  get asV17(): {redeemId: v17.H256, redeemer: v17.AccountId32, vaultId: v17.VaultId, slashedAmount: bigint, status: v17.RedeemRequestStatus} {
+    assert(this.isV17)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
     deprecateLatest()
-    return this.asV15
+    return this.isV17
+  }
+
+  get asLatest(): {redeemId: v17.H256, redeemer: v17.AccountId32, vaultId: v17.VaultId, slashedAmount: bigint, status: v17.RedeemRequestStatus} {
+    deprecateLatest()
+    return this.asV17
   }
 }
 
@@ -420,14 +463,23 @@ export class RedeemExecuteRedeemEvent {
     return this.ctx._chain.decodeEvent(this.ctx.event)
   }
 
-  get isLatest(): boolean {
-    deprecateLatest()
-    return this.isV15
+  get isV17(): boolean {
+    return this.ctx._chain.getEventHash('redeem.ExecuteRedeem') === 'd63793fdce1f0d01145e4515a95523737b88c284bd133a8238d7707855f20a21'
   }
 
-  get asLatest(): {redeemId: v15.H256, redeemer: v15.AccountId32, vaultId: v15.VaultId, amount: bigint, fee: bigint, transferFee: bigint} {
+  get asV17(): {redeemId: v17.H256, redeemer: v17.AccountId32, vaultId: v17.VaultId, amount: bigint, fee: bigint, transferFee: bigint} {
+    assert(this.isV17)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
     deprecateLatest()
-    return this.asV15
+    return this.isV17
+  }
+
+  get asLatest(): {redeemId: v17.H256, redeemer: v17.AccountId32, vaultId: v17.VaultId, amount: bigint, fee: bigint, transferFee: bigint} {
+    deprecateLatest()
+    return this.asV17
   }
 }
 
@@ -481,14 +533,23 @@ export class RedeemRequestRedeemEvent {
     return this.ctx._chain.decodeEvent(this.ctx.event)
   }
 
-  get isLatest(): boolean {
-    deprecateLatest()
-    return this.isV15
+  get isV17(): boolean {
+    return this.ctx._chain.getEventHash('redeem.RequestRedeem') === '90a5e843b2f541203e4741dc0f7e19b922501aae7a1358ea8926a4ab6207281a'
   }
 
-  get asLatest(): {redeemId: v15.H256, redeemer: v15.AccountId32, vaultId: v15.VaultId, amount: bigint, fee: bigint, premium: bigint, btcAddress: v15.Address, transferFee: bigint} {
+  get asV17(): {redeemId: v17.H256, redeemer: v17.AccountId32, vaultId: v17.VaultId, amount: bigint, fee: bigint, premium: bigint, btcAddress: v17.Address, transferFee: bigint} {
+    assert(this.isV17)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
     deprecateLatest()
-    return this.asV15
+    return this.isV17
+  }
+
+  get asLatest(): {redeemId: v17.H256, redeemer: v17.AccountId32, vaultId: v17.VaultId, amount: bigint, fee: bigint, premium: bigint, btcAddress: v17.Address, transferFee: bigint} {
+    deprecateLatest()
+    return this.asV17
   }
 }
 
@@ -554,14 +615,23 @@ export class RefundExecuteRefundEvent {
     return this.ctx._chain.decodeEvent(this.ctx.event)
   }
 
-  get isLatest(): boolean {
-    deprecateLatest()
-    return this.isV15
+  get isV17(): boolean {
+    return this.ctx._chain.getEventHash('refund.ExecuteRefund') === '94fee728180908c2c66a2421de1de144cc68556c47258a94f0ce5938f3b582a6'
   }
 
-  get asLatest(): {refundId: v15.H256, issuer: v15.AccountId32, vaultId: v15.VaultId, amount: bigint, fee: bigint} {
+  get asV17(): {refundId: v17.H256, issuer: v17.AccountId32, vaultId: v17.VaultId, amount: bigint, fee: bigint} {
+    assert(this.isV17)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
     deprecateLatest()
-    return this.asV15
+    return this.isV17
+  }
+
+  get asLatest(): {refundId: v17.H256, issuer: v17.AccountId32, vaultId: v17.VaultId, amount: bigint, fee: bigint} {
+    deprecateLatest()
+    return this.asV17
   }
 }
 
@@ -627,14 +697,23 @@ export class RefundRequestRefundEvent {
     return this.ctx._chain.decodeEvent(this.ctx.event)
   }
 
-  get isLatest(): boolean {
-    deprecateLatest()
-    return this.isV15
+  get isV17(): boolean {
+    return this.ctx._chain.getEventHash('refund.RequestRefund') === '77f94c96c50a3d1a974b0cbb518779a172d929745367f4e917ac7bfd71df8750'
   }
 
-  get asLatest(): {refundId: v15.H256, issuer: v15.AccountId32, amount: bigint, vaultId: v15.VaultId, btcAddress: v15.Address, issueId: v15.H256, fee: bigint, transferFee: bigint} {
+  get asV17(): {refundId: v17.H256, issuer: v17.AccountId32, amount: bigint, vaultId: v17.VaultId, btcAddress: v17.Address, issueId: v17.H256, fee: bigint, transferFee: bigint} {
+    assert(this.isV17)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
     deprecateLatest()
-    return this.asV15
+    return this.isV17
+  }
+
+  get asLatest(): {refundId: v17.H256, issuer: v17.AccountId32, amount: bigint, vaultId: v17.VaultId, btcAddress: v17.Address, issueId: v17.H256, fee: bigint, transferFee: bigint} {
+    deprecateLatest()
+    return this.asV17
   }
 }
 
@@ -695,14 +774,23 @@ export class VaultRegistryDecreaseLockedCollateralEvent {
     return this.ctx._chain.decodeEvent(this.ctx.event)
   }
 
-  get isLatest(): boolean {
-    deprecateLatest()
-    return this.isV15
+  get isV17(): boolean {
+    return this.ctx._chain.getEventHash('vaultRegistry.DecreaseLockedCollateral') === '1b67d1d86e1332ee8bb03735b995c67676bbcedc0903eb4d04ca74c4d4a61280'
   }
 
-  get asLatest(): {currencyPair: v15.VaultCurrencyPair, delta: bigint, total: bigint} {
+  get asV17(): {currencyPair: v17.VaultCurrencyPair, delta: bigint, total: bigint} {
+    assert(this.isV17)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
     deprecateLatest()
-    return this.asV15
+    return this.isV17
+  }
+
+  get asLatest(): {currencyPair: v17.VaultCurrencyPair, delta: bigint, total: bigint} {
+    deprecateLatest()
+    return this.asV17
   }
 }
 
@@ -729,14 +817,23 @@ export class VaultRegistryIncreaseLockedCollateralEvent {
     return this.ctx._chain.decodeEvent(this.ctx.event)
   }
 
-  get isLatest(): boolean {
-    deprecateLatest()
-    return this.isV15
+  get isV17(): boolean {
+    return this.ctx._chain.getEventHash('vaultRegistry.IncreaseLockedCollateral') === '1b67d1d86e1332ee8bb03735b995c67676bbcedc0903eb4d04ca74c4d4a61280'
   }
 
-  get asLatest(): {currencyPair: v15.VaultCurrencyPair, delta: bigint, total: bigint} {
+  get asV17(): {currencyPair: v17.VaultCurrencyPair, delta: bigint, total: bigint} {
+    assert(this.isV17)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
     deprecateLatest()
-    return this.asV15
+    return this.isV17
+  }
+
+  get asLatest(): {currencyPair: v17.VaultCurrencyPair, delta: bigint, total: bigint} {
+    deprecateLatest()
+    return this.asV17
   }
 }
 
@@ -796,13 +893,22 @@ export class VaultRegistryRegisterVaultEvent {
     return this.ctx._chain.decodeEvent(this.ctx.event)
   }
 
-  get isLatest(): boolean {
-    deprecateLatest()
-    return this.isV15
+  get isV17(): boolean {
+    return this.ctx._chain.getEventHash('vaultRegistry.RegisterVault') === 'f1a397e34fa2b35cf9f2efc2cd39d51e3a638ef819dd4554b3d4e5af26e5b4d1'
   }
 
-  get asLatest(): {vaultId: v15.VaultId, collateral: bigint} {
+  get asV17(): {vaultId: v17.VaultId, collateral: bigint} {
+    assert(this.isV17)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
     deprecateLatest()
-    return this.asV15
+    return this.isV17
+  }
+
+  get asLatest(): {vaultId: v17.VaultId, collateral: bigint} {
+    deprecateLatest()
+    return this.asV17
   }
 }
