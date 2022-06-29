@@ -1,4 +1,4 @@
-import { EventHandlerContext, toHex } from "@subsquid/substrate-processor";
+import { BlockHandlerContext, EventHandlerContext, toHex } from "@subsquid/substrate-processor";
 import Debug from "debug";
 import { LessThanOrEqual } from "typeorm";
 import {
@@ -14,6 +14,7 @@ import {
 import {
     IssueCancelIssueEvent,
     IssueExecuteIssueEvent,
+    IssueIssuePeriodChangeEvent,
     IssueRequestIssueEvent,
     RefundExecuteRefundEvent,
     RefundRequestRefundEvent,
@@ -240,4 +241,14 @@ export async function executeRefund(ctx: EventHandlerContext): Promise<void> {
     issue.status = IssueStatus.Completed;
     await ctx.store.save(refund);
     await ctx.store.save(issue);
+}
+
+export async function issuePeriodChange(ctx: EventHandlerContext): Promise<void> {
+    const rawEvent = new IssueIssuePeriodChangeEvent(ctx);
+    let e;
+    if (rawEvent.isV16) e = rawEvent.asV16;
+    else throw Error("Unknown event version");
+
+    const issuePeriod = e.period;
+    // TODO: Save to store.
 }

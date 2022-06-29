@@ -167,6 +167,31 @@ export class IssueExecuteIssueEvent {
   }
 }
 
+export class IssueIssuePeriodChangeEvent {
+  constructor(private ctx: EventContext) {
+    assert(this.ctx.event.name === 'issue.IssuePeriodChange')
+  }
+
+  get isV16(): boolean {
+    return this.ctx._chain.getEventHash('issue.IssuePeriodChange') === 'e4e1ffe21a95b5f4c933e4d40a2443e9cc2637c056d780de97e2e7ad5f6a7f59'
+  }
+
+  get asV16(): {period: number} {
+    assert(this.isV16)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
+    deprecateLatest()
+    return this.isV16
+  }
+
+  get asLatest(): {period: number} {
+    deprecateLatest()
+    return this.asV16
+  }
+}
+
 export class IssueRequestIssueEvent {
   constructor(private ctx: EventContext) {
     assert(this.ctx.event.name === 'issue.RequestIssue')

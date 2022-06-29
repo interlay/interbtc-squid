@@ -10,10 +10,12 @@ import {
     feedValues,
     findAndUpdateExpiredRequests,
     increaseLockedCollateral,
+    issuePeriodChange,
     registerVault,
     requestIssue,
     requestRedeem,
     requestRefund,
+    setInitialIssuePeriod,
     storeMainChainHeader,
     updateActiveBlock,
     updateVaultActivity,
@@ -40,6 +42,7 @@ processor.addEventHandler(
 processor.addEventHandler("issue.CancelIssue", cancelIssue);
 processor.addEventHandler("issue.ExecuteIssue", executeIssue);
 processor.addEventHandler("issue.RequestIssue", requestIssue);
+processor.addEventHandler("issue.IssuePeriodChange", issuePeriodChange);
 processor.addEventHandler("oracle.FeedValues", feedValues);
 processor.addEventHandler("redeem.CancelRedeem", cancelRedeem);
 processor.addEventHandler("redeem.ExecuteRedeem", executeRedeem);
@@ -65,6 +68,7 @@ processor.addExtrinsicHandler(
     updateVaultActivity
 );
 
+processor.addPostHook({ range: {from: processFrom, to: processFrom}}, setInitialIssuePeriod);
 processor.addPostHook(findAndUpdateExpiredRequests);
 
 processor.run();
