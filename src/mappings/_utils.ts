@@ -4,7 +4,9 @@ import {
     CumulativeVolumePerCurrencyPair,
     Height,
     Issue,
+    IssuePeriod,
     Redeem,
+    RedeemPeriod,
     Token,
     Vault,
     VolumeType,
@@ -18,9 +20,7 @@ import { encodeVaultId } from "./encoding";
 
 const debug = Debug("interbtc-mappings:_utils");
 
-const issuePeriod = 14400; // TODO: HARDCODED - fetch from chain once event is implemented
 const parachainBlocksPerBitcoinBlock = 100; // TODO: HARDCODED - find better way to set?
-const btcPeriod = Math.ceil(issuePeriod / parachainBlocksPerBitcoinBlock);
 
 export async function getVaultId(store: Store, vaultId: VaultIdV17 | VaultIdV15 | VaultIdV6) {
     return store.get(Vault, {
@@ -68,16 +68,19 @@ export async function isRequestExpired(
     store: Store,
     request: Issue | Redeem,
     latestBtcBlock: number,
-    latestActiveBlock: number
+    latestActiveBlock: number,
+    period: number
 ): Promise<boolean> {
     const requestHeight = await store.get(Height, {
         where: { id: request.request.height },
     });
     if (requestHeight === undefined) return false; // no active blocks yet
 
+    const btcPeriod = Math.ceil(period / parachainBlocksPerBitcoinBlock);
+
     return (
         request.request.backingHeight + btcPeriod < latestBtcBlock &&
-        requestHeight.active + issuePeriod < latestActiveBlock
+        requestHeight.active + period < latestActiveBlock
     );
 }
 
@@ -136,4 +139,16 @@ export async function updateCumulativeVolumes(
         );
         await store.save(cumulativeVolumeForCollateral);
     }
+}
+
+export async function getCurrentIssuePeriod(store: Store) {
+    return await store.get(IssuePeriod, {
+        order: { timestamp: "DESC" },
+    });
+}
+
+export async function getCurrentRedeemPeriod(store: Store) {
+    return await store.get(RedeemPeriod, {
+        order: { timestamp: "DESC" },
+    });
 }

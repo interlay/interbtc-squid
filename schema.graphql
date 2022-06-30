@@ -59,6 +59,7 @@ type Issue @entity {
     vaultWalletPubkey: String!
     vaultBackingAddress: String!
     vault: Vault!
+    period: IssuePeriod!
     backingPayment: IssuePayment @derivedFrom(field: "issue")
     status: IssueStatus @index # TODO: find a way to optimise queries by status
     execution: IssueExecution @derivedFrom(field: "issue")
@@ -120,6 +121,7 @@ type Redeem @entity {
     userParachainAddress: String!
     userBackingAddress: String!
     vault: Vault!
+    period: RedeemPeriod!
     backingPayment: RedeemPayment @derivedFrom(field: "redeem")
     status: RedeemStatus
     execution: RedeemExecution @derivedFrom(field: "redeem")
@@ -190,4 +192,16 @@ type CumulativeVolumePerCurrencyPair @entity {
     amount: BigInt!
     wrappedCurrency: Token
     collateralCurrency: Token
+}
+
+type IssuePeriod @entity {
+    height: Height!
+    timestamp: DateTime!
+    value: Int!
+}
+
+type RedeemPeriod @entity {
+    height: Height!
+    timestamp: DateTime!
+    value: Int!
 }

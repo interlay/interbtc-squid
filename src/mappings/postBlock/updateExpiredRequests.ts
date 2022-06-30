@@ -1,12 +1,15 @@
 import { BlockHandlerContext } from "@subsquid/substrate-processor";
+import { debug } from "console";
 import {
     Issue,
+    IssuePeriod,
     IssueStatus,
     Redeem,
+    RedeemPeriod,
     RedeemStatus,
     RelayedBlock,
 } from "../../model";
-import { blockToHeight, isRequestExpired } from "../_utils";
+import { blockToHeight, getCurrentIssuePeriod, getCurrentRedeemPeriod, isRequestExpired } from "../_utils";
 
 const MIN_DELAY = 5000; // ms
 let lastTimestamp = 0;
@@ -42,20 +45,37 @@ export async function findAndUpdateExpiredRequests(
     const pendingRedeems = await store.find(Redeem, {
         where: { status: RedeemStatus.Pending },
     });
-    const pendingRequests = (pendingIssues as Array<Issue | Redeem>).concat(
-        pendingRedeems
-    );
 
-    for (const request of pendingRequests) {
+    const currentIssuePeriod = await getCurrentIssuePeriod(ctx.store);
+    const currentRedeemPeriod = await getCurrentRedeemPeriod(ctx.store);
+    if (currentIssuePeriod === undefined) {
+        debug(`WARNING: Issue period is not set at block ${ctx.block.height}.`);
+        return;
+    }
+    if(currentRedeemPeriod === undefined) {
+        debug(`WARNING: Redeem period is not set at block ${ctx.block.height}.`);
+        return;
+    }
+
+    const checkRequestExpiration = async (request: Issue | Redeem, latestPeriod: IssuePeriod | RedeemPeriod) => {
+        const period = Math.max(latestPeriod.value, request.period.value);
         const isExpired = await isRequestExpired(
             store,
             request,
             latestBtcBlock,
-            latestActiveBlock
+            latestActiveBlock,
+            period
         );
         if (isExpired) {
             request.status = "Expired" as IssueStatus | RedeemStatus;
             await store.save(request);
         }
+    }
+
+    for (const issueRequest of pendingIssues) {
+        await checkRequestExpiration(issueRequest, currentIssuePeriod);
+    }
+    for (const redeemRequest of pendingRedeems) {
+        await checkRequestExpiration(redeemRequest, currentRedeemPeriod);
     }
 }

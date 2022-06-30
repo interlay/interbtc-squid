@@ -5,6 +5,7 @@ import {
     Redeem,
     RedeemCancellation,
     RedeemExecution,
+    RedeemPeriod,
     RedeemRequest,
     RedeemStatus,
     RelayedBlock,
@@ -13,10 +14,11 @@ import {
 import {
     RedeemCancelRedeemEvent,
     RedeemExecuteRedeemEvent,
+    RedeemRedeemPeriodChangeEvent,
     RedeemRequestRedeemEvent,
 } from "../../types/events";
 import { address, currencyId, encodeVaultId } from "../encoding";
-import { blockToHeight, getVaultId, updateCumulativeVolumes } from "../_utils";
+import { blockToHeight, getCurrentRedeemPeriod, getVaultId, updateCumulativeVolumes } from "../_utils";
 
 const debug = Debug("interbtc-mappings:redeem");
 
@@ -40,6 +42,8 @@ export async function requestRedeem(ctx: EventHandlerContext): Promise<void> {
         return;
     }
 
+    const period = await getCurrentRedeemPeriod(ctx.store);
+
     const redeem = new Redeem({
         id: toHex(e.redeemId),
         bridgeFee: e.fee,
@@ -49,6 +53,7 @@ export async function requestRedeem(ctx: EventHandlerContext): Promise<void> {
         userBackingAddress: address.btc.encode(e.btcAddress),
         btcTransferFee: e.transferFee,
         status: RedeemStatus.Pending,
+        period
     });
     const height = await blockToHeight(
         ctx.store,
@@ -160,4 +165,25 @@ export async function cancelRedeem(ctx: EventHandlerContext): Promise<void> {
             : RedeemStatus.Retried;
     await ctx.store.save(cancellation);
     await ctx.store.save(redeem);
+}
+
+export async function redeemPeriodChange(ctx: EventHandlerContext): Promise<void> {
+    const rawEvent = new RedeemRedeemPeriodChangeEvent(ctx);
+    let e;
+    if (rawEvent.isV16) e = rawEvent.asV16;
+    else throw Error("Unknown event version");
+
+    const height = await blockToHeight(
+        ctx.store,
+        ctx.block.height,
+        "RedeemPeriodChange"
+    );
+    
+    const redeemPeriod = new RedeemPeriod({
+        height,
+        timestamp: new Date(ctx.block.timestamp),
+        value: e.period
+    })
+
+    await ctx.store.save(redeemPeriod);
 }

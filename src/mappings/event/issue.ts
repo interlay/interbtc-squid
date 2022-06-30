@@ -5,6 +5,7 @@ import {
     Issue,
     IssueCancellation,
     IssueExecution,
+    IssuePeriod,
     IssueRequest,
     IssueStatus,
     Refund,
@@ -20,7 +21,7 @@ import {
     RefundRequestRefundEvent,
 } from "../../types/events";
 import { address, currencyId, encodeVaultId } from "../encoding";
-import { blockToHeight, getVaultId, updateCumulativeVolumes } from "../_utils";
+import { blockToHeight, getCurrentIssuePeriod, getVaultId, updateCumulativeVolumes } from "../_utils";
 
 const debug = Debug("interbtc-mappings:issue");
 
@@ -44,6 +45,8 @@ export async function requestIssue(ctx: EventHandlerContext): Promise<void> {
         return;
     }
 
+    const period = await getCurrentIssuePeriod(ctx.store);
+
     const issue = new Issue({
         id: toHex(e.issueId),
         griefingCollateral: e.griefingCollateral,
@@ -52,6 +55,7 @@ export async function requestIssue(ctx: EventHandlerContext): Promise<void> {
         vaultBackingAddress: address.btc.encode(e.vaultAddress),
         vaultWalletPubkey: toHex(e.vaultPublicKey),
         status: IssueStatus.Pending,
+        period
     });
 
     const height = await blockToHeight(
@@ -249,6 +253,17 @@ export async function issuePeriodChange(ctx: EventHandlerContext): Promise<void>
     if (rawEvent.isV16) e = rawEvent.asV16;
     else throw Error("Unknown event version");
 
-    const issuePeriod = e.period;
-    // TODO: Save to store.
+    const height = await blockToHeight(
+        ctx.store,
+        ctx.block.height,
+        "IssuePeriodChange"
+    );
+    
+    const issuePeriod = new IssuePeriod({
+        height,
+        timestamp: new Date(ctx.block.timestamp),
+        value: e.period
+    })
+
+    await ctx.store.save(issuePeriod);
 }
