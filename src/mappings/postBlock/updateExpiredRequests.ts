@@ -41,9 +41,11 @@ export async function findAndUpdateExpiredRequests(
 
     const pendingIssues = await store.find(Issue, {
         where: { status: IssueStatus.Pending },
+        relations: ['period']
     });
     const pendingRedeems = await store.find(Redeem, {
         where: { status: RedeemStatus.Pending },
+        relations: ['period']
     });
 
     const currentIssuePeriod = await getCurrentIssuePeriod(ctx.store);
