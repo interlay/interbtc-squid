@@ -258,10 +258,13 @@ export async function issuePeriodChange(ctx: EventHandlerContext): Promise<void>
         ctx.block.height,
         "IssuePeriodChange"
     );
+
+    const timestamp = new Date(ctx.block.timestamp);
     
     const issuePeriod = new IssuePeriod({
+        id: `updated-${timestamp.toString()}`,
         height,
-        timestamp: new Date(ctx.block.timestamp),
+        timestamp,
         value: e.period
     })
 

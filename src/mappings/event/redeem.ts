@@ -178,10 +178,13 @@ export async function redeemPeriodChange(ctx: EventHandlerContext): Promise<void
         ctx.block.height,
         "RedeemPeriodChange"
     );
+
+    const timestamp = new Date(ctx.block.timestamp);
     
     const redeemPeriod = new RedeemPeriod({
+        id: `updated-${timestamp.toString()}`,
         height,
-        timestamp: new Date(ctx.block.timestamp),
+        timestamp,
         value: e.period
     })
 

@@ -23,6 +23,7 @@ async function setInitialIssuePeriod(ctx: BlockHandlerContext, height: Height, t
     assert(rawIssuePeriodStorage.isExists, "Issue period does not exist");
 
     const issuePeriod = new IssuePeriod({
+        id: `initial-${timestamp.toString()}`,
         height,
         timestamp,
         value
@@ -39,6 +40,7 @@ async function setInitialRedeemPeriod(ctx: BlockHandlerContext, height: Height, 
     assert(rawRedeemPeriodStorage.isExists, "Redeem period does not exist");
 
     const redeemPeriod = new RedeemPeriod({
+        id: `initial-${timestamp.toString()}`,
         height,
         timestamp,
         value
