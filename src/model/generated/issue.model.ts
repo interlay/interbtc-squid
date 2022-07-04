@@ -2,6 +2,7 @@ import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, M
 import * as marshal from "./marshal"
 import {IssueRequest} from "./_issueRequest"
 import {Vault} from "./vault.model"
+import {IssuePeriod} from "./issuePeriod.model"
 import {IssuePayment} from "./issuePayment.model"
 import {IssueStatus} from "./_issueStatus"
 import {IssueExecution} from "./issueExecution.model"
@@ -35,6 +36,10 @@ export class Issue {
   @Index_()
   @ManyToOne_(() => Vault, {nullable: false})
   vault!: Vault
+
+  @Index_()
+  @ManyToOne_(() => IssuePeriod, {nullable: false})
+  period!: IssuePeriod
 
   @OneToOne_(() => IssuePayment)
   backingPayment!: IssuePayment | undefined | null

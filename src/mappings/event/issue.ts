@@ -1,10 +1,11 @@
-import { EventHandlerContext, toHex } from "@subsquid/substrate-processor";
+import { BlockHandlerContext, EventHandlerContext, toHex } from "@subsquid/substrate-processor";
 import Debug from "debug";
 import { LessThanOrEqual } from "typeorm";
 import {
     Issue,
     IssueCancellation,
     IssueExecution,
+    IssuePeriod,
     IssueRequest,
     IssueStatus,
     Refund,
@@ -14,12 +15,13 @@ import {
 import {
     IssueCancelIssueEvent,
     IssueExecuteIssueEvent,
+    IssueIssuePeriodChangeEvent,
     IssueRequestIssueEvent,
     RefundExecuteRefundEvent,
     RefundRequestRefundEvent,
 } from "../../types/events";
 import { address, currencyId, encodeVaultId } from "../encoding";
-import { blockToHeight, getVaultId, updateCumulativeVolumes } from "../_utils";
+import { blockToHeight, getCurrentIssuePeriod, getVaultId, updateCumulativeVolumes } from "../_utils";
 
 const debug = Debug("interbtc-mappings:issue");
 
@@ -43,6 +45,8 @@ export async function requestIssue(ctx: EventHandlerContext): Promise<void> {
         return;
     }
 
+    const period = await getCurrentIssuePeriod(ctx.store);
+
     const issue = new Issue({
         id: toHex(e.issueId),
         griefingCollateral: e.griefingCollateral,
@@ -51,6 +55,7 @@ export async function requestIssue(ctx: EventHandlerContext): Promise<void> {
         vaultBackingAddress: address.btc.encode(e.vaultAddress),
         vaultWalletPubkey: toHex(e.vaultPublicKey),
         status: IssueStatus.Pending,
+        period
     });
 
     const height = await blockToHeight(
@@ -240,4 +245,28 @@ export async function executeRefund(ctx: EventHandlerContext): Promise<void> {
     issue.status = IssueStatus.Completed;
     await ctx.store.save(refund);
     await ctx.store.save(issue);
+}
+
+export async function issuePeriodChange(ctx: EventHandlerContext): Promise<void> {
+    const rawEvent = new IssueIssuePeriodChangeEvent(ctx);
+    let e;
+    if (rawEvent.isV16) e = rawEvent.asV16;
+    else throw Error("Unknown event version");
+
+    const height = await blockToHeight(
+        ctx.store,
+        ctx.block.height,
+        "IssuePeriodChange"
+    );
+
+    const timestamp = new Date(ctx.block.timestamp);
+    
+    const issuePeriod = new IssuePeriod({
+        id: `updated-${timestamp.toString()}`,
+        height,
+        timestamp,
+        value: e.period
+    })
+
+    await ctx.store.save(issuePeriod);
 }

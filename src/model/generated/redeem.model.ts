@@ -2,6 +2,7 @@ import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, M
 import * as marshal from "./marshal"
 import {RedeemRequest} from "./_redeemRequest"
 import {Vault} from "./vault.model"
+import {RedeemPeriod} from "./redeemPeriod.model"
 import {RedeemPayment} from "./redeemPayment.model"
 import {RedeemStatus} from "./_redeemStatus"
 import {RedeemExecution} from "./redeemExecution.model"
@@ -37,6 +38,10 @@ export class Redeem {
   @Index_()
   @ManyToOne_(() => Vault, {nullable: false})
   vault!: Vault
+
+  @Index_()
+  @ManyToOne_(() => RedeemPeriod, {nullable: false})
+  period!: RedeemPeriod
 
   @OneToOne_(() => RedeemPayment)
   backingPayment!: RedeemPayment | undefined | null

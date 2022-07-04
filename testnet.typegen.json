@@ -6,11 +6,13 @@
         "btcRelay.StoreMainChainHeader",
         "issue.CancelIssue",
         "issue.ExecuteIssue",
+        "issue.IssuePeriodChange",
         "issue.RequestIssue",
         "oracle.FeedValues",
         "redeem.CancelRedeem",
         "redeem.ExecuteRedeem",
         "redeem.RequestRedeem",
+        "redeem.RedeemPeriodChange",
         "refund.ExecuteRefund",
         "refund.RequestRefund",
         "security.UpdateActiveBlock",
@@ -18,5 +20,9 @@
         "vaultRegistry.IncreaseLockedCollateral",
         "vaultRegistry.DecreaseLockedCollateral"
     ],
-    "calls": []
+    "calls": [],
+    "storage": [
+        "Issue.IssuePeriod",
+        "Redeem.RedeemPeriod"
+    ]
 }
