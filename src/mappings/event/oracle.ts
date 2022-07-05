@@ -10,7 +10,7 @@ export async function feedValues(ctx: EventHandlerContext): Promise<void> {
     if (rawEvent.isV6) e = rawEvent.asV6;
     else if (rawEvent.isV15) e = rawEvent.asV15;
     else if (rawEvent.isV17) e = rawEvent.asV17;
-    else throw Error("Unknown event version");
+    else e = rawEvent.asLatest;
     for (const [key, value] of e.values) {
         const height = await blockToHeight(
             ctx.store,

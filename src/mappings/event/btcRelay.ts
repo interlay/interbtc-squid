@@ -11,7 +11,7 @@ export async function storeMainChainHeader(
     const rawEvent = new BtcRelayStoreMainChainHeaderEvent(ctx);
     let e;
     if (rawEvent.isV4) e = rawEvent.asV4;
-    else throw Error("Unknown event version");
+    else e = rawEvent.asLatest;
 
     const relayedAtHeight = await blockToHeight(
         ctx.store,

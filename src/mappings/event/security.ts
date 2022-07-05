@@ -6,7 +6,7 @@ export async function updateActiveBlock(ctx: EventHandlerContext): Promise<void>
     const rawEvent = new SecurityUpdateActiveBlockEvent(ctx);
     let e;
     if (rawEvent.isV4) e = rawEvent.asV4;
-    else throw Error("Unknown event version");
+    else e = rawEvent.asLatest;
 
     const newHeight = new Height({
         id: ctx.block.height.toString(),

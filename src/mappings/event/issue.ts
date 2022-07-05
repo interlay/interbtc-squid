@@ -31,7 +31,7 @@ export async function requestIssue(ctx: EventHandlerContext): Promise<void> {
     if (rawEvent.isV6) e = rawEvent.asV6;
     else if (rawEvent.isV15) e = rawEvent.asV15;
     else if (rawEvent.isV17) e = rawEvent.asV17;
-    else throw Error("Unknown event version");
+    else e = rawEvent.asLatest;
 
     const vaultId = await getVaultId(ctx.store, e.vaultId);
     if (vaultId === undefined) {
@@ -97,7 +97,7 @@ export async function executeIssue(ctx: EventHandlerContext): Promise<void> {
     if (rawEvent.isV6) e = rawEvent.asV6;
     else if (rawEvent.isV15) e = rawEvent.asV15;
     else if (rawEvent.isV17) e = rawEvent.asV17;
-    else throw Error("Unknown event version");
+    else e = rawEvent.asLatest;
 
     const id = toHex(e.issueId);
 
@@ -142,7 +142,7 @@ export async function cancelIssue(ctx: EventHandlerContext): Promise<void> {
     const rawEvent = new IssueCancelIssueEvent(ctx);
     let e;
     if (rawEvent.isV4) e = rawEvent.asV4;
-    else throw Error("Unknown event version");
+    else e = rawEvent.asLatest;
 
     const issue = await ctx.store.get(Issue, {
         where: { id: toHex(e.issueId) },
@@ -177,7 +177,7 @@ export async function requestRefund(ctx: EventHandlerContext): Promise<void> {
     if (rawEvent.isV6) e = rawEvent.asV6;
     else if (rawEvent.isV15) e = rawEvent.asV15;
     else if (rawEvent.isV17) e = rawEvent.asV17;
-    else throw Error("Unknown event version");
+    else e = rawEvent.asLatest;
 
     const id = toHex(e.refundId);
     const issue = await ctx.store.get(Issue, {
@@ -216,7 +216,7 @@ export async function executeRefund(ctx: EventHandlerContext): Promise<void> {
     if (rawEvent.isV6) e = rawEvent.asV6;
     else if (rawEvent.isV15) e = rawEvent.asV15;
     else if (rawEvent.isV17) e = rawEvent.asV17;
-    else throw Error("Unknown event version");
+    else e = rawEvent.asLatest;
 
     const refund = await ctx.store.get(Refund, {
         where: { id: toHex(e.refundId) },
@@ -251,7 +251,7 @@ export async function issuePeriodChange(ctx: EventHandlerContext): Promise<void>
     const rawEvent = new IssueIssuePeriodChangeEvent(ctx);
     let e;
     if (rawEvent.isV16) e = rawEvent.asV16;
-    else throw Error("Unknown event version");
+    else e = rawEvent.asLatest;
 
     const height = await blockToHeight(
         ctx.store,
