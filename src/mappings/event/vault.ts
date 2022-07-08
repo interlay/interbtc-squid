@@ -18,7 +18,7 @@ export async function registerVault(ctx: EventHandlerContext): Promise<void> {
     if (rawEvent.isV6) e = rawEvent.asV6;
     else if (rawEvent.isV15) e = rawEvent.asV15;
     else if (rawEvent.isV17) e = rawEvent.asV17;
-    else throw Error("Unknown event version");
+    else e = rawEvent.asLatest;
 
     const registrationBlock = await blockToHeight(
         ctx.store,
@@ -47,7 +47,7 @@ export async function increaseLockedCollateral(
     if (rawEvent.isV10) e = rawEvent.asV10;
     else if (rawEvent.isV15) e = rawEvent.asV15;
     else if (rawEvent.isV17) e = rawEvent.asV17;
-    else throw Error("Unknown event version");
+    else e = rawEvent.asLatest;
     const collateralToken = currencyId.token.encode(e.currencyPair.collateral);
     const wrappedToken = currencyId.token.encode(e.currencyPair.wrapped);
 
@@ -71,7 +71,7 @@ export async function decreaseLockedCollateral(
     if (rawEvent.isV10) e = rawEvent.asV10;
     else if (rawEvent.isV15) e = rawEvent.asV15;
     else if (rawEvent.isV17) e = rawEvent.asV17;
-    else throw Error("Unknown event version");
+    else e = rawEvent.asLatest;
 
     const collateralToken = currencyId.token.encode(e.currencyPair.collateral);
     const wrappedToken = currencyId.token.encode(e.currencyPair.wrapped);

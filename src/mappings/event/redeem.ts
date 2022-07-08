@@ -28,7 +28,7 @@ export async function requestRedeem(ctx: EventHandlerContext): Promise<void> {
     if (rawEvent.isV6) e = rawEvent.asV6;
     else if (rawEvent.isV15) e = rawEvent.asV15;
     else if (rawEvent.isV17) e = rawEvent.asV17;
-    else throw Error("Unknown event version");
+    else e = rawEvent.asLatest;
 
     const vaultId = await getVaultId(ctx.store, e.vaultId);
     if (vaultId === undefined) {
@@ -93,7 +93,7 @@ export async function executeRedeem(ctx: EventHandlerContext): Promise<void> {
     if (rawEvent.isV6) e = rawEvent.asV6;
     else if (rawEvent.isV15) e = rawEvent.asV15;
     else if (rawEvent.isV17) e = rawEvent.asV17;
-    else throw Error("Unknown event version");
+    else e = rawEvent.asLatest;
 
     const redeem = await ctx.store.get(Redeem, {
         where: { id: toHex(e.redeemId) },
@@ -135,7 +135,7 @@ export async function cancelRedeem(ctx: EventHandlerContext): Promise<void> {
     if (rawEvent.isV6) e = rawEvent.asV6;
     else if (rawEvent.isV15) e = rawEvent.asV15;
     else if (rawEvent.isV17) e = rawEvent.asV17;
-    else throw Error("Unknown event version");
+    else e = rawEvent.asLatest;
 
     const redeem = await ctx.store.get(Redeem, {
         where: { id: toHex(e.redeemId) },
@@ -171,7 +171,7 @@ export async function redeemPeriodChange(ctx: EventHandlerContext): Promise<void
     const rawEvent = new RedeemRedeemPeriodChangeEvent(ctx);
     let e;
     if (rawEvent.isV16) e = rawEvent.asV16;
-    else throw Error("Unknown event version");
+    else e = rawEvent.asLatest;
 
     const height = await blockToHeight(
         ctx.store,
