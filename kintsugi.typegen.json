@@ -4,6 +4,8 @@
     "typesBundle": "indexer/typesBundle.json",
     "events": [
         "btcRelay.StoreMainChainHeader",
+        "escrow.Deposit",
+        "escrow.Withdraw",
         "issue.CancelIssue",
         "issue.ExecuteIssue",
         "issue.IssuePeriodChange",
