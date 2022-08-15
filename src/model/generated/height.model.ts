@@ -16,9 +16,9 @@ export class Height {
    * Should be equal to the absolute value, for determinism
    */
   @Index_()
-  @Column_("integer", {nullable: false})
+  @Column_("int4", {nullable: false})
   absolute!: number
 
-  @Column_("integer", {nullable: false})
+  @Column_("int4", {nullable: false})
   active!: number
 }

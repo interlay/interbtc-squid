@@ -17,6 +17,6 @@ export class RedeemPeriod {
   @Column_("timestamp with time zone", {nullable: false})
   timestamp!: Date
 
-  @Column_("integer", {nullable: false})
+  @Column_("int4", {nullable: false})
   value!: number
 }

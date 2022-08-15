@@ -16,6 +16,7 @@
         "refund.ExecuteRefund",
         "refund.RequestRefund",
         "security.UpdateActiveBlock",
+        "tokens.Transfer",
         "vaultRegistry.RegisterVault",
         "vaultRegistry.IncreaseLockedCollateral",
         "vaultRegistry.DecreaseLockedCollateral"

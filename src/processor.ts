@@ -21,6 +21,7 @@ import {
     updateActiveBlock,
     updateVaultActivity,
 } from "./mappings";
+import { tokensTransfer } from "./mappings/event/transfer";
 
 const processor = new SubstrateProcessor(
     "interbtc" // "interbtc_status" schema will be created in the database
@@ -52,6 +53,7 @@ processor.addEventHandler("reddem.RedeemPeriodChange", redeemPeriodChange);
 processor.addEventHandler("refund.ExecuteRefund", executeRefund);
 processor.addEventHandler("refund.RequestRefund", requestRefund);
 processor.addEventHandler("security.UpdateActiveBlock", updateActiveBlock);
+processor.addEventHandler("tokens.Transfer", tokensTransfer);
 processor.addEventHandler("vaultRegistry.RegisterVault", registerVault);
 processor.addEventHandler(
     "vaultRegistry.IncreaseLockedCollateral",
@@ -70,7 +72,10 @@ processor.addExtrinsicHandler(
     updateVaultActivity
 );
 
-processor.addPostHook({ range: {from: processFrom, to: processFrom}}, setInitialPeriods);
+processor.addPostHook(
+    { range: { from: processFrom, to: processFrom } },
+    setInitialPeriods
+);
 processor.addPostHook(findAndUpdateExpiredRequests);
 
 processor.run();

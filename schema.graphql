@@ -205,3 +205,13 @@ type RedeemPeriod @entity {
     timestamp: DateTime!
     value: Int!
 }
+
+type Transfer @entity {
+    id: ID!
+    token: Token!
+    amount: BigInt!
+    from: String! @index
+    to: String! @index
+    height: Height!
+    timestamp: DateTime!
+}
