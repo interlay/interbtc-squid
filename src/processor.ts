@@ -22,6 +22,7 @@ import {
     updateVaultActivity,
 } from "./mappings";
 import { tokensTransfer } from "./mappings/event/transfer";
+import { deposit, withdraw } from "./mappings/event/escrow";
 
 const processor = new SubstrateProcessor(
     "interbtc" // "interbtc_status" schema will be created in the database
@@ -41,6 +42,8 @@ processor.addEventHandler(
     "btcRelay.StoreMainChainHeader",
     storeMainChainHeader
 );
+processor.addEventHandler("escrow.Deposit", deposit);
+processor.addEventHandler("escrow.Withdraw", withdraw);
 processor.addEventHandler("issue.CancelIssue", cancelIssue);
 processor.addEventHandler("issue.ExecuteIssue", executeIssue);
 processor.addEventHandler("issue.RequestIssue", requestIssue);
