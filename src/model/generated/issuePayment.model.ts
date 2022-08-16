@@ -22,10 +22,10 @@ export class IssuePayment {
   @Column_("text", {nullable: false})
   btcTxId!: string
 
-  @Column_("integer", {nullable: false})
+  @Column_("int4", {nullable: false})
   confirmations!: number
 
-  @Column_("integer", {nullable: true})
+  @Column_("int4", {nullable: true})
   blockHeight!: number | undefined | null
 
   @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})

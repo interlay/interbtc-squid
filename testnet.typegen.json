@@ -4,6 +4,8 @@
     "typesBundle": "indexer/typesBundle.json",
     "events": [
         "btcRelay.StoreMainChainHeader",
+        "escrow.Deposit",
+        "escrow.Withdraw",
         "issue.CancelIssue",
         "issue.ExecuteIssue",
         "issue.IssuePeriodChange",
@@ -16,8 +18,7 @@
         "refund.ExecuteRefund",
         "refund.RequestRefund",
         "security.UpdateActiveBlock",
-        "escrow.Deposit",
-        "escrow.Withdraw",
+        "tokens.Transfer",
         "vaultRegistry.RegisterVault",
         "vaultRegistry.IncreaseLockedCollateral",
         "vaultRegistry.DecreaseLockedCollateral"

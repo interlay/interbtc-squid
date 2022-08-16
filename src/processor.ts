@@ -21,6 +21,7 @@ import {
     updateActiveBlock,
     updateVaultActivity,
 } from "./mappings";
+import { tokensTransfer } from "./mappings/event/transfer";
 import { deposit, withdraw } from "./mappings/event/escrow";
 
 const processor = new SubstrateProcessor(
@@ -55,6 +56,7 @@ processor.addEventHandler("reddem.RedeemPeriodChange", redeemPeriodChange);
 processor.addEventHandler("refund.ExecuteRefund", executeRefund);
 processor.addEventHandler("refund.RequestRefund", requestRefund);
 processor.addEventHandler("security.UpdateActiveBlock", updateActiveBlock);
+processor.addEventHandler("tokens.Transfer", tokensTransfer);
 processor.addEventHandler("vaultRegistry.RegisterVault", registerVault);
 processor.addEventHandler(
     "vaultRegistry.IncreaseLockedCollateral",

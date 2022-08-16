@@ -1,15 +1,17 @@
 import type {Result} from './support'
 
-export interface VaultCurrencyPair {
-  collateral: CurrencyId
-  wrapped: CurrencyId
-}
-
 export type CurrencyId = CurrencyId_Token
 
 export interface CurrencyId_Token {
   __kind: 'Token'
   value: TokenSymbol
+}
+
+export type AccountId32 = Uint8Array
+
+export interface VaultCurrencyPair {
+  collateral: CurrencyId
+  wrapped: CurrencyId
 }
 
 export type TokenSymbol = TokenSymbol_DOT | TokenSymbol_INTERBTC | TokenSymbol_INTR | TokenSymbol_KSM | TokenSymbol_KBTC | TokenSymbol_KINT

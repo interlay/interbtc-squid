@@ -851,6 +851,97 @@ export class SecurityUpdateActiveBlockEvent {
   }
 }
 
+export class TokensTransferEvent {
+  constructor(private ctx: EventContext) {
+    assert(this.ctx.event.name === 'tokens.Transfer')
+  }
+
+  /**
+   *  Transfer succeeded. \[currency_id, from, to, value\]
+   */
+  get isV1(): boolean {
+    return this.ctx._chain.getEventHash('tokens.Transfer') === '687592af47ed25da7cb1782c7d3ab850f2643203e3a3d46a2f3f2413ed94da71'
+  }
+
+  /**
+   *  Transfer succeeded. \[currency_id, from, to, value\]
+   */
+  get asV1(): [v1.CurrencyId, Uint8Array, Uint8Array, bigint] {
+    assert(this.isV1)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  /**
+   * Transfer succeeded. \[currency_id, from, to, value\]
+   */
+  get isV6(): boolean {
+    return this.ctx._chain.getEventHash('tokens.Transfer') === 'fdaae151bb8b36a8d8ad740d8c981614f3554e661a6028bab9b8ca624adaac32'
+  }
+
+  /**
+   * Transfer succeeded. \[currency_id, from, to, value\]
+   */
+  get asV6(): [v6.CurrencyId, v6.AccountId32, v6.AccountId32, bigint] {
+    assert(this.isV6)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  /**
+   * Transfer succeeded.
+   */
+  get isV10(): boolean {
+    return this.ctx._chain.getEventHash('tokens.Transfer') === 'b10834d910d905da35363fe42f3bbd9db5dfbc13064a482a7c8c57bb3c9a8e68'
+  }
+
+  /**
+   * Transfer succeeded.
+   */
+  get asV10(): {currencyId: v10.CurrencyId, from: v10.AccountId32, to: v10.AccountId32, amount: bigint} {
+    assert(this.isV10)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  /**
+   * Transfer succeeded.
+   */
+  get isV15(): boolean {
+    return this.ctx._chain.getEventHash('tokens.Transfer') === '41417e5ccc760096c9529f3ff9dcfe27e94b23a733432b671ed451e2ff362dcc'
+  }
+
+  /**
+   * Transfer succeeded.
+   */
+  get asV15(): {currencyId: v15.CurrencyId, from: v15.AccountId32, to: v15.AccountId32, amount: bigint} {
+    assert(this.isV15)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  /**
+   * Transfer succeeded.
+   */
+  get isV17(): boolean {
+    return this.ctx._chain.getEventHash('tokens.Transfer') === '7e7dbd0d1749f3d1ce62a6cb731a143be6c8c24d291fdd7dc24892ff941ffe3b'
+  }
+
+  /**
+   * Transfer succeeded.
+   */
+  get asV17(): {currencyId: v17.CurrencyId, from: v17.AccountId32, to: v17.AccountId32, amount: bigint} {
+    assert(this.isV17)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
+    deprecateLatest()
+    return this.isV17
+  }
+
+  get asLatest(): {currencyId: v17.CurrencyId, from: v17.AccountId32, to: v17.AccountId32, amount: bigint} {
+    deprecateLatest()
+    return this.asV17
+  }
+}
+
 export class VaultRegistryDecreaseLockedCollateralEvent {
   constructor(private ctx: EventContext) {
     assert(this.ctx.event.name === 'vaultRegistry.DecreaseLockedCollateral')

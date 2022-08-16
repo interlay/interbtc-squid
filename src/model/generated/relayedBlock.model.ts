@@ -24,7 +24,7 @@ export class RelayedBlock {
   blockHash!: string
 
   @Index_()
-  @Column_("integer", {nullable: false})
+  @Column_("int4", {nullable: false})
   backingHeight!: number
 
   @Column_("text", {nullable: true})

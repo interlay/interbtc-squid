@@ -65,19 +65,19 @@ export interface RedeemRequestStatus_Retried {
   __kind: 'Retried'
 }
 
-export interface VaultCurrencyPair {
-  collateral: CurrencyId
-  wrapped: CurrencyId
-}
-
-export type H160 = Uint8Array
-
 export type CurrencyId = CurrencyId_Token
 
 export interface CurrencyId_Token {
   __kind: 'Token'
   value: TokenSymbol
 }
+
+export interface VaultCurrencyPair {
+  collateral: CurrencyId
+  wrapped: CurrencyId
+}
+
+export type H160 = Uint8Array
 
 export type TokenSymbol = TokenSymbol_DOT | TokenSymbol_INTERBTC | TokenSymbol_INTR | TokenSymbol_KSM | TokenSymbol_KBTC | TokenSymbol_KINT
 
