@@ -63,6 +63,56 @@ export class BtcRelayStoreMainChainHeaderEvent {
   }
 }
 
+export class EscrowDepositEvent {
+  constructor(private ctx: EventContext) {
+    assert(this.ctx.event.name === 'escrow.Deposit')
+  }
+
+  get isV6(): boolean {
+    return this.ctx._chain.getEventHash('escrow.Deposit') === 'cffee376c25258e64c55b292b2ef7fd293b8dae2b1bded46ae86117b6bef1e06'
+  }
+
+  get asV6(): {who: v6.AccountId32, amount: bigint, unlockHeight: number} {
+    assert(this.isV6)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
+    deprecateLatest()
+    return this.isV6
+  }
+
+  get asLatest(): {who: v6.AccountId32, amount: bigint, unlockHeight: number} {
+    deprecateLatest()
+    return this.asV6
+  }
+}
+
+export class EscrowWithdrawEvent {
+  constructor(private ctx: EventContext) {
+    assert(this.ctx.event.name === 'escrow.Withdraw')
+  }
+
+  get isV6(): boolean {
+    return this.ctx._chain.getEventHash('escrow.Withdraw') === 'e84a34a6a3d577b31f16557bd304282f4fe4cbd7115377f4687635dc48e52ba5'
+  }
+
+  get asV6(): {who: v6.AccountId32, amount: bigint} {
+    assert(this.isV6)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
+    deprecateLatest()
+    return this.isV6
+  }
+
+  get asLatest(): {who: v6.AccountId32, amount: bigint} {
+    deprecateLatest()
+    return this.asV6
+  }
+}
+
 export class IssueCancelIssueEvent {
   constructor(private ctx: EventContext) {
     assert(this.ctx.event.name === 'issue.CancelIssue')

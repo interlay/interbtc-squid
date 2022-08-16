@@ -22,7 +22,10 @@ const debug = Debug("interbtc-mappings:_utils");
 
 const parachainBlocksPerBitcoinBlock = 100; // TODO: HARDCODED - find better way to set?
 
-export async function getVaultId(store: Store, vaultId: VaultIdV17 | VaultIdV15 | VaultIdV6) {
+export async function getVaultId(
+    store: Store,
+    vaultId: VaultIdV17 | VaultIdV15 | VaultIdV6
+) {
     return store.get(Vault, {
         where: { id: encodeVaultId(vaultId) },
     });
@@ -95,23 +98,27 @@ export async function updateCumulativeVolumes(
     const id = `${type.toString()}-${timestamp.getTime().toString()}`;
 
     // save the total sum (important for issue and redeem)
-    const existingCumulativeVolume =
-        (
-            await store.get(CumulativeVolume, {
-                where: {
-                    tillTimestamp: LessThanOrEqual(timestamp),
-                    type: type,
-                },
-                order: { tillTimestamp: "DESC" },
-            })
-        )?.amount || 0n;
-    let cumulativeVolume = new CumulativeVolume({
-        id,
-        type,
-        tillTimestamp: timestamp,
-        amount: existingCumulativeVolume + amount,
-    });
-    await store.save(cumulativeVolume);
+    let existingValueInBlock = await store.get(CumulativeVolume, id);
+    if (existingValueInBlock !== undefined) {
+        // new event in same block, update total
+        existingValueInBlock.amount += amount;
+        await store.save(existingValueInBlock);
+    } else {
+        const existingCumulativeVolume = await store.get(CumulativeVolume, {
+            where: {
+                tillTimestamp: LessThanOrEqual(timestamp),
+                type: type,
+            },
+            order: { tillTimestamp: "DESC" },
+        });
+        let newCumulativeVolume = new CumulativeVolume({
+            id,
+            type,
+            tillTimestamp: timestamp,
+            amount: existingCumulativeVolume?.amount || 0n + amount,
+        });
+        await store.save(newCumulativeVolume);
+    }
 
     if (collateralCurrency || wrappedCurrency) {
         // also save the collateral-specific sum
@@ -152,3 +159,4 @@ export async function getCurrentRedeemPeriod(store: Store) {
         order: { timestamp: "DESC" },
     });
 }
+

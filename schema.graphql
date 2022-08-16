@@ -176,6 +176,7 @@ enum VolumeType {
     Issued
     Redeemed
     Collateral
+    Staked
 }
 
 type CumulativeVolume @entity {

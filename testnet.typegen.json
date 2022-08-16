@@ -16,6 +16,8 @@
         "refund.ExecuteRefund",
         "refund.RequestRefund",
         "security.UpdateActiveBlock",
+        "escrow.Deposit",
+        "escrow.Withdraw",
         "vaultRegistry.RegisterVault",
         "vaultRegistry.IncreaseLockedCollateral",
         "vaultRegistry.DecreaseLockedCollateral"
