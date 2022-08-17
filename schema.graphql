@@ -23,11 +23,21 @@ enum Token {
     KBTC
 }
 
+type NativeToken {
+    token: Token!
+}
+
+type ForeignAsset {
+    asset: Int!
+}
+
+union Currency = NativeToken | ForeignAsset
+
 type Vault @entity {
     id: ID!
     accountId: String! @index
-    collateralToken: Token!
-    wrappedToken: Token!
+    collateralToken: Currency!
+    wrappedToken: Currency!
     registrationBlock: Height!
     registrationTimestamp: DateTime!
     lastActivity: Height
@@ -191,8 +201,8 @@ type CumulativeVolumePerCurrencyPair @entity {
     type: VolumeType!
     tillTimestamp: DateTime!
     amount: BigInt!
-    wrappedCurrency: Token
-    collateralCurrency: Token
+    wrappedCurrency: Currency
+    collateralCurrency: Currency
 }
 
 type IssuePeriod @entity {
@@ -209,7 +219,7 @@ type RedeemPeriod @entity {
 
 type Transfer @entity {
     id: ID!
-    token: Token!
+    token: Currency!
     amount: BigInt!
     from: String! @index
     to: String! @index

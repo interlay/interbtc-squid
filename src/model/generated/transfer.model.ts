@@ -1,6 +1,6 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_, ManyToOne as ManyToOne_} from "typeorm"
 import * as marshal from "./marshal"
-import {Token} from "./_token"
+import {Currency, fromJsonCurrency} from "./_currency"
 import {Height} from "./height.model"
 
 @Entity_()
@@ -12,8 +12,8 @@ export class Transfer {
   @PrimaryColumn_()
   id!: string
 
-  @Column_("varchar", {length: 4, nullable: false})
-  token!: Token
+  @Column_("jsonb", {transformer: {to: obj => obj.toJSON(), from: obj => fromJsonCurrency(obj)}, nullable: false})
+  token!: Currency
 
   @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
   amount!: bigint

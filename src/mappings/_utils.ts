@@ -2,12 +2,12 @@ import { Store } from "@subsquid/substrate-processor";
 import {
     CumulativeVolume,
     CumulativeVolumePerCurrencyPair,
+    Currency,
     Height,
     Issue,
     IssuePeriod,
     Redeem,
     RedeemPeriod,
-    Token,
     Vault,
     VolumeType,
 } from "../model";
@@ -16,15 +16,24 @@ import Debug from "debug";
 import { VaultId as VaultIdV17 } from "../types/v17";
 import { VaultId as VaultIdV15 } from "../types/v15";
 import { VaultId as VaultIdV6 } from "../types/v6";
-import { encodeVaultId } from "./encoding";
+import { encodeLegacyVaultId, encodeVaultId } from "./encoding";
 
 const debug = Debug("interbtc-mappings:_utils");
 
 const parachainBlocksPerBitcoinBlock = 100; // TODO: HARDCODED - find better way to set?
 
+export async function getVaultIdLegacy(
+    store: Store,
+    vaultId: VaultIdV15 | VaultIdV6
+) {
+    return store.get(Vault, {
+        where: { id: encodeLegacyVaultId(vaultId) },
+    });
+}
+
 export async function getVaultId(
     store: Store,
-    vaultId: VaultIdV17 | VaultIdV15 | VaultIdV6
+    vaultId: VaultIdV17
 ) {
     return store.get(Vault, {
         where: { id: encodeVaultId(vaultId) },
@@ -92,8 +101,8 @@ export async function updateCumulativeVolumes(
     type: VolumeType,
     amount: bigint,
     timestamp: Date,
-    collateralCurrency?: Token,
-    wrappedCurrency?: Token
+    collateralCurrency?: Currency,
+    wrappedCurrency?: Currency
 ): Promise<void> {
     const id = `${type.toString()}-${timestamp.getTime().toString()}`;
 
