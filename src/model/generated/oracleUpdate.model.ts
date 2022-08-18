@@ -2,6 +2,7 @@ import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, M
 import * as marshal from "./marshal"
 import {Height} from "./height.model"
 import {OracleUpdateType} from "./_oracleUpdateType"
+import {Currency, fromJsonCurrency} from "./_currency"
 
 @Entity_()
 export class OracleUpdate {
@@ -25,8 +26,8 @@ export class OracleUpdate {
   @Column_("varchar", {length: 13, nullable: false})
   type!: OracleUpdateType
 
-  @Column_("text", {nullable: true})
-  typeKey!: string | undefined | null
+  @Column_("jsonb", {transformer: {to: obj => obj == null ? undefined : obj.toJSON(), from: obj => obj == null ? undefined : fromJsonCurrency(obj)}, nullable: true})
+  typeKey!: Currency | undefined | null
 
   @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
   updateValue!: bigint

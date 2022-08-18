@@ -178,7 +178,7 @@ type OracleUpdate @entity {
     timestamp: DateTime!
     oracleId: String!
     type: OracleUpdateType!
-    typeKey: String
+    typeKey: Currency
     updateValue: BigInt!
 }
 
