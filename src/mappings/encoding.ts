@@ -21,11 +21,12 @@ export const address = {
 
 export const legacyCurrencyId = {
     encode: (token: CurrencyId_TokenV6 | CurrencyId_TokenV15): Currency => {
+        // handle old type definition that had INTERBTC instead of IBTC
         if (token.value.__kind === "INTERBTC") {
             token = {
                 ...token,
                 value: {
-                    __kind: "INTR"
+                    __kind: "IBTC"
                 }
             } as CurrencyId_TokenV15;
         }
@@ -38,6 +39,7 @@ export const legacyCurrencyId = {
 export const currencyId = {
     encode: (asset: CurrencyId_V17): Currency => {
         if (asset.__kind === "ForeignAsset") {
+            // TODO: add asset-registry event decoding for more metadata?
             return new ForeignAsset({
                 asset: asset.value
             });
