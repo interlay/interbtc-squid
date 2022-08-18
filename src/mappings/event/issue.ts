@@ -1,4 +1,4 @@
-import { BlockHandlerContext, EventHandlerContext, toHex } from "@subsquid/substrate-processor";
+import { EventHandlerContext, toHex } from "@subsquid/substrate-processor";
 import Debug from "debug";
 import { LessThanOrEqual } from "typeorm";
 import {
@@ -20,27 +20,48 @@ import {
     RefundExecuteRefundEvent,
     RefundRequestRefundEvent,
 } from "../../types/events";
-import { address, currencyId, encodeVaultId } from "../encoding";
-import { blockToHeight, getCurrentIssuePeriod, getVaultId, updateCumulativeVolumes } from "../_utils";
+import {
+    address,
+    currencyId,
+    encodeLegacyVaultId,
+    encodeVaultId,
+    legacyCurrencyId,
+} from "../encoding";
+import {
+    blockToHeight,
+    getCurrentIssuePeriod,
+    getVaultId,
+    getVaultIdLegacy,
+    updateCumulativeVolumes,
+} from "../_utils";
 
 const debug = Debug("interbtc-mappings:issue");
 
 export async function requestIssue(ctx: EventHandlerContext): Promise<void> {
     const rawEvent = new IssueRequestIssueEvent(ctx);
     let e;
-    if (rawEvent.isV6) e = rawEvent.asV6;
-    else if (rawEvent.isV15) e = rawEvent.asV15;
-    else if (rawEvent.isV17) e = rawEvent.asV17;
-    else e = rawEvent.asLatest;
+    let vault;
+    let vaultIdString;
+    if (rawEvent.isV6 || rawEvent.isV15) {
+        // legacy encodings
+        if (rawEvent.isV6) e = rawEvent.asV6;
+        else e = rawEvent.asV15;
+        vault = await getVaultIdLegacy(ctx.store, e.vaultId);
+        vaultIdString = encodeLegacyVaultId(e.vaultId);
+    } else {
+        if (rawEvent.isV17) e = rawEvent.asV17;
+        else e = rawEvent.asLatest;
+        vault = await getVaultId(ctx.store, e.vaultId);
+        vaultIdString = encodeVaultId(e.vaultId);
+    }
 
-    const vaultId = await getVaultId(ctx.store, e.vaultId);
-    if (vaultId === undefined) {
+    if (vault === undefined) {
         debug(
             `WARNING: no vault ID found for issue request ${toHex(
                 e.issueId
-            )}, with encoded account-wrapped-collateral ID of ${encodeVaultId(
-                e.vaultId
-            )} (at parachain absolute height ${ctx.block.height}`
+            )}, with encoded account-wrapped-collateral ID of ${vaultIdString} (at parachain absolute height ${
+                ctx.block.height
+            }`
         );
         return;
     }
@@ -51,11 +72,11 @@ export async function requestIssue(ctx: EventHandlerContext): Promise<void> {
         id: toHex(e.issueId),
         griefingCollateral: e.griefingCollateral,
         userParachainAddress: address.interlay.encode(e.requester),
-        vault: vaultId,
+        vault: vault,
         vaultBackingAddress: address.btc.encode(e.vaultAddress),
         vaultWalletPubkey: toHex(e.vaultPublicKey),
         status: IssueStatus.Pending,
-        period
+        period,
     });
 
     const height = await blockToHeight(
@@ -94,10 +115,21 @@ export async function requestIssue(ctx: EventHandlerContext): Promise<void> {
 export async function executeIssue(ctx: EventHandlerContext): Promise<void> {
     const rawEvent = new IssueExecuteIssueEvent(ctx);
     let e;
-    if (rawEvent.isV6) e = rawEvent.asV6;
-    else if (rawEvent.isV15) e = rawEvent.asV15;
-    else if (rawEvent.isV17) e = rawEvent.asV17;
-    else e = rawEvent.asLatest;
+    let collateralCurrency;
+    let wrappedCurrency;
+    if (rawEvent.isV6 || rawEvent.isV15) {
+        if (rawEvent.isV6) e = rawEvent.asV6;
+        else e = rawEvent.asV15;
+        collateralCurrency = legacyCurrencyId.encode(
+            e.vaultId.currencies.collateral
+        );
+        wrappedCurrency = legacyCurrencyId.encode(e.vaultId.currencies.wrapped);
+    } else {
+        if (rawEvent.isV17) e = rawEvent.asV17;
+        else e = rawEvent.asLatest;
+        collateralCurrency = currencyId.encode(e.vaultId.currencies.collateral);
+        wrappedCurrency = currencyId.encode(e.vaultId.currencies.wrapped);
+    }
 
     const id = toHex(e.issueId);
 
@@ -131,8 +163,8 @@ export async function executeIssue(ctx: EventHandlerContext): Promise<void> {
         VolumeType.Issued,
         amountWrapped,
         new Date(ctx.block.timestamp),
-        currencyId.token.encode(e.vaultId.currencies.collateral),
-        currencyId.token.encode(e.vaultId.currencies.wrapped)
+        collateralCurrency,
+        wrappedCurrency
     );
 }
 
@@ -247,7 +279,9 @@ export async function executeRefund(ctx: EventHandlerContext): Promise<void> {
     await ctx.store.save(issue);
 }
 
-export async function issuePeriodChange(ctx: EventHandlerContext): Promise<void> {
+export async function issuePeriodChange(
+    ctx: EventHandlerContext
+): Promise<void> {
     const rawEvent = new IssueIssuePeriodChangeEvent(ctx);
     let e;
     if (rawEvent.isV16) e = rawEvent.asV16;
@@ -260,13 +294,13 @@ export async function issuePeriodChange(ctx: EventHandlerContext): Promise<void>
     );
 
     const timestamp = new Date(ctx.block.timestamp);
-    
+
     const issuePeriod = new IssuePeriod({
         id: `updated-${timestamp.toString()}`,
         height,
         timestamp,
-        value: e.period
-    })
+        value: e.period,
+    });
 
     await ctx.store.save(issuePeriod);
 }

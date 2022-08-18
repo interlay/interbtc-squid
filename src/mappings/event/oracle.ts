@@ -1,12 +1,18 @@
 import { EventHandlerContext } from "@subsquid/substrate-processor";
 import { OracleUpdate, OracleUpdateType } from "../../model";
 import { OracleFeedValuesEvent } from "../../types/events";
-import { address, currencyId } from "../encoding";
+import { CurrencyId as CurrencyId_V15 } from "../../types/v15";
+import { CurrencyId as CurrencyId_V17 } from "../../types/v17";
+import { address, currencyId, legacyCurrencyId } from "../encoding";
 import { blockToHeight } from "../_utils";
 
 export async function feedValues(ctx: EventHandlerContext): Promise<void> {
     const rawEvent = new OracleFeedValuesEvent(ctx);
     let e;
+    let useLegacyCurrency = false;
+    if (rawEvent.isV6 || rawEvent.isV15) {
+        useLegacyCurrency = true;
+    }
     if (rawEvent.isV6) e = rawEvent.asV6;
     else if (rawEvent.isV15) e = rawEvent.asV15;
     else if (rawEvent.isV17) e = rawEvent.asV17;
@@ -27,7 +33,11 @@ export async function feedValues(ctx: EventHandlerContext): Promise<void> {
         });
         let keyToString = key.__kind.toString();
         if (key.__kind === "ExchangeRate") {
-            const typeString = currencyId.token.encode(key.value).toString();
+            const typeString = useLegacyCurrency
+                ? legacyCurrencyId
+                      .encode(key.value as CurrencyId_V15)
+                      .toString()
+                : currencyId.encode(key.value as CurrencyId_V17).toString();
             update.typeKey = typeString;
             keyToString += typeString;
         }

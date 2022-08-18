@@ -9,34 +9,52 @@ import {
     VaultRegistryIncreaseLockedCollateralEvent,
     VaultRegistryRegisterVaultEvent,
 } from "../../types/events";
-import { currencyId, address, encodeVaultId } from "../encoding";
+import {
+    currencyId,
+    address,
+    encodeVaultId,
+    encodeLegacyVaultId,
+    legacyCurrencyId,
+} from "../encoding";
 import { blockToHeight } from "../_utils";
 
 export async function registerVault(ctx: EventHandlerContext): Promise<void> {
     const rawEvent = new VaultRegistryRegisterVaultEvent(ctx);
     let e;
-    if (rawEvent.isV6) e = rawEvent.asV6;
-    else if (rawEvent.isV15) e = rawEvent.asV15;
-    else if (rawEvent.isV17) e = rawEvent.asV17;
-    else e = rawEvent.asLatest;
+    let vaultId;
+    let wrappedToken;
+    let collateralToken;
+    if (rawEvent.isV6 || rawEvent.isV15) {
+        if (rawEvent.isV6) e = rawEvent.asV6;
+        else e = rawEvent.asV15;
+        vaultId = encodeLegacyVaultId(e.vaultId);
+        wrappedToken = legacyCurrencyId.encode(e.vaultId.currencies.wrapped);
+        collateralToken = legacyCurrencyId.encode(
+            e.vaultId.currencies.collateral
+        );
+    } else {
+        if (rawEvent.isV17) e = rawEvent.asV17;
+        else e = rawEvent.asLatest;
+        vaultId = encodeVaultId(e.vaultId);
+        wrappedToken = currencyId.encode(e.vaultId.currencies.wrapped);
+        collateralToken = currencyId.encode(e.vaultId.currencies.collateral);
+    }
 
     const registrationBlock = await blockToHeight(
         ctx.store,
         ctx.block.height,
         "RegisterVault"
     );
-    const vaultId = new Vault({
-        id: encodeVaultId(e.vaultId),
+    const vault = new Vault({
+        id: vaultId,
         accountId: address.interlay.encode(e.vaultId.accountId),
-        wrappedToken: currencyId.token.encode(e.vaultId.currencies.wrapped),
-        collateralToken: currencyId.token.encode(
-            e.vaultId.currencies.collateral
-        ),
+        wrappedToken,
+        collateralToken,
         registrationBlock: registrationBlock,
         registrationTimestamp: new Date(ctx.block.timestamp),
     });
 
-    await ctx.store.save(vaultId);
+    await ctx.store.save(vault);
 }
 
 export async function increaseLockedCollateral(
@@ -44,12 +62,19 @@ export async function increaseLockedCollateral(
 ): Promise<void> {
     const rawEvent = new VaultRegistryIncreaseLockedCollateralEvent(ctx);
     let e;
-    if (rawEvent.isV10) e = rawEvent.asV10;
-    else if (rawEvent.isV15) e = rawEvent.asV15;
-    else if (rawEvent.isV17) e = rawEvent.asV17;
-    else e = rawEvent.asLatest;
-    const collateralToken = currencyId.token.encode(e.currencyPair.collateral);
-    const wrappedToken = currencyId.token.encode(e.currencyPair.wrapped);
+    let wrappedToken;
+    let collateralToken;
+    if (rawEvent.isV10 || rawEvent.isV15) {
+        if (rawEvent.isV10) e = rawEvent.asV10;
+        else e = rawEvent.asV15;
+        wrappedToken = legacyCurrencyId.encode(e.currencyPair.wrapped);
+        collateralToken = legacyCurrencyId.encode(e.currencyPair.collateral);
+    } else {
+        if (rawEvent.isV17) e = rawEvent.asV17;
+        else e = rawEvent.asLatest;
+        wrappedToken = currencyId.encode(e.currencyPair.wrapped);
+        collateralToken = currencyId.encode(e.currencyPair.collateral);
+    }
 
     const newVolume = new CumulativeVolumePerCurrencyPair({
         id: `Collateral-${ctx.block.timestamp.toString()}-${collateralToken.toString()}`,
@@ -68,13 +93,19 @@ export async function decreaseLockedCollateral(
 ): Promise<void> {
     const rawEvent = new VaultRegistryDecreaseLockedCollateralEvent(ctx);
     let e;
-    if (rawEvent.isV10) e = rawEvent.asV10;
-    else if (rawEvent.isV15) e = rawEvent.asV15;
-    else if (rawEvent.isV17) e = rawEvent.asV17;
-    else e = rawEvent.asLatest;
-
-    const collateralToken = currencyId.token.encode(e.currencyPair.collateral);
-    const wrappedToken = currencyId.token.encode(e.currencyPair.wrapped);
+    let wrappedToken;
+    let collateralToken;
+    if (rawEvent.isV10 || rawEvent.isV15) {
+        if (rawEvent.isV10) e = rawEvent.asV10;
+        else e = rawEvent.asV15;
+        wrappedToken = legacyCurrencyId.encode(e.currencyPair.wrapped);
+        collateralToken = legacyCurrencyId.encode(e.currencyPair.collateral);
+    } else {
+        if (rawEvent.isV17) e = rawEvent.asV17;
+        else e = rawEvent.asLatest;
+        wrappedToken = currencyId.encode(e.currencyPair.wrapped);
+        collateralToken = currencyId.encode(e.currencyPair.collateral);
+    }
 
     const newVolume = new CumulativeVolumePerCurrencyPair({
         id: `Collateral-${ctx.block.timestamp.toString()}-${collateralToken.toString()}`,

@@ -1,5 +1,6 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_, ManyToOne as ManyToOne_} from "typeorm"
-import {Token} from "./_token"
+import * as marshal from "./marshal"
+import {Currency, fromJsonCurrency} from "./_currency"
 import {Height} from "./height.model"
 
 @Entity_()
@@ -15,11 +16,11 @@ export class Vault {
   @Column_("text", {nullable: false})
   accountId!: string
 
-  @Column_("varchar", {length: 4, nullable: false})
-  collateralToken!: Token
+  @Column_("jsonb", {transformer: {to: obj => obj.toJSON(), from: obj => fromJsonCurrency(obj)}, nullable: false})
+  collateralToken!: Currency
 
-  @Column_("varchar", {length: 4, nullable: false})
-  wrappedToken!: Token
+  @Column_("jsonb", {transformer: {to: obj => obj.toJSON(), from: obj => fromJsonCurrency(obj)}, nullable: false})
+  wrappedToken!: Currency
 
   @Index_()
   @ManyToOne_(() => Height, {nullable: false})
