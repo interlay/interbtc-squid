@@ -33,13 +33,12 @@ export async function feedValues(ctx: EventHandlerContext): Promise<void> {
         });
         let keyToString = key.__kind.toString();
         if (key.__kind === "ExchangeRate") {
-            const typeString = useLegacyCurrency
+            const exchangeCurrency = useLegacyCurrency
                 ? legacyCurrencyId
-                      .encode(key.value as CurrencyId_V15)
-                      .toString()
-                : currencyId.encode(key.value as CurrencyId_V17).toString();
-            update.typeKey = typeString;
-            keyToString += typeString;
+                    .encode(key.value as CurrencyId_V15)
+                : currencyId.encode(key.value as CurrencyId_V17);
+            update.typeKey = exchangeCurrency;
+            keyToString += JSON.stringify(exchangeCurrency);
         }
         update.id = `${oracleAddress}-${height.absolute.toString()}-${keyToString}`;
         await ctx.store.save(update);
