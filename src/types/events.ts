@@ -217,6 +217,40 @@ export class IssueExecuteIssueEvent {
   }
 }
 
+export class IssueIssueAmountChangeEvent {
+  constructor(private ctx: EventContext) {
+    assert(this.ctx.event.name === 'issue.IssueAmountChange')
+  }
+
+  get isV1(): boolean {
+    return this.ctx._chain.getEventHash('issue.IssueAmountChange') === '426271b0ff71255c125e9a4ea897d86d39682c8454bbff4c6c9a8d50e0d966a4'
+  }
+
+  get asV1(): [Uint8Array, bigint, bigint, bigint] {
+    assert(this.isV1)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isV4(): boolean {
+    return this.ctx._chain.getEventHash('issue.IssueAmountChange') === 'd4db9e803afab73bfc3e51de57bb3cab34cbb49ee15550d4984bcbe248bb76fc'
+  }
+
+  get asV4(): {issueId: v4.H256, amount: bigint, fee: bigint, confiscatedGriefingCollateral: bigint} {
+    assert(this.isV4)
+    return this.ctx._chain.decodeEvent(this.ctx.event)
+  }
+
+  get isLatest(): boolean {
+    deprecateLatest()
+    return this.isV4
+  }
+
+  get asLatest(): {issueId: v4.H256, amount: bigint, fee: bigint, confiscatedGriefingCollateral: bigint} {
+    deprecateLatest()
+    return this.asV4
+  }
+}
+
 export class IssueIssuePeriodChangeEvent {
   constructor(private ctx: EventContext) {
     assert(this.ctx.event.name === 'issue.IssuePeriodChange')
