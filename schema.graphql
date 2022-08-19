@@ -73,6 +73,7 @@ type Issue @entity {
     backingPayment: IssuePayment @derivedFrom(field: "issue")
     status: IssueStatus @index # TODO: find a way to optimise queries by status
     execution: IssueExecution @derivedFrom(field: "issue")
+    amountChange: IssueAmountChange @derivedFrom(field: "issue")
     cancellation: IssueCancellation @derivedFrom(field: "issue")
     refund: Refund @derivedFrom(field: "issue")
 }
@@ -100,6 +101,14 @@ type IssueExecution @entity {
     bridgeFeeWrapped: BigInt!
     height: Height!
     timestamp: DateTime!
+}
+
+type IssueAmountChange @entity {
+    issue: Issue! @unique
+    amountWrapped: BigInt!
+    bridgeFeeWrapped: BigInt!
+    confiscatedGriefingCollateral: BigInt!
+    height: Height!
 }
 
 type IssueCancellation @entity {

@@ -5,6 +5,7 @@ import {
     Issue,
     IssueCancellation,
     IssueExecution,
+    IssueAmountChange,
     IssuePeriod,
     IssueRequest,
     IssueStatus,
@@ -16,6 +17,7 @@ import {
     IssueCancelIssueEvent,
     IssueExecuteIssueEvent,
     IssueIssuePeriodChangeEvent,
+    IssueIssueAmountChangeEvent,
     IssueRequestIssueEvent,
     RefundExecuteRefundEvent,
     RefundRequestRefundEvent,
@@ -303,4 +305,33 @@ export async function issuePeriodChange(
     });
 
     await ctx.store.save(issuePeriod);
+}
+
+export async function issueAmountChange(ctx: EventHandlerContext): Promise<void> {
+    const rawEvent = new IssueIssueAmountChangeEvent(ctx);
+    const e = rawEvent.asLatest;
+
+    const id = toHex(e.issueId);
+
+    const issue = await ctx.store.get(Issue, { where: { id } });
+    if (issue === undefined) {
+        debug(
+            "WARNING: IssueAmountChange event did not match any existing issue requests! Skipping."
+        );
+        return;
+    }
+    const height = await blockToHeight(
+        ctx.store,
+        ctx.block.height,
+        "IssueAmountChange"
+    );
+    const amountChanged = new IssueAmountChange({
+        id: issue.id,
+        issue,
+        amountWrapped: e.amount,
+        bridgeFeeWrapped: e.fee,
+        height,
+    });
+    await ctx.store.save(amountChanged);
+    await ctx.store.save(issue);
 }

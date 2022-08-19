@@ -1,6 +1,6 @@
 import assert from "assert"
 import * as marshal from "./marshal"
-import {Token} from "./_token"
+import { Token } from "./_token"
 
 export class NativeToken {
   public readonly isTypeOf = 'NativeToken'

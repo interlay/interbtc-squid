@@ -6,6 +6,7 @@ import {IssuePeriod} from "./issuePeriod.model"
 import {IssuePayment} from "./issuePayment.model"
 import {IssueStatus} from "./_issueStatus"
 import {IssueExecution} from "./issueExecution.model"
+import {IssueAmountChange} from "./issueAmountChange.model"
 import {IssueCancellation} from "./issueCancellation.model"
 import {Refund} from "./refund.model"
 
@@ -50,6 +51,9 @@ export class Issue {
 
   @OneToOne_(() => IssueExecution)
   execution!: IssueExecution | undefined | null
+
+  @OneToOne_(() => IssueAmountChange)
+  amountChange!: IssueAmountChange | undefined | null
 
   @OneToOne_(() => IssueCancellation)
   cancellation!: IssueCancellation | undefined | null
