@@ -9,6 +9,7 @@
         "issue.CancelIssue",
         "issue.ExecuteIssue",
         "issue.IssuePeriodChange",
+        "issue.IssueAmountChange",
         "issue.RequestIssue",
         "oracle.FeedValues",
         "redeem.CancelRedeem",
