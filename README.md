@@ -6,6 +6,14 @@ Squid project that indexes interBTC chains (testnet, Kintsugi, and Interlay netw
 * Node v16x
 * Docker
 
+## Important Notes
+
+The following files are required for pre-v14 chains (**do not edit**):
+- `indexer/types.json`
+- `indexer/typesBundle.json`
+
+The `distributable` files should be re-generated with `gen:distributables` (**do not edit**).
+
 ## Development
 
 ### Quick bootstrap
