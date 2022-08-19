@@ -52,7 +52,7 @@ processor.addEventHandler("oracle.FeedValues", feedValues);
 processor.addEventHandler("redeem.CancelRedeem", cancelRedeem);
 processor.addEventHandler("redeem.ExecuteRedeem", executeRedeem);
 processor.addEventHandler("redeem.RequestRedeem", requestRedeem);
-processor.addEventHandler("reddem.RedeemPeriodChange", redeemPeriodChange);
+processor.addEventHandler("redeem.RedeemPeriodChange", redeemPeriodChange);
 processor.addEventHandler("refund.ExecuteRefund", executeRefund);
 processor.addEventHandler("refund.RequestRefund", requestRefund);
 processor.addEventHandler("security.UpdateActiveBlock", updateActiveBlock);
