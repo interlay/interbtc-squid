@@ -1,6 +1,5 @@
 # Interbtc Squid
-Squid project that indexes Interlay chains (testnet, Kintsugi, and Interlay networks).
-
+Squid project that indexes interBTC chains (testnet, Kintsugi, and Interlay networks).
 
 ## Prerequisites
 
@@ -31,6 +30,8 @@ yarn processor:start
 yarn query-node:start
 ```
 
+Access the GraphQL IDE here: http://localhost:4000/graphql
+
 ### Workflow - developing the processor
 When making changes to the processor (e.g. adding a new event), you may wish to reset the database to restart processing the chain from scratch. To do so:
 
@@ -50,9 +51,9 @@ Note the query-node doesn't need to be restarted, as it is stateless.
 The mappings also use the `Debug` package, whose output can be enabled by passing the `DEBUG` variable. E.g. `DEBUG="*"` will enable all debug output, or `DEBUG="interbtc-mappings:issue"` will enable printouts only from the issue event mappings (in `src/mappings/event/issue.ts`).
 
 ### Workflow - connecting to a specific chain
-The processor processes events from a specific parachain. The .env file controls which URLs the processor uses for the archive node/indexer, and for the parachain RPC. Both should correspond to the same chain, and whichever these are set to will be the chain used for processing.
+The processor processes events from a specific parachain. The `.env` file controls which URLs the processor uses for the archive node/indexer, and for the parachain RPC. Both should correspond to the same chain, and whichever these are set to will be the chain used for processing.
 
-Note that the typings and metadata should match the currently used chain. See _Updating chain metadata_ below for more info on that.
+Note that the typings and metadata should match the currently used chain. See [this section](#workflow---updating-chain-metadata) below for more info on that.
 
 Additionally, the `SS58_CODEC` variable should be set to `interlay` for Interlay mainnet, `kintsugi` for Kintsugi canarynet, and `substrate` for the testnets or local development. `BITCOIN_NETWORK` is `mainnet` for the mainnets, `testnet` for the testnets, and `regtest` for a local regtest node.
 
