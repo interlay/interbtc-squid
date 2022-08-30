@@ -77,7 +77,7 @@ export async function increaseLockedCollateral(
     }
 
     const newVolume = new CumulativeVolumePerCurrencyPair({
-        id: `Collateral-${ctx.block.timestamp.toString()}-${collateralToken.toString()}`,
+        id: `Collateral-${ctx.block.height}-${ctx.event.indexInBlock}`,
         type: VolumeType.Collateral,
         amount: e.total,
         tillTimestamp: new Date(ctx.block.timestamp),
@@ -108,7 +108,7 @@ export async function decreaseLockedCollateral(
     }
 
     const newVolume = new CumulativeVolumePerCurrencyPair({
-        id: `Collateral-${ctx.block.timestamp.toString()}-${collateralToken.toString()}`,
+        id: `Collateral-${ctx.block.height}-${ctx.event.indexInBlock}`,
         type: VolumeType.Collateral,
         amount: e.total,
         tillTimestamp: new Date(ctx.block.timestamp),
