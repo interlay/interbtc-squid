@@ -32,11 +32,7 @@ export async function tokensTransfer(ctx: EventHandlerContext): Promise<void> {
     );
 
     const transfer = new Transfer({
-        id:
-            e.currencyId.toString() +
-            toHex(e.from) +
-            toHex(e.to) +
-            ctx.event.indexInBlock.toString(),
+        id: `${ctx.block.height}_${ctx.event.indexInBlock.toString()}`,
         height,
         timestamp: new Date(ctx.block.timestamp),
         from: address.interlay.encode(e.from),
