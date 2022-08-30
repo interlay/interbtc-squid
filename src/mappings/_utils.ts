@@ -31,10 +31,7 @@ export async function getVaultIdLegacy(
     });
 }
 
-export async function getVaultId(
-    store: Store,
-    vaultId: VaultIdV17
-) {
+export async function getVaultId(store: Store, vaultId: VaultIdV17) {
     return store.get(Vault, {
         where: { id: encodeVaultId(vaultId) },
     });
@@ -107,12 +104,13 @@ export async function updateCumulativeVolumes(
     const id = `${type.toString()}-${timestamp.getTime().toString()}`;
 
     // save the total sum (important for issue and redeem)
-    let existingValueInBlock = await store.get(CumulativeVolume, id);
+    const existingValueInBlock = await store.get(CumulativeVolume, id);
     if (existingValueInBlock !== undefined) {
         // new event in same block, update total
-        existingValueInBlock.amount += amount;
-        await store.save(existingValueInBlock);
+        const newAmount = amount + existingValueInBlock.amount;
+        await store.update(CumulativeVolume, { id }, { amount: newAmount });
     } else {
+        // new event in new block, insert new entity
         const existingCumulativeVolume = await store.get(CumulativeVolume, {
             where: {
                 tillTimestamp: LessThanOrEqual(timestamp),
@@ -124,36 +122,51 @@ export async function updateCumulativeVolumes(
             id,
             type,
             tillTimestamp: timestamp,
-            amount: existingCumulativeVolume?.amount || 0n + amount,
+            amount: (existingCumulativeVolume?.amount || 0n) + amount,
         });
         await store.save(newCumulativeVolume);
     }
 
     if (collateralCurrency || wrappedCurrency) {
         // also save the collateral-specific sum
-        const existingCumulativeVolumeForCollateral =
-            (
-                await store.get(CumulativeVolumePerCurrencyPair, {
-                    where: {
-                        tillTimestamp: LessThanOrEqual(timestamp),
-                        type: type,
-                        collateralCurrency,
-                        wrappedCurrency,
-                    },
-                    order: { tillTimestamp: "DESC" },
-                })
-            )?.amount || 0n;
-        let cumulativeVolumeForCollateral = new CumulativeVolumePerCurrencyPair(
-            {
-                id: `${id}-${collateralCurrency?.toString()}-${wrappedCurrency?.toString()}`,
-                type,
-                tillTimestamp: timestamp,
-                amount: existingCumulativeVolumeForCollateral + amount,
-                collateralCurrency,
-                wrappedCurrency,
-            }
+        const currencyPairId = `${id}-${collateralCurrency?.toString()}-${wrappedCurrency?.toString()}`;
+        const existingValueInBlock = await store.get(
+            CumulativeVolumePerCurrencyPair,
+            currencyPairId
         );
-        await store.save(cumulativeVolumeForCollateral);
+        if (existingValueInBlock !== undefined) {
+            // new event in same block, update total
+            const newAmount = amount + existingValueInBlock.amount;
+            await store.update(
+                CumulativeVolumePerCurrencyPair,
+                { id },
+                { amount: newAmount }
+            );
+        } else {
+            // new event in new block, insert new entity
+            const existingCumulativeVolumeForCollateral =
+                (
+                    await store.get(CumulativeVolumePerCurrencyPair, {
+                        where: {
+                            tillTimestamp: LessThanOrEqual(timestamp),
+                            type: type,
+                            collateralCurrency,
+                            wrappedCurrency,
+                        },
+                        order: { tillTimestamp: "DESC" },
+                    })
+                )?.amount || 0n;
+            let cumulativeVolumeForCollateral =
+                new CumulativeVolumePerCurrencyPair({
+                    id: currencyPairId,
+                    type,
+                    tillTimestamp: timestamp,
+                    amount: existingCumulativeVolumeForCollateral + amount,
+                    collateralCurrency,
+                    wrappedCurrency,
+                });
+            await store.save(cumulativeVolumeForCollateral);
+        }
     }
 }
 
@@ -168,4 +181,3 @@ export async function getCurrentRedeemPeriod(store: Store) {
         order: { timestamp: "DESC" },
     });
 }
-
