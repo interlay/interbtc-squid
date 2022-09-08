@@ -1,4 +1,5 @@
 import { EventHandlerContext, toHex } from "@subsquid/substrate-processor";
+import { Store } from "@subsquid/typeorm-store";
 import Debug from "debug";
 import { LessThanOrEqual } from "typeorm";
 import {
@@ -29,6 +30,7 @@ import {
 } from "../encoding";
 import {
     blockToHeight,
+    eventArgs,
     getCurrentIssuePeriod,
     getVaultId,
     getVaultIdLegacy,
@@ -37,7 +39,9 @@ import {
 
 const debug = Debug("interbtc-mappings:issue");
 
-export async function requestIssue(ctx: EventHandlerContext): Promise<void> {
+export async function requestIssue(
+    ctx: EventHandlerContext<Store, eventArgs>
+): Promise<void> {
     const rawEvent = new IssueRequestIssueEvent(ctx);
     let e;
     let vault;
@@ -49,8 +53,9 @@ export async function requestIssue(ctx: EventHandlerContext): Promise<void> {
         vault = await getVaultIdLegacy(ctx.store, e.vaultId);
         vaultIdString = encodeLegacyVaultId(e.vaultId);
     } else {
-        if (rawEvent.isV17) e = rawEvent.asV17;
-        else e = rawEvent.asLatest;
+        if (!rawEvent.isV17)
+            ctx.log.warn(`UNKOWN EVENT VERSION: Issue.requestIssue`);
+        e = rawEvent.asV17;
         vault = await getVaultId(ctx.store, e.vaultId);
         vaultIdString = encodeVaultId(e.vaultId);
     }
@@ -66,7 +71,7 @@ export async function requestIssue(ctx: EventHandlerContext): Promise<void> {
         return;
     }
 
-    const period = await getCurrentIssuePeriod(ctx.store);
+    const period = await getCurrentIssuePeriod(ctx.store, ctx.block.height);
 
     const issue = new Issue({
         id: toHex(e.issueId),
@@ -87,7 +92,7 @@ export async function requestIssue(ctx: EventHandlerContext): Promise<void> {
 
     const backingBlock = await ctx.store.get(RelayedBlock, {
         order: { backingHeight: "DESC" },
-        relations: ["relayedAtHeight"],
+        relations: { relayedAtHeight: true },
         where: {
             relayedAtHeight: {
                 absolute: LessThanOrEqual(height.absolute),
@@ -112,7 +117,9 @@ export async function requestIssue(ctx: EventHandlerContext): Promise<void> {
     await ctx.store.save(issue);
 }
 
-export async function executeIssue(ctx: EventHandlerContext): Promise<void> {
+export async function executeIssue(
+    ctx: EventHandlerContext<Store, eventArgs>
+): Promise<void> {
     const rawEvent = new IssueExecuteIssueEvent(ctx);
     let e;
     let collateralCurrency;
@@ -125,8 +132,9 @@ export async function executeIssue(ctx: EventHandlerContext): Promise<void> {
         );
         wrappedCurrency = legacyCurrencyId.encode(e.vaultId.currencies.wrapped);
     } else {
-        if (rawEvent.isV17) e = rawEvent.asV17;
-        else e = rawEvent.asLatest;
+        if (!rawEvent.isV17)
+            ctx.log.warn(`UNKOWN EVENT VERSION: Issue.executeIssue`);
+        e = rawEvent.asV17;
         collateralCurrency = currencyId.encode(e.vaultId.currencies.collateral);
         wrappedCurrency = currencyId.encode(e.vaultId.currencies.wrapped);
     }
@@ -168,13 +176,15 @@ export async function executeIssue(ctx: EventHandlerContext): Promise<void> {
     );
 }
 
-export async function cancelIssue(ctx: EventHandlerContext): Promise<void> {
+export async function cancelIssue(
+    ctx: EventHandlerContext<Store, eventArgs>
+): Promise<void> {
     // const [id, _userParachainAddress, _griefingCollateral] =
     //     new IssueCrate.CancelIssueEvent(event).params;
     const rawEvent = new IssueCancelIssueEvent(ctx);
     let e;
-    if (rawEvent.isV4) e = rawEvent.asV4;
-    else e = rawEvent.asLatest;
+    if (!rawEvent.isV4) ctx.log.warn(`UNKOWN EVENT VERSION: Issue.cancelIssue`);
+    e = rawEvent.asV4;
 
     const issue = await ctx.store.get(Issue, {
         where: { id: toHex(e.issueId) },
@@ -201,15 +211,18 @@ export async function cancelIssue(ctx: EventHandlerContext): Promise<void> {
     await ctx.store.save(issue);
 }
 
-export async function requestRefund(ctx: EventHandlerContext): Promise<void> {
-    // const [id, _issuer, amountPaid, _vault, btcAddress, issueId, btcFee] =
-    //     new RefundCrate.RequestRefundEvent(event).params;
+export async function requestRefund(
+    ctx: EventHandlerContext<Store, eventArgs>
+): Promise<void> {
     const rawEvent = new RefundRequestRefundEvent(ctx);
     let e;
     if (rawEvent.isV6) e = rawEvent.asV6;
     else if (rawEvent.isV15) e = rawEvent.asV15;
     else if (rawEvent.isV17) e = rawEvent.asV17;
-    else e = rawEvent.asLatest;
+    else {
+        ctx.log.warn(`UNKOWN EVENT VERSION: Issue.requestRefund`);
+        e = rawEvent.asV17;
+    }
 
     const id = toHex(e.refundId);
     const issue = await ctx.store.get(Issue, {
@@ -241,14 +254,18 @@ export async function requestRefund(ctx: EventHandlerContext): Promise<void> {
     await ctx.store.save(issue);
 }
 
-export async function executeRefund(ctx: EventHandlerContext): Promise<void> {
-    // const [id] = new RefundCrate.ExecuteRefundEvent(event).params;
+export async function executeRefund(
+    ctx: EventHandlerContext<Store, eventArgs>
+): Promise<void> {
     const rawEvent = new RefundExecuteRefundEvent(ctx);
     let e;
     if (rawEvent.isV6) e = rawEvent.asV6;
     else if (rawEvent.isV15) e = rawEvent.asV15;
     else if (rawEvent.isV17) e = rawEvent.asV17;
-    else e = rawEvent.asLatest;
+    else {
+        ctx.log.warn(`UNKOWN EVENT VERSION: Issue.executeRefund`);
+        e = rawEvent.asV17;
+    }
 
     const refund = await ctx.store.get(Refund, {
         where: { id: toHex(e.refundId) },
@@ -280,12 +297,13 @@ export async function executeRefund(ctx: EventHandlerContext): Promise<void> {
 }
 
 export async function issuePeriodChange(
-    ctx: EventHandlerContext
+    ctx: EventHandlerContext<Store, eventArgs>
 ): Promise<void> {
     const rawEvent = new IssueIssuePeriodChangeEvent(ctx);
     let e;
-    if (rawEvent.isV16) e = rawEvent.asV16;
-    else e = rawEvent.asLatest;
+    if (!rawEvent.isV16)
+        ctx.log.warn(`UNKOWN EVENT VERSION: Issue.issuePeriodChange`);
+    e = rawEvent.asV16;
 
     const height = await blockToHeight(
         ctx.store,

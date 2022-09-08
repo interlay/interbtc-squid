@@ -24,7 +24,7 @@ export class IssueExecution {
   bridgeFeeWrapped!: bigint
 
   @Index_()
-  @ManyToOne_(() => Height, {nullable: false})
+  @ManyToOne_(() => Height, {nullable: true})
   height!: Height
 
   @Column_("timestamp with time zone", {nullable: false})

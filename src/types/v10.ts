@@ -7,8 +7,6 @@ export interface CurrencyId_Token {
   value: TokenSymbol
 }
 
-export type AccountId32 = Uint8Array
-
 export interface VaultCurrencyPair {
   collateral: CurrencyId
   wrapped: CurrencyId

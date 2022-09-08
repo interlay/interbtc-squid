@@ -1,4 +1,5 @@
 import { EventHandlerContext } from "@subsquid/substrate-processor";
+import { Store } from "@subsquid/typeorm-store";
 import {
     CumulativeVolumePerCurrencyPair,
     Vault,
@@ -16,9 +17,11 @@ import {
     encodeLegacyVaultId,
     legacyCurrencyId,
 } from "../encoding";
-import { blockToHeight } from "../_utils";
+import { blockToHeight, eventArgs } from "../_utils";
 
-export async function registerVault(ctx: EventHandlerContext): Promise<void> {
+export async function registerVault(
+    ctx: EventHandlerContext<Store, eventArgs>
+): Promise<void> {
     const rawEvent = new VaultRegistryRegisterVaultEvent(ctx);
     let e;
     let vaultId;
@@ -33,8 +36,9 @@ export async function registerVault(ctx: EventHandlerContext): Promise<void> {
             e.vaultId.currencies.collateral
         );
     } else {
-        if (rawEvent.isV17) e = rawEvent.asV17;
-        else e = rawEvent.asLatest;
+        if (!rawEvent.isV17)
+            ctx.log.warn(`UNKOWN EVENT VERSION: Vault.registerVault`);
+        e = rawEvent.asV17;
         vaultId = encodeVaultId(e.vaultId);
         wrappedToken = currencyId.encode(e.vaultId.currencies.wrapped);
         collateralToken = currencyId.encode(e.vaultId.currencies.collateral);
@@ -58,7 +62,7 @@ export async function registerVault(ctx: EventHandlerContext): Promise<void> {
 }
 
 export async function increaseLockedCollateral(
-    ctx: EventHandlerContext
+    ctx: EventHandlerContext<Store, eventArgs>
 ): Promise<void> {
     const rawEvent = new VaultRegistryIncreaseLockedCollateralEvent(ctx);
     let e;
@@ -70,14 +74,17 @@ export async function increaseLockedCollateral(
         wrappedToken = legacyCurrencyId.encode(e.currencyPair.wrapped);
         collateralToken = legacyCurrencyId.encode(e.currencyPair.collateral);
     } else {
-        if (rawEvent.isV17) e = rawEvent.asV17;
-        else e = rawEvent.asLatest;
+        if (!rawEvent.isV17)
+            ctx.log.warn(
+                `UNKOWN EVENT VERSION: Vault.increaseLockedCollateral`
+            );
+        e = rawEvent.asV17;
         wrappedToken = currencyId.encode(e.currencyPair.wrapped);
         collateralToken = currencyId.encode(e.currencyPair.collateral);
     }
 
     const newVolume = new CumulativeVolumePerCurrencyPair({
-        id: `Collateral-${ctx.block.height}-${ctx.event.indexInBlock}`,
+        id: `Collateral-${ctx.event.id}`,
         type: VolumeType.Collateral,
         amount: e.total,
         tillTimestamp: new Date(ctx.block.timestamp),
@@ -89,7 +96,7 @@ export async function increaseLockedCollateral(
 }
 
 export async function decreaseLockedCollateral(
-    ctx: EventHandlerContext
+    ctx: EventHandlerContext<Store, eventArgs>
 ): Promise<void> {
     const rawEvent = new VaultRegistryDecreaseLockedCollateralEvent(ctx);
     let e;
@@ -101,14 +108,17 @@ export async function decreaseLockedCollateral(
         wrappedToken = legacyCurrencyId.encode(e.currencyPair.wrapped);
         collateralToken = legacyCurrencyId.encode(e.currencyPair.collateral);
     } else {
-        if (rawEvent.isV17) e = rawEvent.asV17;
-        else e = rawEvent.asLatest;
+        if (!rawEvent.isV17)
+            ctx.log.warn(
+                `UNKOWN EVENT VERSION: Vault.decreaseLockedCollateral`
+            );
+        e = rawEvent.asV17;
         wrappedToken = currencyId.encode(e.currencyPair.wrapped);
         collateralToken = currencyId.encode(e.currencyPair.collateral);
     }
 
     const newVolume = new CumulativeVolumePerCurrencyPair({
-        id: `Collateral-${ctx.block.height}-${ctx.event.indexInBlock}`,
+        id: `Collateral-${ctx.event.id}`,
         type: VolumeType.Collateral,
         amount: e.total,
         tillTimestamp: new Date(ctx.block.timestamp),

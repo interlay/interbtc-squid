@@ -58,9 +58,17 @@ export function encodeLegacyVaultId(vaultId: VaultIdV6 | VaultIdV15) {
     return `${addressStr}-${wrappedStr}-${collateralStr}`;
 }
 
+function currencyToString(currency: Currency): string {
+    if (currency.isTypeOf === "ForeignAsset") {
+        return currency.asset.toString();
+    } else {
+        return currency.token.toString();
+    }
+}
+
 export function encodeVaultId(vaultId: VaultIdV17) {
     const addressStr = address.interlay.encode(vaultId.accountId).toString();
-    const wrappedStr = currencyId.encode(vaultId.currencies.wrapped).toString();
-    const collateralStr = currencyId.encode(vaultId.currencies.collateral).toString();
-    return `${addressStr}-${wrappedStr}-${collateralStr}`;
+    const wrapped = currencyId.encode(vaultId.currencies.wrapped);
+    const collateral = currencyId.encode(vaultId.currencies.collateral);
+    return `${addressStr}-${currencyToString(wrapped)}-${currencyToString(collateral)}`;
 }
