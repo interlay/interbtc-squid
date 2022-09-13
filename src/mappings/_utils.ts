@@ -1,4 +1,4 @@
-import { Store } from "@subsquid/substrate-processor";
+import { Store } from '@subsquid/typeorm-store'
 import {
     CumulativeVolume,
     CumulativeVolumePerCurrencyPair,
@@ -11,12 +11,19 @@ import {
     Vault,
     VolumeType,
 } from "../model";
-import { LessThanOrEqual } from "typeorm";
+import { Equal, LessThanOrEqual } from "typeorm";
 import Debug from "debug";
 import { VaultId as VaultIdV17 } from "../types/v17";
 import { VaultId as VaultIdV15 } from "../types/v15";
 import { VaultId as VaultIdV6 } from "../types/v6";
 import { encodeLegacyVaultId, encodeVaultId } from "./encoding";
+
+export type eventArgs = {
+    event: {args: true}
+};
+export type eventArgsData = {
+    data: eventArgs
+};
 
 const debug = Debug("interbtc-mappings:_utils");
 
@@ -107,8 +114,8 @@ export async function updateCumulativeVolumes(
     const existingValueInBlock = await store.get(CumulativeVolume, id);
     if (existingValueInBlock !== undefined) {
         // new event in same block, update total
-        const newAmount = amount + existingValueInBlock.amount;
-        await store.update(CumulativeVolume, { id }, { amount: newAmount });
+        existingValueInBlock.amount += amount;
+        await store.save(existingValueInBlock);
     } else {
         // new event in new block, insert new entity
         const existingCumulativeVolume = await store.get(CumulativeVolume, {
@@ -127,7 +134,7 @@ export async function updateCumulativeVolumes(
         await store.save(newCumulativeVolume);
     }
 
-    if (collateralCurrency || wrappedCurrency) {
+    if (collateralCurrency && wrappedCurrency) {
         // also save the collateral-specific sum
         const currencyPairId = `${id}-${collateralCurrency?.toString()}-${wrappedCurrency?.toString()}`;
         const existingValueInBlock = await store.get(
@@ -136,12 +143,8 @@ export async function updateCumulativeVolumes(
         );
         if (existingValueInBlock !== undefined) {
             // new event in same block, update total
-            const newAmount = amount + existingValueInBlock.amount;
-            await store.update(
-                CumulativeVolumePerCurrencyPair,
-                { id },
-                { amount: newAmount }
-            );
+            existingValueInBlock.amount += amount;
+            await store.save(existingValueInBlock);
         } else {
             // new event in new block, insert new entity
             const existingCumulativeVolumeForCollateral =
@@ -150,8 +153,8 @@ export async function updateCumulativeVolumes(
                         where: {
                             tillTimestamp: LessThanOrEqual(timestamp),
                             type: type,
-                            collateralCurrency,
-                            wrappedCurrency,
+                            collateralCurrency: Equal(collateralCurrency),
+                            wrappedCurrency: Equal(wrappedCurrency),
                         },
                         order: { tillTimestamp: "DESC" },
                     })
@@ -170,14 +173,20 @@ export async function updateCumulativeVolumes(
     }
 }
 
-export async function getCurrentIssuePeriod(store: Store) {
+export async function getCurrentIssuePeriod(store: Store, beforeBlockNumber: number) {
     return await store.get(IssuePeriod, {
+        where: {
+            height: {absolute: LessThanOrEqual(beforeBlockNumber)}
+        },
         order: { timestamp: "DESC" },
     });
 }
 
-export async function getCurrentRedeemPeriod(store: Store) {
+export async function getCurrentRedeemPeriod(store: Store, beforeBlockNumber: number) {
     return await store.get(RedeemPeriod, {
+        where: {
+            height: {absolute: LessThanOrEqual(beforeBlockNumber)}
+        },
         order: { timestamp: "DESC" },
     });
 }

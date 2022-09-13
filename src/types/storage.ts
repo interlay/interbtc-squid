@@ -1,8 +1,17 @@
 import assert from 'assert'
-import {StorageContext, Result} from './support'
+import {Block, Chain, ChainContext, BlockContext, Result} from './support'
 
 export class IssueIssuePeriodStorage {
-  constructor(private ctx: StorageContext) {}
+  private readonly _chain: Chain
+  private readonly blockHash: string
+
+  constructor(ctx: BlockContext)
+  constructor(ctx: ChainContext, block: Block)
+  constructor(ctx: BlockContext, block?: Block) {
+    block = block || ctx.block
+    this.blockHash = block.hash
+    this._chain = ctx._chain
+  }
 
   /**
    *  The time difference in number of blocks between an issue request is created
@@ -10,7 +19,7 @@ export class IssueIssuePeriodStorage {
    *  to prevent griefing of vault collateral.
    */
   get isV1() {
-    return this.ctx._chain.getStorageItemTypeHash('Issue', 'IssuePeriod') === '81bbbe8e62451cbcc227306706c919527aa2538970bd6d67a9969dd52c257d02'
+    return this._chain.getStorageItemTypeHash('Issue', 'IssuePeriod') === '81bbbe8e62451cbcc227306706c919527aa2538970bd6d67a9969dd52c257d02'
   }
 
   /**
@@ -20,19 +29,28 @@ export class IssueIssuePeriodStorage {
    */
   async getAsV1(): Promise<number> {
     assert(this.isV1)
-    return this.ctx._chain.getStorage(this.ctx.block.hash, 'Issue', 'IssuePeriod')
+    return this._chain.getStorage(this.blockHash, 'Issue', 'IssuePeriod')
   }
 
   /**
    * Checks whether the storage item is defined for the current chain version.
    */
   get isExists(): boolean {
-    return this.ctx._chain.getStorageItemTypeHash('Issue', 'IssuePeriod') != null
+    return this._chain.getStorageItemTypeHash('Issue', 'IssuePeriod') != null
   }
 }
 
 export class RedeemRedeemPeriodStorage {
-  constructor(private ctx: StorageContext) {}
+  private readonly _chain: Chain
+  private readonly blockHash: string
+
+  constructor(ctx: BlockContext)
+  constructor(ctx: ChainContext, block: Block)
+  constructor(ctx: BlockContext, block?: Block) {
+    block = block || ctx.block
+    this.blockHash = block.hash
+    this._chain = ctx._chain
+  }
 
   /**
    *  The time difference in number of blocks between a redeem request is created and required completion time by a
@@ -40,7 +58,7 @@ export class RedeemRedeemPeriodStorage {
    *  punish a vault for inactivity or stealing BTC.
    */
   get isV1() {
-    return this.ctx._chain.getStorageItemTypeHash('Redeem', 'RedeemPeriod') === '81bbbe8e62451cbcc227306706c919527aa2538970bd6d67a9969dd52c257d02'
+    return this._chain.getStorageItemTypeHash('Redeem', 'RedeemPeriod') === '81bbbe8e62451cbcc227306706c919527aa2538970bd6d67a9969dd52c257d02'
   }
 
   /**
@@ -50,13 +68,13 @@ export class RedeemRedeemPeriodStorage {
    */
   async getAsV1(): Promise<number> {
     assert(this.isV1)
-    return this.ctx._chain.getStorage(this.ctx.block.hash, 'Redeem', 'RedeemPeriod')
+    return this._chain.getStorage(this.blockHash, 'Redeem', 'RedeemPeriod')
   }
 
   /**
    * Checks whether the storage item is defined for the current chain version.
    */
   get isExists(): boolean {
-    return this.ctx._chain.getStorageItemTypeHash('Redeem', 'RedeemPeriod') != null
+    return this._chain.getStorageItemTypeHash('Redeem', 'RedeemPeriod') != null
   }
 }

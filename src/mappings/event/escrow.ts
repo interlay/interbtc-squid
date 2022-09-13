@@ -1,16 +1,16 @@
-import Debug from "debug";
 import { EventHandlerContext } from "@subsquid/substrate-processor";
 import { VolumeType } from "../../model";
 import { EscrowDepositEvent, EscrowWithdrawEvent } from "../../types/events";
-import { updateCumulativeVolumes } from "../_utils";
+import { eventArgs, updateCumulativeVolumes } from "../_utils";
+import { Store } from "@subsquid/typeorm-store";
 
-const debug = Debug("interbtc-mappings:escrow");
-
-export async function deposit(ctx: EventHandlerContext): Promise<void> {
+export async function deposit(
+    ctx: EventHandlerContext<Store, eventArgs>
+): Promise<void> {
     const rawEvent = new EscrowDepositEvent(ctx);
     let e;
-    if (rawEvent.isV6) e = rawEvent.asV6;
-    else e = rawEvent.asLatest;
+    if (!rawEvent.isV6) ctx.log.warn(`UNKOWN EVENT VERSION: Escrow.deposit`);
+    e = rawEvent.asV6;
 
     const timestamp = new Date(ctx.block.timestamp);
 
@@ -24,13 +24,13 @@ export async function deposit(ctx: EventHandlerContext): Promise<void> {
     }
 }
 
-export async function withdraw(ctx: EventHandlerContext): Promise<void> {
+export async function withdraw(
+    ctx: EventHandlerContext<Store, eventArgs>
+): Promise<void> {
     const rawEvent = new EscrowWithdrawEvent(ctx);
     let e;
-    if (rawEvent.isV6) e = rawEvent.asV6;
-    else e = rawEvent.asLatest;
-
-    debug(`Handling escrow withdraw event!`);
+    if (rawEvent.isV6) ctx.log.warn(`UNKOWN EVENT VERSION: Escrow.withdraw`);
+    e = rawEvent.asV6;
 
     const timestamp = new Date(ctx.block.timestamp);
 

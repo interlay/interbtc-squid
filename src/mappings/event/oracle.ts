@@ -1,12 +1,15 @@
 import { EventHandlerContext } from "@subsquid/substrate-processor";
+import { Store } from "@subsquid/typeorm-store";
 import { OracleUpdate, OracleUpdateType } from "../../model";
 import { OracleFeedValuesEvent } from "../../types/events";
 import { CurrencyId as CurrencyId_V15 } from "../../types/v15";
 import { CurrencyId as CurrencyId_V17 } from "../../types/v17";
 import { address, currencyId, legacyCurrencyId } from "../encoding";
-import { blockToHeight } from "../_utils";
+import { blockToHeight, eventArgs } from "../_utils";
 
-export async function feedValues(ctx: EventHandlerContext): Promise<void> {
+export async function feedValues(
+    ctx: EventHandlerContext<Store, eventArgs>
+): Promise<void> {
     const rawEvent = new OracleFeedValuesEvent(ctx);
     let e;
     let useLegacyCurrency = false;
@@ -15,8 +18,11 @@ export async function feedValues(ctx: EventHandlerContext): Promise<void> {
     }
     if (rawEvent.isV6) e = rawEvent.asV6;
     else if (rawEvent.isV15) e = rawEvent.asV15;
-    else if (rawEvent.isV17) e = rawEvent.asV17;
-    else e = rawEvent.asLatest;
+    else {
+        if (!rawEvent.isV17)
+            ctx.log.warn(`UNKOWN EVENT VERSION: Oracle.feedValues`);
+        e = rawEvent.asV17;
+    }
     for (const [key, value] of e.values) {
         const height = await blockToHeight(
             ctx.store,
@@ -34,8 +40,7 @@ export async function feedValues(ctx: EventHandlerContext): Promise<void> {
         let keyToString = key.__kind.toString();
         if (key.__kind === "ExchangeRate") {
             const exchangeCurrency = useLegacyCurrency
-                ? legacyCurrencyId
-                    .encode(key.value as CurrencyId_V15)
+                ? legacyCurrencyId.encode(key.value as CurrencyId_V15)
                 : currencyId.encode(key.value as CurrencyId_V17);
             update.typeKey = exchangeCurrency;
             keyToString += JSON.stringify(exchangeCurrency);

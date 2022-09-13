@@ -9,7 +9,7 @@ export class NativeToken {
   constructor(props?: Partial<Omit<NativeToken, 'toJSON'>>, json?: any) {
     Object.assign(this, props)
     if (json != null) {
-      this._token = marshal.string.fromJSON(json.token) as Token
+      this._token = marshal.enumFromJson(json.token, Token)
     }
   }
 

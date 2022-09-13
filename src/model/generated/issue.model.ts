@@ -34,11 +34,11 @@ export class Issue {
   vaultBackingAddress!: string
 
   @Index_()
-  @ManyToOne_(() => Vault, {nullable: false})
+  @ManyToOne_(() => Vault, {nullable: true})
   vault!: Vault
 
   @Index_()
-  @ManyToOne_(() => IssuePeriod, {nullable: false})
+  @ManyToOne_(() => IssuePeriod, {nullable: true})
   period!: IssuePeriod
 
   @OneToOne_(() => IssuePayment)

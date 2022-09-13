@@ -36,11 +36,11 @@ export class Redeem {
   userBackingAddress!: string
 
   @Index_()
-  @ManyToOne_(() => Vault, {nullable: false})
+  @ManyToOne_(() => Vault, {nullable: true})
   vault!: Vault
 
   @Index_()
-  @ManyToOne_(() => RedeemPeriod, {nullable: false})
+  @ManyToOne_(() => RedeemPeriod, {nullable: true})
   period!: RedeemPeriod
 
   @OneToOne_(() => RedeemPayment)

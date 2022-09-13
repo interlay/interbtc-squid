@@ -23,7 +23,7 @@ export class Vault {
   wrappedToken!: Currency
 
   @Index_()
-  @ManyToOne_(() => Height, {nullable: false})
+  @ManyToOne_(() => Height, {nullable: true})
   registrationBlock!: Height
 
   @Column_("timestamp with time zone", {nullable: false})

@@ -14,7 +14,7 @@ export class RelayedBlock {
   id!: string
 
   @Index_()
-  @ManyToOne_(() => Height, {nullable: false})
+  @ManyToOne_(() => Height, {nullable: true})
   relayedAtHeight!: Height
 
   @Column_("timestamp with time zone", {nullable: false})

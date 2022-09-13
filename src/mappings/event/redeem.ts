@@ -1,4 +1,5 @@
 import { EventHandlerContext, toHex } from "@subsquid/substrate-processor";
+import { Store } from "@subsquid/typeorm-store";
 import Debug from "debug";
 import { LessThanOrEqual } from "typeorm";
 import {
@@ -26,6 +27,7 @@ import {
 } from "../encoding";
 import {
     blockToHeight,
+    eventArgs,
     getCurrentRedeemPeriod,
     getVaultId,
     getVaultIdLegacy,
@@ -34,7 +36,9 @@ import {
 
 const debug = Debug("interbtc-mappings:redeem");
 
-export async function requestRedeem(ctx: EventHandlerContext): Promise<void> {
+export async function requestRedeem(
+    ctx: EventHandlerContext<Store, eventArgs>
+): Promise<void> {
     const rawEvent = new RedeemRequestRedeemEvent(ctx);
     let e;
     let vault;
@@ -46,15 +50,12 @@ export async function requestRedeem(ctx: EventHandlerContext): Promise<void> {
         vault = await getVaultIdLegacy(ctx.store, e.vaultId);
         vaultIdString = encodeLegacyVaultId(e.vaultId);
     } else {
-        if (rawEvent.isV17) e = rawEvent.asV17;
-        else e = rawEvent.asLatest;
+        if (!rawEvent.isV17)
+            ctx.log.warn(`UNKOWN EVENT VERSION: Redeem.requestRedeem`);
+        e = rawEvent.asV17;
         vault = await getVaultId(ctx.store, e.vaultId);
         vaultIdString = encodeVaultId(e.vaultId);
     }
-    if (rawEvent.isV6) e = rawEvent.asV6;
-    else if (rawEvent.isV15) e = rawEvent.asV15;
-    else if (rawEvent.isV17) e = rawEvent.asV17;
-    else e = rawEvent.asLatest;
 
     if (vault === undefined) {
         debug(
@@ -67,7 +68,7 @@ export async function requestRedeem(ctx: EventHandlerContext): Promise<void> {
         return;
     }
 
-    const period = await getCurrentRedeemPeriod(ctx.store);
+    const period = await getCurrentRedeemPeriod(ctx.store, ctx.block.height);
 
     const redeem = new Redeem({
         id: toHex(e.redeemId),
@@ -88,7 +89,7 @@ export async function requestRedeem(ctx: EventHandlerContext): Promise<void> {
 
     const backingBlock = await ctx.store.get(RelayedBlock, {
         order: { backingHeight: "DESC" },
-        relations: ["relayedAtHeight"],
+        relations: { relayedAtHeight: true },
         where: {
             relayedAtHeight: {
                 absolute: LessThanOrEqual(height.absolute),
@@ -112,7 +113,9 @@ export async function requestRedeem(ctx: EventHandlerContext): Promise<void> {
     await ctx.store.save(redeem);
 }
 
-export async function executeRedeem(ctx: EventHandlerContext): Promise<void> {
+export async function executeRedeem(
+    ctx: EventHandlerContext<Store, eventArgs>
+): Promise<void> {
     const rawEvent = new RedeemExecuteRedeemEvent(ctx);
     let e;
     let collateralCurrency;
@@ -125,8 +128,9 @@ export async function executeRedeem(ctx: EventHandlerContext): Promise<void> {
         );
         wrappedCurrency = legacyCurrencyId.encode(e.vaultId.currencies.wrapped);
     } else {
-        if (rawEvent.isV17) e = rawEvent.asV17;
-        else e = rawEvent.asLatest;
+        if (!rawEvent.isV17)
+            ctx.log.warn(`UNKOWN EVENT VERSION: Redeem.executeRedeem`);
+        e = rawEvent.asV17;
         collateralCurrency = currencyId.encode(e.vaultId.currencies.collateral);
         wrappedCurrency = currencyId.encode(e.vaultId.currencies.wrapped);
     }
@@ -165,13 +169,18 @@ export async function executeRedeem(ctx: EventHandlerContext): Promise<void> {
     );
 }
 
-export async function cancelRedeem(ctx: EventHandlerContext): Promise<void> {
+export async function cancelRedeem(
+    ctx: EventHandlerContext<Store, eventArgs>
+): Promise<void> {
     const rawEvent = new RedeemCancelRedeemEvent(ctx);
     let e;
     if (rawEvent.isV6) e = rawEvent.asV6;
     else if (rawEvent.isV15) e = rawEvent.asV15;
     else if (rawEvent.isV17) e = rawEvent.asV17;
-    else e = rawEvent.asLatest;
+    else {
+        ctx.log.warn(`UNKOWN EVENT VERSION: Redeem.cancelRedeem`);
+        e = rawEvent.asV17;
+    }
 
     const redeem = await ctx.store.get(Redeem, {
         where: { id: toHex(e.redeemId) },
@@ -204,12 +213,13 @@ export async function cancelRedeem(ctx: EventHandlerContext): Promise<void> {
 }
 
 export async function redeemPeriodChange(
-    ctx: EventHandlerContext
+    ctx: EventHandlerContext<Store, eventArgs>
 ): Promise<void> {
     const rawEvent = new RedeemRedeemPeriodChangeEvent(ctx);
     let e;
-    if (rawEvent.isV16) e = rawEvent.asV16;
-    else e = rawEvent.asLatest;
+    if (!rawEvent.isV16)
+        ctx.log.warn(`UNKOWN EVENT VERSION: redeem.redeemPeriodChange`);
+    e = rawEvent.asV16;
 
     const height = await blockToHeight(
         ctx.store,

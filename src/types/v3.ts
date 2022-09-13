@@ -4,12 +4,8 @@ export interface H256Le {
   content: Uint8Array
 }
 
-export type AccountId32 = Uint8Array
-
-export type H256 = Uint8Array
-
 export interface VaultId {
-  accountId: AccountId32
+  accountId: Uint8Array
   currencies: VaultCurrencyPair
 }
 
@@ -17,25 +13,23 @@ export type Address = Address_P2PKH | Address_P2SH | Address_P2WPKHv0 | Address_
 
 export interface Address_P2PKH {
   __kind: 'P2PKH'
-  value: H160
+  value: Uint8Array
 }
 
 export interface Address_P2SH {
   __kind: 'P2SH'
-  value: H160
+  value: Uint8Array
 }
 
 export interface Address_P2WPKHv0 {
   __kind: 'P2WPKHv0'
-  value: H160
+  value: Uint8Array
 }
 
 export interface Address_P2WSHv0 {
   __kind: 'P2WSHv0'
-  value: H256
+  value: Uint8Array
 }
-
-export type PublicKey = Uint8Array
 
 export type Key = Key_ExchangeRate | Key_FeeEstimation
 
@@ -47,8 +41,6 @@ export interface Key_ExchangeRate {
 export interface Key_FeeEstimation {
   __kind: 'FeeEstimation'
 }
-
-export type FixedU128 = bigint
 
 export type RedeemRequestStatus = RedeemRequestStatus_Pending | RedeemRequestStatus_Completed | RedeemRequestStatus_Reimbursed | RedeemRequestStatus_Retried
 
@@ -73,8 +65,6 @@ export interface VaultCurrencyPair {
   collateral: CurrencyId
   wrapped: CurrencyId
 }
-
-export type H160 = Uint8Array
 
 export type CurrencyId = CurrencyId_DOT | CurrencyId_INTERBTC | CurrencyId_INTR | CurrencyId_KSM | CurrencyId_KBTC | CurrencyId_KINT
 

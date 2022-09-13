@@ -33,7 +33,7 @@ export class Refund {
   btcFee!: bigint
 
   @Index_()
-  @ManyToOne_(() => Height, {nullable: false})
+  @ManyToOne_(() => Height, {nullable: true})
   requestHeight!: Height
 
   @Column_("timestamp with time zone", {nullable: false})
