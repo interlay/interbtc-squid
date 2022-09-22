@@ -1,34 +1,34 @@
 import { reverseEndiannessHex } from "@interlay/interbtc-api";
-import { EventHandlerContext, toHex } from "@subsquid/substrate-processor";
-import { Store } from "@subsquid/typeorm-store";
+import { SubstrateBlock, toHex } from "@subsquid/substrate-processor";
 import { RelayedBlock } from "../../model";
+import { Ctx, EventItem } from "../../processor";
 import { BtcRelayStoreMainChainHeaderEvent } from "../../types/events";
 import { address } from "../encoding";
-import { blockToHeight, eventArgs } from "../_utils";
+import { blockToHeight } from "../utils/heights";
 
 export async function storeMainChainHeader(
-    ctx: EventHandlerContext<Store, eventArgs>
-): Promise<void> {
-    const rawEvent = new BtcRelayStoreMainChainHeaderEvent(ctx);
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem
+): Promise<RelayedBlock> {
+    const rawEvent = new BtcRelayStoreMainChainHeaderEvent(ctx, item.event);
     let e;
     if (!rawEvent.isV4)
         ctx.log.warn(`UNKOWN EVENT VERSION: BTCRelay.storeMainChainHeader`);
     e = rawEvent.asV4;
 
     const relayedAtHeight = await blockToHeight(
-        ctx.store,
-        ctx.block.height,
+        ctx,
+        block.height,
         "StoreMainChainHeader"
     );
 
-    const relayedBlock = new RelayedBlock({
+    return new RelayedBlock({
         id: e.blockHeight.toString(),
         relayedAtHeight,
-        timestamp: new Date(ctx.block.timestamp),
+        timestamp: new Date(block.timestamp),
         blockHash: reverseEndiannessHex(toHex(e.blockHash.content)),
         backingHeight: e.blockHeight,
         relayer: address.interlay.encode(e.relayerId),
     });
-
-    await ctx.store.save(relayedBlock);
 }

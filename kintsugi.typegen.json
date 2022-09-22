@@ -15,15 +15,15 @@
         "Redeem.ExecuteRedeem",
         "Redeem.RequestRedeem",
         "Redeem.RedeemPeriodChange",
-        "Refund.ExecuteRefund",
-        "Refund.RequestRefund",
         "Security.UpdateActiveBlock",
         "Tokens.Transfer",
         "VaultRegistry.RegisterVault",
         "VaultRegistry.IncreaseLockedCollateral",
         "VaultRegistry.DecreaseLockedCollateral"
     ],
-    "calls": [],
+    "calls": [
+        "BTCRelay.store_block_header"
+    ],
     "storage": [
         "Issue.IssuePeriod",
         "Redeem.RedeemPeriod"

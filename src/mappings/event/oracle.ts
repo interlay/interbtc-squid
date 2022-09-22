@@ -1,16 +1,18 @@
-import { EventHandlerContext } from "@subsquid/substrate-processor";
-import { Store } from "@subsquid/typeorm-store";
+import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { OracleUpdate, OracleUpdateType } from "../../model";
+import { Ctx, EventItem } from "../../processor";
 import { OracleFeedValuesEvent } from "../../types/events";
 import { CurrencyId as CurrencyId_V15 } from "../../types/v15";
 import { CurrencyId as CurrencyId_V17 } from "../../types/v17";
 import { address, currencyId, legacyCurrencyId } from "../encoding";
-import { blockToHeight, eventArgs } from "../_utils";
+import { blockToHeight } from "../utils/heights";
 
 export async function feedValues(
-    ctx: EventHandlerContext<Store, eventArgs>
-): Promise<void> {
-    const rawEvent = new OracleFeedValuesEvent(ctx);
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem
+): Promise<OracleUpdate[]> {
+    const rawEvent = new OracleFeedValuesEvent(ctx, item.event);
     let e;
     let useLegacyCurrency = false;
     if (rawEvent.isV6 || rawEvent.isV15) {
@@ -23,16 +25,13 @@ export async function feedValues(
             ctx.log.warn(`UNKOWN EVENT VERSION: Oracle.feedValues`);
         e = rawEvent.asV17;
     }
+    const ret = [];
     for (const [key, value] of e.values) {
-        const height = await blockToHeight(
-            ctx.store,
-            ctx.block.height,
-            "FeedValues"
-        );
+        const height = await blockToHeight(ctx, block.height, "FeedValues");
         const oracleAddress = address.interlay.encode(e.oracleId);
         const update = new OracleUpdate({
             height,
-            timestamp: new Date(ctx.block.timestamp),
+            timestamp: new Date(block.timestamp),
             oracleId: oracleAddress,
             type: OracleUpdateType[key.__kind],
             updateValue: value,
@@ -46,6 +45,7 @@ export async function feedValues(
             keyToString += JSON.stringify(exchangeCurrency);
         }
         update.id = `${oracleAddress}-${height.absolute.toString()}-${keyToString}`;
-        await ctx.store.save(update);
+        ret.push(update);
     }
+    return ret;
 }

@@ -1,28 +1,30 @@
-import { EventHandlerContext } from "@subsquid/substrate-processor";
-import { Store } from "@subsquid/typeorm-store";
+import { SubstrateBlock } from "@subsquid/substrate-processor";
 import {
     CumulativeVolumePerCurrencyPair,
     Vault,
     VolumeType,
 } from "../../model";
+import { Ctx, EventItem } from "../../processor";
 import {
     VaultRegistryDecreaseLockedCollateralEvent,
     VaultRegistryIncreaseLockedCollateralEvent,
     VaultRegistryRegisterVaultEvent,
 } from "../../types/events";
 import {
-    currencyId,
     address,
-    encodeVaultId,
+    currencyId,
     encodeLegacyVaultId,
+    encodeVaultId,
     legacyCurrencyId,
 } from "../encoding";
-import { blockToHeight, eventArgs } from "../_utils";
+import { blockToHeight } from "../utils/heights";
 
 export async function registerVault(
-    ctx: EventHandlerContext<Store, eventArgs>
-): Promise<void> {
-    const rawEvent = new VaultRegistryRegisterVaultEvent(ctx);
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem
+): Promise<Vault> {
+    const rawEvent = new VaultRegistryRegisterVaultEvent(ctx, item.event);
     let e;
     let vaultId;
     let wrappedToken;
@@ -45,26 +47,29 @@ export async function registerVault(
     }
 
     const registrationBlock = await blockToHeight(
-        ctx.store,
-        ctx.block.height,
+        ctx,
+        block.height,
         "RegisterVault"
     );
-    const vault = new Vault({
+    return new Vault({
         id: vaultId,
         accountId: address.interlay.encode(e.vaultId.accountId),
         wrappedToken,
         collateralToken,
         registrationBlock: registrationBlock,
-        registrationTimestamp: new Date(ctx.block.timestamp),
+        registrationTimestamp: new Date(block.timestamp),
     });
-
-    await ctx.store.save(vault);
 }
 
 export async function increaseLockedCollateral(
-    ctx: EventHandlerContext<Store, eventArgs>
-): Promise<void> {
-    const rawEvent = new VaultRegistryIncreaseLockedCollateralEvent(ctx);
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem
+): Promise<CumulativeVolumePerCurrencyPair> {
+    const rawEvent = new VaultRegistryIncreaseLockedCollateralEvent(
+        ctx,
+        item.event
+    );
     let e;
     let wrappedToken;
     let collateralToken;
@@ -83,22 +88,25 @@ export async function increaseLockedCollateral(
         collateralToken = currencyId.encode(e.currencyPair.collateral);
     }
 
-    const newVolume = new CumulativeVolumePerCurrencyPair({
-        id: `Collateral-${ctx.event.id}`,
+    return new CumulativeVolumePerCurrencyPair({
+        id: `Collateral-${item.event.id}`,
         type: VolumeType.Collateral,
         amount: e.total,
-        tillTimestamp: new Date(ctx.block.timestamp),
+        tillTimestamp: new Date(block.timestamp),
         collateralCurrency: collateralToken,
         wrappedCurrency: wrappedToken,
     });
-
-    await ctx.store.save(newVolume);
 }
 
 export async function decreaseLockedCollateral(
-    ctx: EventHandlerContext<Store, eventArgs>
-): Promise<void> {
-    const rawEvent = new VaultRegistryDecreaseLockedCollateralEvent(ctx);
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem
+): Promise<CumulativeVolumePerCurrencyPair> {
+    const rawEvent = new VaultRegistryDecreaseLockedCollateralEvent(
+        ctx,
+        item.event
+    );
     let e;
     let wrappedToken;
     let collateralToken;
@@ -117,14 +125,12 @@ export async function decreaseLockedCollateral(
         collateralToken = currencyId.encode(e.currencyPair.collateral);
     }
 
-    const newVolume = new CumulativeVolumePerCurrencyPair({
-        id: `Collateral-${ctx.event.id}`,
+    return new CumulativeVolumePerCurrencyPair({
+        id: `Collateral-${item.event.id}`,
         type: VolumeType.Collateral,
         amount: e.total,
-        tillTimestamp: new Date(ctx.block.timestamp),
+        tillTimestamp: new Date(block.timestamp),
         collateralCurrency: collateralToken,
         wrappedCurrency: wrappedToken,
     });
-
-    await ctx.store.save(newVolume);
 }

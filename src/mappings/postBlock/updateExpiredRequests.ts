@@ -1,5 +1,3 @@
-import { BlockHandlerContext } from "@subsquid/substrate-processor";
-import { Store } from "@subsquid/typeorm-store";
 import { LessThanOrEqual } from "typeorm";
 import {
     Issue,
@@ -10,30 +8,28 @@ import {
     RedeemStatus,
     RelayedBlock,
 } from "../../model";
+import { Ctx } from "../../processor";
+import { blockToHeight } from "../utils/heights";
 import {
-    blockToHeight,
     getCurrentIssuePeriod,
     getCurrentRedeemPeriod,
-    isRequestExpired,
-} from "../_utils";
+} from "../utils/requestPeriods";
+import { isRequestExpired } from "../_utils";
 
 const MIN_DELAY = 5000; // ms
 let lastTimestamp = 0;
 
-export async function findAndUpdateExpiredRequests(
-    ctx: BlockHandlerContext<Store>
-): Promise<void> {
+export async function findAndUpdateExpiredRequests(ctx: Ctx): Promise<void> {
     const now = Date.now();
     if (now < lastTimestamp + MIN_DELAY) {
         return; // only run it at most once ever MIN_DELAY ms
     }
     lastTimestamp = now;
-    const store = ctx.store;
-    const block = ctx.block;
+    const block = ctx.blocks[ctx.blocks.length - 1];
 
     const latestBtcBlock = (
-        await store.get(RelayedBlock, {
-            where: { relayedAtHeight: LessThanOrEqual(ctx.block.height) },
+        await ctx.store.get(RelayedBlock, {
+            where: { relayedAtHeight: LessThanOrEqual(block.header.height) },
             order: { backingHeight: "DESC" },
         })
     )?.backingHeight;
@@ -41,31 +37,32 @@ export async function findAndUpdateExpiredRequests(
 
     let latestActiveBlock: number;
     try {
-        latestActiveBlock = (await blockToHeight(store, block.height)).active;
+        latestActiveBlock = (await blockToHeight(ctx, block.header.height))
+            .active;
     } catch (e) {
         return; // likely first few blocks, before any active blocks were generated yet
     }
 
-    const pendingIssues = await store.find(Issue, {
+    const pendingIssues = await ctx.store.find(Issue, {
         where: { status: IssueStatus.Pending },
         relations: { period: true },
     });
-    const pendingRedeems = await store.find(Redeem, {
+    const pendingRedeems = await ctx.store.find(Redeem, {
         where: { status: RedeemStatus.Pending },
         relations: { period: true },
     });
 
-    const currentIssuePeriod = await getCurrentIssuePeriod(ctx.store, ctx.block.height);
-    const currentRedeemPeriod = await getCurrentRedeemPeriod(ctx.store, ctx.block.height);
+    const currentIssuePeriod = await getCurrentIssuePeriod(ctx, block.header);
+    const currentRedeemPeriod = await getCurrentRedeemPeriod(ctx, block.header);
     if (currentIssuePeriod === undefined) {
         ctx.log.warn(
-            `WARNING: Issue period is not set at block ${ctx.block.height}.`
+            `WARNING: Issue period is not set at block ${block.header.height}.`
         );
         return;
     }
     if (currentRedeemPeriod === undefined) {
         ctx.log.warn(
-            `WARNING: Redeem period is not set at block ${ctx.block.height}.`
+            `WARNING: Redeem period is not set at block ${block.header.height}.`
         );
         return;
     }
@@ -74,9 +71,10 @@ export async function findAndUpdateExpiredRequests(
         request: Issue | Redeem,
         latestPeriod: IssuePeriod | RedeemPeriod
     ) => {
+        const updated = [];
         const period = Math.max(latestPeriod.value, request.period.value);
         const isExpired = await isRequestExpired(
-            store,
+            ctx.store,
             request,
             latestBtcBlock,
             latestActiveBlock,
@@ -84,14 +82,23 @@ export async function findAndUpdateExpiredRequests(
         );
         if (isExpired) {
             request.status = "Expired" as IssueStatus | RedeemStatus;
-            await store.save(request);
+            updated.push(request);
         }
+        return updated;
     };
 
     for (const issueRequest of pendingIssues) {
-        await checkRequestExpiration(issueRequest, currentIssuePeriod);
+        const updated = await checkRequestExpiration(
+            issueRequest,
+            currentIssuePeriod
+        );
+        await ctx.store.save(updated);
     }
     for (const redeemRequest of pendingRedeems) {
-        await checkRequestExpiration(redeemRequest, currentRedeemPeriod);
+        const updated = await checkRequestExpiration(
+            redeemRequest,
+            currentRedeemPeriod
+        );
+        await ctx.store.save(updated);
     }
 }
