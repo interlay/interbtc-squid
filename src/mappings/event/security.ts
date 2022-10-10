@@ -2,13 +2,15 @@ import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { Height } from "../../model";
 import { Ctx, EventItem } from "../../processor";
 import { SecurityUpdateActiveBlockEvent } from "../../types/events";
+import EntityBuffer from "../utils/entityBuffer";
 import { setCache } from "../utils/heights";
 
 export async function updateActiveBlock(
     ctx: Ctx,
     block: SubstrateBlock,
-    item: EventItem
-): Promise<Height> {
+    item: EventItem,
+    entitybuffer: EntityBuffer
+): Promise<void> {
     const rawEvent = new SecurityUpdateActiveBlockEvent(ctx, item.event);
     let e;
     if (!rawEvent.isV4)
@@ -23,5 +25,5 @@ export async function updateActiveBlock(
 
     setCache(block.height, newHeight);
 
-    return newHeight;
+    await entitybuffer.pushEntity(Height.name, newHeight);
 }

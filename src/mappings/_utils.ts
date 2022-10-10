@@ -1,4 +1,4 @@
-import { Store } from "@subsquid/typeorm-store";
+import { Entity, Store } from "@subsquid/typeorm-store";
 import {
     Height,
     Issue, Redeem, Vault

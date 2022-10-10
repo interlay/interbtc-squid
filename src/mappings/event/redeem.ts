@@ -30,6 +30,7 @@ import {
     updateCumulativeVolumes,
     updateCumulativeVolumesForCurrencyPair,
 } from "../utils/cumulativeVolumes";
+import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
 import { getCurrentRedeemPeriod } from "../utils/requestPeriods";
 import { getVaultId, getVaultIdLegacy } from "../_utils";
@@ -37,8 +38,9 @@ import { getVaultId, getVaultIdLegacy } from "../_utils";
 export async function requestRedeem(
     ctx: Ctx,
     block: SubstrateBlock,
-    item: EventItem
-): Promise<Redeem[]> {
+    item: EventItem,
+    entityBuffer: EntityBuffer
+): Promise<void> {
     const rawEvent = new RedeemRequestRedeemEvent(ctx, item.event);
     let e;
     let vault;
@@ -65,7 +67,7 @@ export async function requestRedeem(
                 block.height
             }`
         );
-        return [];
+        return;
     }
 
     const period = await getCurrentRedeemPeriod(ctx, block);
@@ -106,10 +108,15 @@ export async function requestRedeem(
         backingHeight: backingBlock?.backingHeight || 0,
     });
 
-    return [redeem];
+    await entityBuffer.pushEntity(Redeem.name, redeem);
 }
 
-async function _decodeExecuteRedeem(ctx: Ctx, item: EventItem) {
+export async function executeRedeem(
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem,
+    entityBuffer: EntityBuffer
+): Promise<void> {
     const rawEvent = new RedeemExecuteRedeemEvent(ctx, item.event);
     let e;
     let collateralCurrency;
@@ -136,18 +143,8 @@ async function _decodeExecuteRedeem(ctx: Ctx, item: EventItem) {
         ctx.log.warn(
             "WARNING: ExecuteRedeem event did not match any existing redeem requests! Skipping."
         );
-        return {};
+        return;
     }
-    return { redeem, collateralCurrency, wrappedCurrency };
-}
-
-export async function executeRedeem(
-    ctx: Ctx,
-    block: SubstrateBlock,
-    item: EventItem
-): Promise<Redeem[]> {
-    const { redeem } = await _decodeExecuteRedeem(ctx, item);
-    if (!redeem) return [];
     const height = await blockToHeight(ctx, block.height, "ExecuteRedeem");
     const execution = new RedeemExecution({
         id: redeem.id,
@@ -157,37 +154,21 @@ export async function executeRedeem(
     });
     redeem.status = RedeemStatus.Completed;
     redeem.execution = execution;
-    return [redeem];
-}
 
-export async function updateGlobalRedeemedAmounts(
-    ctx: Ctx,
-    block: SubstrateBlock,
-    item: EventItem
-): Promise<CumulativeVolume[]> {
-    const { redeem, wrappedCurrency, collateralCurrency } =
-        await _decodeExecuteRedeem(ctx, item);
-    if (!redeem || !wrappedCurrency || !collateralCurrency) return [];
-    return [
+    await entityBuffer.pushEntity(RedeemExecution.name, execution);
+    await entityBuffer.pushEntity(Redeem.name, redeem);
+    await entityBuffer.pushEntity(
+        CumulativeVolume.name,
         await updateCumulativeVolumes(
             ctx.store,
             VolumeType.Redeemed,
             redeem.request.requestedAmountBacking,
             new Date(block.timestamp),
             item
-        ),
-    ];
-}
-
-export async function updatePerCurrencyRedeemedAmounts(
-    ctx: Ctx,
-    block: SubstrateBlock,
-    item: EventItem
-): Promise<CumulativeVolumePerCurrencyPair[]> {
-    const { redeem, wrappedCurrency, collateralCurrency } =
-        await _decodeExecuteRedeem(ctx, item);
-    if (!redeem || !wrappedCurrency || !collateralCurrency) return [];
-    return [
+        )
+    );
+    await entityBuffer.pushEntity(
+        CumulativeVolumePerCurrencyPair.name,
         await updateCumulativeVolumesForCurrencyPair(
             ctx.store,
             VolumeType.Redeemed,
@@ -196,15 +177,16 @@ export async function updatePerCurrencyRedeemedAmounts(
             item,
             collateralCurrency,
             wrappedCurrency
-        ),
-    ];
+        )
+    );
 }
 
 export async function cancelRedeem(
     ctx: Ctx,
     block: SubstrateBlock,
-    item: EventItem
-): Promise<Redeem[]> {
+    item: EventItem,
+    entityBuffer: EntityBuffer
+): Promise<void> {
     const rawEvent = new RedeemCancelRedeemEvent(ctx, item.event);
     let e;
     if (rawEvent.isV6) e = rawEvent.asV6;
@@ -222,7 +204,7 @@ export async function cancelRedeem(
         ctx.log.warn(
             "WARNING: CancelRedeem event did not match any existing redeem requests! Skipping."
         );
-        return [];
+        return;
     }
     const height = await blockToHeight(ctx, block.height, "CancelIssue");
     const cancellation = new RedeemCancellation({
@@ -238,14 +220,16 @@ export async function cancelRedeem(
             ? RedeemStatus.Reimbursed
             : RedeemStatus.Retried;
     redeem.cancellation = cancellation;
-    return [redeem];
+    await entityBuffer.pushEntity(RedeemCancellation.name, cancellation);
+    await entityBuffer.pushEntity(Redeem.name, redeem);
 }
 
 export async function redeemPeriodChange(
     ctx: Ctx,
     block: SubstrateBlock,
-    item: EventItem
-): Promise<RedeemPeriod> {
+    item: EventItem,
+    entityBuffer: EntityBuffer
+): Promise<void> {
     const rawEvent = new RedeemRedeemPeriodChangeEvent(ctx, item.event);
     let e;
     if (!rawEvent.isV16)
@@ -254,10 +238,13 @@ export async function redeemPeriodChange(
 
     const height = await blockToHeight(ctx, block.height, "RedeemPeriodChange");
 
-    return new RedeemPeriod({
-        id: item.event.id,
-        height,
-        timestamp: new Date(block.timestamp),
-        value: e.period,
-    });
+    await entityBuffer.pushEntity(
+        RedeemPeriod.name,
+        new RedeemPeriod({
+            id: item.event.id,
+            height,
+            timestamp: new Date(block.timestamp),
+            value: e.period,
+        })
+    );
 }

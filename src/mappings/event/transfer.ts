@@ -3,13 +3,15 @@ import { Transfer } from "../../model";
 import { Ctx, EventItem } from "../../processor";
 import { TokensTransferEvent } from "../../types/events";
 import { address, currencyId, legacyCurrencyId } from "../encoding";
+import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
 
 export async function tokensTransfer(
     ctx: Ctx,
     block: SubstrateBlock,
-    item: EventItem
-): Promise<Transfer> {
+    item: EventItem,
+    entityBuffer: EntityBuffer
+): Promise<void> {
     const rawEvent = new TokensTransferEvent(ctx, item.event);
     let e;
     let currency;
@@ -27,14 +29,16 @@ export async function tokensTransfer(
 
     const height = await blockToHeight(ctx, block.height, "TokensTransfer");
 
-    const ret = new Transfer({
-        id: item.event.id,
-        height,
-        timestamp: new Date(block.timestamp),
-        from: address.interlay.encode(e.from),
-        to: address.interlay.encode(e.to),
-        token: currency,
-        amount: e.amount,
-    });
-    return ret;
+    await entityBuffer.pushEntity(
+        Transfer.name,
+        new Transfer({
+            id: item.event.id,
+            height,
+            timestamp: new Date(block.timestamp),
+            from: address.interlay.encode(e.from),
+            to: address.interlay.encode(e.to),
+            token: currency,
+            amount: e.amount,
+        })
+    );
 }

@@ -4,13 +4,15 @@ import { RelayedBlock } from "../../model";
 import { Ctx, EventItem } from "../../processor";
 import { BtcRelayStoreMainChainHeaderEvent } from "../../types/events";
 import { address } from "../encoding";
+import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
 
 export async function storeMainChainHeader(
     ctx: Ctx,
     block: SubstrateBlock,
-    item: EventItem
-): Promise<RelayedBlock> {
+    item: EventItem,
+    entityBuffer: EntityBuffer
+): Promise<void> {
     const rawEvent = new BtcRelayStoreMainChainHeaderEvent(ctx, item.event);
     let e;
     if (!rawEvent.isV4)
@@ -23,12 +25,15 @@ export async function storeMainChainHeader(
         "StoreMainChainHeader"
     );
 
-    return new RelayedBlock({
-        id: e.blockHeight.toString(),
-        relayedAtHeight,
-        timestamp: new Date(block.timestamp),
-        blockHash: reverseEndiannessHex(toHex(e.blockHash.content)),
-        backingHeight: e.blockHeight,
-        relayer: address.interlay.encode(e.relayerId),
-    });
+    await entityBuffer.pushEntity(
+        RelayedBlock.name,
+        new RelayedBlock({
+            id: e.blockHeight.toString(),
+            relayedAtHeight,
+            timestamp: new Date(block.timestamp),
+            blockHash: reverseEndiannessHex(toHex(e.blockHash.content)),
+            backingHeight: e.blockHeight,
+            relayer: address.interlay.encode(e.relayerId),
+        })
+    );
 }

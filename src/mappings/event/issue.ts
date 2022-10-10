@@ -30,6 +30,7 @@ import {
     updateCumulativeVolumes,
     updateCumulativeVolumesForCurrencyPair,
 } from "../utils/cumulativeVolumes";
+import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
 import { getCurrentIssuePeriod } from "../utils/requestPeriods";
 import { getVaultId, getVaultIdLegacy } from "../_utils";
@@ -37,8 +38,9 @@ import { getVaultId, getVaultIdLegacy } from "../_utils";
 export async function requestIssue(
     ctx: Ctx,
     block: SubstrateBlock,
-    item: EventItem
-): Promise<Issue[]> {
+    item: EventItem,
+    entityBuffer: EntityBuffer
+): Promise<void> {
     const rawEvent = new IssueRequestIssueEvent(ctx, item.event);
     let e;
     let vault;
@@ -65,7 +67,7 @@ export async function requestIssue(
                 block.height
             }`
         );
-        return [];
+        return;
     }
 
     const period = await getCurrentIssuePeriod(ctx, block);
@@ -107,10 +109,15 @@ export async function requestIssue(
         backingHeight: backingBlock?.backingHeight || 0,
     });
 
-    return [issue]; // use array return to provide simple handling of error states by returning []
+    await entityBuffer.pushEntity(Issue.name, issue);
 }
 
-async function _decodeExecuteIssue(ctx: Ctx, item: EventItem) {
+export async function executeIssue(
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem,
+    entityBuffer: EntityBuffer
+): Promise<void> {
     const rawEvent = new IssueExecuteIssueEvent(ctx, item.event);
     let e;
     let collateralCurrency;
@@ -138,67 +145,34 @@ async function _decodeExecuteIssue(ctx: Ctx, item: EventItem) {
         ctx.log.warn(
             "WARNING: ExecuteIssue event did not match any existing issue requests! Skipping."
         );
-        return {};
+        return;
     }
-    return {
-        issue,
-        collateralCurrency,
-        wrappedCurrency,
-        amountWrapped,
-        bridgeFeeWrapped: e.fee,
-    };
-}
-
-export async function executeIssue(
-    ctx: Ctx,
-    block: SubstrateBlock,
-    item: EventItem
-): Promise<Issue[]> {
-    const { issue, amountWrapped, bridgeFeeWrapped } =
-        await _decodeExecuteIssue(ctx, item);
-    if (!issue) return [];
     const height = await blockToHeight(ctx, block.height, "ExecuteIssue");
     const execution = new IssueExecution({
         id: issue.id,
         issue,
         amountWrapped,
-        bridgeFeeWrapped,
+        bridgeFeeWrapped: e.fee,
         height,
         timestamp: new Date(block.timestamp),
     });
     issue.status = IssueStatus.Completed;
     issue.execution = execution;
 
-    return [issue];
-}
-
-export async function updateGlobalIssuedAmounts(
-    ctx: Ctx,
-    block: SubstrateBlock,
-    item: EventItem
-): Promise<CumulativeVolume[]> {
-    const { amountWrapped } = await _decodeExecuteIssue(ctx, item);
-    if (!amountWrapped) return [];
-    return [
+    await entityBuffer.pushEntity(IssueExecution.name, execution);
+    await entityBuffer.pushEntity(Issue.name, issue);
+    await entityBuffer.pushEntity(
+        CumulativeVolume.name,
         await updateCumulativeVolumes(
             ctx.store,
             VolumeType.Issued,
             amountWrapped,
             new Date(block.timestamp),
             item
-        ),
-    ];
-}
-
-export async function updatePerCurrencyIssuedAmounts(
-    ctx: Ctx,
-    block: SubstrateBlock,
-    item: EventItem
-): Promise<CumulativeVolumePerCurrencyPair[]> {
-    const { amountWrapped, collateralCurrency, wrappedCurrency } =
-        await _decodeExecuteIssue(ctx, item);
-    if (!amountWrapped || !collateralCurrency || !wrappedCurrency) return [];
-    return [
+        )
+    );
+    await entityBuffer.pushEntity(
+        CumulativeVolumePerCurrencyPair.name,
         await updateCumulativeVolumesForCurrencyPair(
             ctx.store,
             VolumeType.Issued,
@@ -207,15 +181,16 @@ export async function updatePerCurrencyIssuedAmounts(
             item,
             collateralCurrency,
             wrappedCurrency
-        ),
-    ];
+        )
+    );
 }
 
 export async function cancelIssue(
     ctx: Ctx,
     block: SubstrateBlock,
-    item: EventItem
-): Promise<Issue[]> {
+    item: EventItem,
+    entityBuffer: EntityBuffer
+): Promise<void> {
     const rawEvent = new IssueCancelIssueEvent(ctx, item.event);
     let e;
     if (!rawEvent.isV4) ctx.log.warn(`UNKOWN EVENT VERSION: Issue.cancelIssue`);
@@ -228,7 +203,7 @@ export async function cancelIssue(
         ctx.log.warn(
             "WARNING: CancelIssue event did not match any existing issue requests! Skipping."
         );
-        return [];
+        return;
     }
     const height = await blockToHeight(ctx, block.height, "CancelIssue");
     const cancellation = new IssueCancellation({
@@ -239,14 +214,16 @@ export async function cancelIssue(
     });
     issue.status = IssueStatus.Cancelled;
     issue.cancellation = cancellation;
-    return [issue];
+    await entityBuffer.pushEntity(IssueCancellation.name, cancellation);
+    await entityBuffer.pushEntity(Issue.name, issue);
 }
 
 export async function issuePeriodChange(
     ctx: Ctx,
     block: SubstrateBlock,
-    item: EventItem
-): Promise<IssuePeriod> {
+    item: EventItem,
+    entityBuffer: EntityBuffer
+): Promise<void> {
     const rawEvent = new IssueIssuePeriodChangeEvent(ctx, item.event);
     let e;
     if (!rawEvent.isV16)
@@ -255,10 +232,13 @@ export async function issuePeriodChange(
 
     const height = await blockToHeight(ctx, block.height, "IssuePeriodChange");
 
-    return new IssuePeriod({
-        id: item.event.id,
-        height,
-        timestamp: new Date(block.timestamp),
-        value: e.period,
-    });
+    await entityBuffer.pushEntity(
+        IssuePeriod.name,
+        new IssuePeriod({
+            id: item.event.id,
+            height,
+            timestamp: new Date(block.timestamp),
+            value: e.period,
+        })
+    );
 }

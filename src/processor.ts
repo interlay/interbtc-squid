@@ -10,7 +10,7 @@ import {
     CallItem as _CallItem,
     EventItem as _EventItem,
 } from "@subsquid/substrate-processor/lib/interfaces/dataSelection";
-import { Entity, Store, TypeormDatabase } from "@subsquid/typeorm-store";
+import { Store, TypeormDatabase } from "@subsquid/typeorm-store";
 import assert from "assert";
 import {
     cancelIssue,
@@ -28,14 +28,11 @@ import {
     requestRedeem,
     storeMainChainHeader,
     updateActiveBlock,
-    updateGlobalIssuedAmounts,
-    updateGlobalRedeemedAmounts,
-    updatePerCurrencyIssuedAmounts,
-    updatePerCurrencyRedeemedAmounts,
 } from "./mappings";
 import { deposit, withdraw } from "./mappings/event/escrow";
 import { tokensTransfer } from "./mappings/event/transfer";
 import * as heights from "./mappings/utils/heights";
+import EntityBuffer from "./mappings/utils/entityBuffer";
 import { eventArgsData } from "./mappings/_utils";
 
 const archive = process.env.ARCHIVE_ENDPOINT;
@@ -55,6 +52,7 @@ const processor = new SubstrateBatchProcessor()
     .setDataSource({ archive, chain })
     .setTypesBundle("indexer/typesBundle.json")
     .setBlockRange({ from: processFrom })
+    .setBatchSize(1000)
     .addEvent("BTCRelay.StoreMainChainHeader", eventArgsData)
     .addEvent("Escrow.Deposit", eventArgsData)
     .addEvent("Escrow.Withdraw", eventArgsData)
@@ -98,16 +96,18 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
         mapping: (
             ctx: Ctx,
             block: SubstrateBlock,
-            item: EventItem
-        ) => Promise<Entity | Entity[]>;
-        entities: Entity[];
+            item: EventItem,
+            entityBuffer: EntityBuffer
+        ) => Promise<void>;
         totalTime: number;
     }>;
+
+    const entityBuffer = new EntityBuffer();
 
     // helper function to loop through the events only once,
     // apply each of a list of mappings and batch save the resulting data
     const processConcurrently = async (mappings: MappingsList) => {
-        const time1 = Date.now();
+        const processingStartTime = Date.now();
         for (const block of ctx.blocks) {
             for (const item of block.items) {
                 for (const mapping of mappings) {
@@ -115,29 +115,32 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
                         mapping.filter.name === item.name &&
                         item.name !== "*"
                     ) {
-                        const mtime1 = Date.now();
-                        const result = [
-                            await mapping.mapping(ctx, block.header, item),
-                        ].flat();
-                        mapping.entities = mapping.entities.concat(result);
-                        mapping.totalTime += Date.now() - mtime1;
+                        const execStartTime = Date.now();
+                        await mapping.mapping(
+                            ctx,
+                            block.header,
+                            item,
+                            entityBuffer
+                        );
+                        mapping.totalTime += Date.now() - execStartTime;
                     }
                 }
             }
         }
 
-        const time2 = Date.now();
         for (const mapping of mappings) {
-            await ctx.store.save(mapping.entities);
             ctx.log.trace(
-                `For mapping ${mapping.filter.name} is ${mapping.totalTime}ms with ${mapping.entities.length} entities in the batch`
+                `For mapping ${mapping.filter.name}, processing time of batch is ${mapping.totalTime}`
             );
             mapping.totalTime = 0;
         }
+
+        const dbStartTime = Date.now();
+        await entityBuffer.flush(ctx.store);
         ctx.log.debug(
-            `Processing time for batch: ${time2 - time1}ms; db time: ${
-                Date.now() - time2
-            }`
+            `Processing time for batch: ${
+                dbStartTime - processingStartTime
+            }ms; db time: ${Date.now() - dbStartTime}`
         );
     };
 
@@ -149,7 +152,6 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
         {
             filter: { name: "Security.UpdateActiveBlock" },
             mapping: updateActiveBlock,
-            entities: [],
             totalTime: 0,
         },
     ]);
@@ -167,61 +169,51 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
         {
             filter: { name: "Tokens.Transfer" },
             mapping: tokensTransfer,
-            entities: [],
             totalTime: 0,
         },
         {
             filter: { name: "Oracle.FeedValues" },
             mapping: feedValues,
-            entities: [],
             totalTime: 0,
         },
         {
             filter: { name: "VaultRegistry.RegisterVault" },
             mapping: registerVault,
-            entities: [],
             totalTime: 0,
         },
         {
             filter: { name: "VaultRegistry.IncreaseLockedCollateral" },
             mapping: increaseLockedCollateral,
-            entities: [],
             totalTime: 0,
         },
         {
             filter: { name: "VaultRegistry.DecreaseLockedCollateral" },
             mapping: decreaseLockedCollateral,
-            entities: [],
             totalTime: 0,
         },
         {
             filter: { name: "BTCRelay.StoreMainChainHeader" },
             mapping: storeMainChainHeader,
-            entities: [],
             totalTime: 0,
         },
         {
             filter: { name: "Issue.IssuePeriodChange" },
             mapping: issuePeriodChange,
-            entities: [],
             totalTime: 0,
         },
         {
             filter: { name: "Redeem.RedeemPeriodChange" },
             mapping: redeemPeriodChange,
-            entities: [],
             totalTime: 0,
         },
         {
             filter: { name: "Escrow.Deposit" },
             mapping: deposit,
-            entities: [],
             totalTime: 0,
         },
         {
             filter: { name: "Escrow.Withdraw" },
             mapping: withdraw,
-            entities: [],
             totalTime: 0,
         },
     ]);
@@ -234,13 +226,11 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
         {
             filter: { name: "Issue.RequestIssue" },
             mapping: requestIssue,
-            entities: [],
             totalTime: 0,
         },
         {
-            filter: { name: "Redeem.RequestIssue" },
+            filter: { name: "Redeem.RequestRedeem" },
             mapping: requestRedeem,
-            entities: [],
             totalTime: 0,
         },
     ]);
@@ -255,49 +245,21 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
         {
             filter: { name: "Issue.CancelIssue" },
             mapping: cancelIssue,
-            entities: [],
             totalTime: 0,
         },
         {
             filter: { name: "Issue.ExecuteIssue" },
             mapping: executeIssue,
-            entities: [],
-            totalTime: 0,
-        },
-        {
-            filter: { name: "Issue.ExecuteIssue" },
-            mapping: updateGlobalIssuedAmounts,
-            entities: [],
-            totalTime: 0,
-        },
-        {
-            filter: { name: "Issue.ExecuteIssue" },
-            mapping: updatePerCurrencyIssuedAmounts,
-            entities: [],
             totalTime: 0,
         },
         {
             filter: { name: "Redeem.CancelRedeem" },
             mapping: cancelRedeem,
-            entities: [],
             totalTime: 0,
         },
         {
             filter: { name: "Redeem.ExecuteRedeem" },
             mapping: executeRedeem,
-            entities: [],
-            totalTime: 0,
-        },
-        {
-            filter: { name: "Redeem.ExecuteRedeem" },
-            mapping: updateGlobalRedeemedAmounts,
-            entities: [],
-            totalTime: 0,
-        },
-        {
-            filter: { name: "Redeem.ExecuteRedeem" },
-            mapping: updatePerCurrencyRedeemedAmounts,
-            entities: [],
             totalTime: 0,
         },
     ]);

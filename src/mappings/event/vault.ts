@@ -17,13 +17,15 @@ import {
     encodeVaultId,
     legacyCurrencyId,
 } from "../encoding";
+import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
 
 export async function registerVault(
     ctx: Ctx,
     block: SubstrateBlock,
-    item: EventItem
-): Promise<Vault> {
+    item: EventItem,
+    entityBuffer: EntityBuffer
+): Promise<void> {
     const rawEvent = new VaultRegistryRegisterVaultEvent(ctx, item.event);
     let e;
     let vaultId;
@@ -51,21 +53,25 @@ export async function registerVault(
         block.height,
         "RegisterVault"
     );
-    return new Vault({
-        id: vaultId,
-        accountId: address.interlay.encode(e.vaultId.accountId),
-        wrappedToken,
-        collateralToken,
-        registrationBlock: registrationBlock,
-        registrationTimestamp: new Date(block.timestamp),
-    });
+    await entityBuffer.pushEntity(
+        Vault.name,
+        new Vault({
+            id: vaultId,
+            accountId: address.interlay.encode(e.vaultId.accountId),
+            wrappedToken,
+            collateralToken,
+            registrationBlock: registrationBlock,
+            registrationTimestamp: new Date(block.timestamp),
+        })
+    );
 }
 
 export async function increaseLockedCollateral(
     ctx: Ctx,
     block: SubstrateBlock,
-    item: EventItem
-): Promise<CumulativeVolumePerCurrencyPair> {
+    item: EventItem,
+    entityBuffer: EntityBuffer
+): Promise<void> {
     const rawEvent = new VaultRegistryIncreaseLockedCollateralEvent(
         ctx,
         item.event
@@ -88,21 +94,25 @@ export async function increaseLockedCollateral(
         collateralToken = currencyId.encode(e.currencyPair.collateral);
     }
 
-    return new CumulativeVolumePerCurrencyPair({
-        id: `Collateral-${item.event.id}`,
-        type: VolumeType.Collateral,
-        amount: e.total,
-        tillTimestamp: new Date(block.timestamp),
-        collateralCurrency: collateralToken,
-        wrappedCurrency: wrappedToken,
-    });
+    await entityBuffer.pushEntity(
+        CumulativeVolumePerCurrencyPair.name,
+        new CumulativeVolumePerCurrencyPair({
+            id: `Collateral-${item.event.id}`,
+            type: VolumeType.Collateral,
+            amount: e.total,
+            tillTimestamp: new Date(block.timestamp),
+            collateralCurrency: collateralToken,
+            wrappedCurrency: wrappedToken,
+        })
+    );
 }
 
 export async function decreaseLockedCollateral(
     ctx: Ctx,
     block: SubstrateBlock,
-    item: EventItem
-): Promise<CumulativeVolumePerCurrencyPair> {
+    item: EventItem,
+    entityBuffer: EntityBuffer
+): Promise<void> {
     const rawEvent = new VaultRegistryDecreaseLockedCollateralEvent(
         ctx,
         item.event
@@ -125,12 +135,15 @@ export async function decreaseLockedCollateral(
         collateralToken = currencyId.encode(e.currencyPair.collateral);
     }
 
-    return new CumulativeVolumePerCurrencyPair({
-        id: `Collateral-${item.event.id}`,
-        type: VolumeType.Collateral,
-        amount: e.total,
-        tillTimestamp: new Date(block.timestamp),
-        collateralCurrency: collateralToken,
-        wrappedCurrency: wrappedToken,
-    });
+    await entityBuffer.pushEntity(
+        CumulativeVolumePerCurrencyPair.name,
+        new CumulativeVolumePerCurrencyPair({
+            id: `Collateral-${item.event.id}`,
+            type: VolumeType.Collateral,
+            amount: e.total,
+            tillTimestamp: new Date(block.timestamp),
+            collateralCurrency: collateralToken,
+            wrappedCurrency: wrappedToken,
+        })
+    );
 }
