@@ -15,8 +15,6 @@
         "redeem.ExecuteRedeem",
         "redeem.RequestRedeem",
         "redeem.RedeemPeriodChange",
-        "refund.ExecuteRefund",
-        "refund.RequestRefund",
         "security.UpdateActiveBlock",
         "tokens.Transfer",
         "vaultRegistry.RegisterVault",

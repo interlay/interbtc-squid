@@ -1,16 +1,20 @@
-import { EventHandlerContext } from "@subsquid/substrate-processor";
-import { Store } from "@subsquid/typeorm-store";
+import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { OracleUpdate, OracleUpdateType } from "../../model";
+import { Ctx, EventItem } from "../../processor";
 import { OracleFeedValuesEvent } from "../../types/events";
 import { CurrencyId as CurrencyId_V15 } from "../../types/v15";
 import { CurrencyId as CurrencyId_V17 } from "../../types/v17";
 import { address, currencyId, legacyCurrencyId } from "../encoding";
-import { blockToHeight, eventArgs } from "../_utils";
+import EntityBuffer from "../utils/entityBuffer";
+import { blockToHeight } from "../utils/heights";
 
 export async function feedValues(
-    ctx: EventHandlerContext<Store, eventArgs>
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem,
+    entityBuffer: EntityBuffer
 ): Promise<void> {
-    const rawEvent = new OracleFeedValuesEvent(ctx);
+    const rawEvent = new OracleFeedValuesEvent(ctx, item.event);
     let e;
     let useLegacyCurrency = false;
     if (rawEvent.isV6 || rawEvent.isV15) {
@@ -24,15 +28,11 @@ export async function feedValues(
         e = rawEvent.asV17;
     }
     for (const [key, value] of e.values) {
-        const height = await blockToHeight(
-            ctx.store,
-            ctx.block.height,
-            "FeedValues"
-        );
+        const height = await blockToHeight(ctx, block.height, "FeedValues");
         const oracleAddress = address.interlay.encode(e.oracleId);
         const update = new OracleUpdate({
             height,
-            timestamp: new Date(ctx.block.timestamp),
+            timestamp: new Date(block.timestamp),
             oracleId: oracleAddress,
             type: OracleUpdateType[key.__kind],
             updateValue: value,
@@ -45,7 +45,7 @@ export async function feedValues(
             update.typeKey = exchangeCurrency;
             keyToString += JSON.stringify(exchangeCurrency);
         }
-        update.id = `${oracleAddress}-${height.absolute.toString()}-${keyToString}`;
-        await ctx.store.save(update);
+        update.id = `${oracleAddress}-${item.event.id}-${keyToString}`;
+        await entityBuffer.pushEntity(OracleUpdate.name, update);
     }
 }

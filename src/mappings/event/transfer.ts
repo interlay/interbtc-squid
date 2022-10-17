@@ -1,15 +1,18 @@
-import { EventHandlerContext } from "@subsquid/substrate-processor";
-import { blockToHeight, eventArgs } from "../_utils";
-import { TokensTransferEvent } from "../../types/events";
+import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { Transfer } from "../../model";
+import { Ctx, EventItem } from "../../processor";
+import { TokensTransferEvent } from "../../types/events";
 import { address, currencyId, legacyCurrencyId } from "../encoding";
-import { Store } from "@subsquid/typeorm-store";
+import EntityBuffer from "../utils/entityBuffer";
+import { blockToHeight } from "../utils/heights";
 
 export async function tokensTransfer(
-    ctx: EventHandlerContext<Store, eventArgs>
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem,
+    entityBuffer: EntityBuffer
 ): Promise<void> {
-    const rawEvent = new TokensTransferEvent(ctx);
-    ctx.event;
+    const rawEvent = new TokensTransferEvent(ctx, item.event);
     let e;
     let currency;
     if (rawEvent.isV10 || rawEvent.isV15) {
@@ -23,23 +26,19 @@ export async function tokensTransfer(
         e = rawEvent.asV17;
         currency = currencyId.encode(e.currencyId);
     }
-    if (rawEvent.isV10) e = rawEvent.asV10;
 
-    const height = await blockToHeight(
-        ctx.store,
-        ctx.block.height,
-        "TokensTransfer"
+    const height = await blockToHeight(ctx, block.height, "TokensTransfer");
+
+    await entityBuffer.pushEntity(
+        Transfer.name,
+        new Transfer({
+            id: item.event.id,
+            height,
+            timestamp: new Date(block.timestamp),
+            from: address.interlay.encode(e.from),
+            to: address.interlay.encode(e.to),
+            token: currency,
+            amount: e.amount,
+        })
     );
-
-    const transfer = new Transfer({
-        id: ctx.event.id,
-        height,
-        timestamp: new Date(ctx.block.timestamp),
-        from: address.interlay.encode(e.from),
-        to: address.interlay.encode(e.to),
-        token: currency,
-        amount: e.amount,
-    });
-
-    await ctx.store.save(transfer);
 }

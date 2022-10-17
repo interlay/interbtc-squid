@@ -1,45 +1,59 @@
-import { EventHandlerContext } from "@subsquid/substrate-processor";
-import { VolumeType } from "../../model";
+import { SubstrateBlock } from "@subsquid/substrate-processor";
+import { Entity } from "@subsquid/typeorm-store";
+import { CumulativeVolume, VolumeType } from "../../model";
+import { Ctx, EventItem } from "../../processor";
 import { EscrowDepositEvent, EscrowWithdrawEvent } from "../../types/events";
-import { eventArgs, updateCumulativeVolumes } from "../_utils";
-import { Store } from "@subsquid/typeorm-store";
+import { updateCumulativeVolumes } from "../utils/cumulativeVolumes";
+import EntityBuffer from "../utils/entityBuffer";
 
 export async function deposit(
-    ctx: EventHandlerContext<Store, eventArgs>
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem,
+    entityBuffer: EntityBuffer
 ): Promise<void> {
-    const rawEvent = new EscrowDepositEvent(ctx);
+    const rawEvent = new EscrowDepositEvent(ctx, item.event);
     let e;
     if (!rawEvent.isV6) ctx.log.warn(`UNKOWN EVENT VERSION: Escrow.deposit`);
     e = rawEvent.asV6;
 
-    const timestamp = new Date(ctx.block.timestamp);
+    const timestamp = new Date(block.timestamp);
 
-    if (e.amount != 0n) {
+    if (e.amount === 0n) return;
+    await entityBuffer.pushEntity(
+        CumulativeVolume.name,
         await updateCumulativeVolumes(
             ctx.store,
             VolumeType.Staked,
             e.amount,
-            timestamp
-        );
-    }
+            timestamp,
+            item
+        )
+    );
 }
 
 export async function withdraw(
-    ctx: EventHandlerContext<Store, eventArgs>
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem,
+    entityBuffer: EntityBuffer
 ): Promise<void> {
-    const rawEvent = new EscrowWithdrawEvent(ctx);
+    const rawEvent = new EscrowWithdrawEvent(ctx, item.event);
     let e;
     if (rawEvent.isV6) ctx.log.warn(`UNKOWN EVENT VERSION: Escrow.withdraw`);
     e = rawEvent.asV6;
 
-    const timestamp = new Date(ctx.block.timestamp);
+    const timestamp = new Date(block.timestamp);
 
-    if (e.amount != 0n) {
+    if (e.amount === 0n) return;
+    await entityBuffer.pushEntity(
+        CumulativeVolume.name,
         await updateCumulativeVolumes(
             ctx.store,
             VolumeType.Staked,
             -e.amount,
-            timestamp
-        );
-    }
+            timestamp,
+            item
+        )
+    );
 }

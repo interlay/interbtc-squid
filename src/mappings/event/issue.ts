@@ -1,25 +1,23 @@
-import { EventHandlerContext, toHex } from "@subsquid/substrate-processor";
-import { Store } from "@subsquid/typeorm-store";
-import Debug from "debug";
+import { SubstrateBlock, toHex } from "@subsquid/substrate-processor";
 import { LessThanOrEqual } from "typeorm";
 import {
+    CumulativeVolume,
+    CumulativeVolumePerCurrencyPair,
     Issue,
     IssueCancellation,
     IssueExecution,
     IssuePeriod,
     IssueRequest,
     IssueStatus,
-    Refund,
     RelayedBlock,
     VolumeType,
 } from "../../model";
+import { Ctx, EventItem } from "../../processor";
 import {
     IssueCancelIssueEvent,
     IssueExecuteIssueEvent,
     IssueIssuePeriodChangeEvent,
     IssueRequestIssueEvent,
-    RefundExecuteRefundEvent,
-    RefundRequestRefundEvent,
 } from "../../types/events";
 import {
     address,
@@ -29,20 +27,21 @@ import {
     legacyCurrencyId,
 } from "../encoding";
 import {
-    blockToHeight,
-    eventArgs,
-    getCurrentIssuePeriod,
-    getVaultId,
-    getVaultIdLegacy,
     updateCumulativeVolumes,
-} from "../_utils";
-
-const debug = Debug("interbtc-mappings:issue");
+    updateCumulativeVolumesForCurrencyPair,
+} from "../utils/cumulativeVolumes";
+import EntityBuffer from "../utils/entityBuffer";
+import { blockToHeight } from "../utils/heights";
+import { getCurrentIssuePeriod } from "../utils/requestPeriods";
+import { getVaultId, getVaultIdLegacy } from "../_utils";
 
 export async function requestIssue(
-    ctx: EventHandlerContext<Store, eventArgs>
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem,
+    entityBuffer: EntityBuffer
 ): Promise<void> {
-    const rawEvent = new IssueRequestIssueEvent(ctx);
+    const rawEvent = new IssueRequestIssueEvent(ctx, item.event);
     let e;
     let vault;
     let vaultIdString;
@@ -61,17 +60,17 @@ export async function requestIssue(
     }
 
     if (vault === undefined) {
-        debug(
+        ctx.log.warn(
             `WARNING: no vault ID found for issue request ${toHex(
                 e.issueId
             )}, with encoded account-wrapped-collateral ID of ${vaultIdString} (at parachain absolute height ${
-                ctx.block.height
+                block.height
             }`
         );
         return;
     }
 
-    const period = await getCurrentIssuePeriod(ctx.store, ctx.block.height);
+    const period = await getCurrentIssuePeriod(ctx, block);
 
     const issue = new Issue({
         id: toHex(e.issueId),
@@ -84,11 +83,7 @@ export async function requestIssue(
         period,
     });
 
-    const height = await blockToHeight(
-        ctx.store,
-        ctx.block.height,
-        "RequestIssue"
-    );
+    const height = await blockToHeight(ctx, block.height, "RequestIssue");
 
     const backingBlock = await ctx.store.get(RelayedBlock, {
         order: { backingHeight: "DESC" },
@@ -101,7 +96,7 @@ export async function requestIssue(
     });
 
     if (backingBlock === undefined) {
-        debug(
+        ctx.log.warn(
             `WARNING: no BTC blocks relayed before issue request ${issue.id} (at parachain absolute height ${height.absolute})`
         );
     }
@@ -110,17 +105,20 @@ export async function requestIssue(
         amountWrapped: e.amount,
         bridgeFeeWrapped: e.fee,
         height: height.id,
-        timestamp: new Date(ctx.block.timestamp),
+        timestamp: new Date(block.timestamp),
         backingHeight: backingBlock?.backingHeight || 0,
     });
 
-    await ctx.store.save(issue);
+    await entityBuffer.pushEntity(Issue.name, issue);
 }
 
 export async function executeIssue(
-    ctx: EventHandlerContext<Store, eventArgs>
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem,
+    entityBuffer: EntityBuffer
 ): Promise<void> {
-    const rawEvent = new IssueExecuteIssueEvent(ctx);
+    const rawEvent = new IssueExecuteIssueEvent(ctx, item.event);
     let e;
     let collateralCurrency;
     let wrappedCurrency;
@@ -138,50 +136,62 @@ export async function executeIssue(
         collateralCurrency = currencyId.encode(e.vaultId.currencies.collateral);
         wrappedCurrency = currencyId.encode(e.vaultId.currencies.wrapped);
     }
+    const amountWrapped = e.amount - e.fee; // potentially clean up event on parachain side?
 
-    const id = toHex(e.issueId);
-
-    const issue = await ctx.store.get(Issue, { where: { id } });
+    const issue = await ctx.store.get(Issue, {
+        where: { id: toHex(e.issueId) },
+    });
     if (issue === undefined) {
-        debug(
+        ctx.log.warn(
             "WARNING: ExecuteIssue event did not match any existing issue requests! Skipping."
         );
         return;
     }
-    const height = await blockToHeight(
-        ctx.store,
-        ctx.block.height,
-        "ExecuteIssue"
-    );
-    const amountWrapped = e.amount - e.fee; // potentially clean up event on parachain side?
+    const height = await blockToHeight(ctx, block.height, "ExecuteIssue");
     const execution = new IssueExecution({
         id: issue.id,
         issue,
         amountWrapped,
         bridgeFeeWrapped: e.fee,
         height,
-        timestamp: new Date(ctx.block.timestamp),
+        timestamp: new Date(block.timestamp),
     });
     issue.status = IssueStatus.Completed;
-    await ctx.store.save(execution);
-    await ctx.store.save(issue);
+    issue.execution = execution;
 
-    await updateCumulativeVolumes(
-        ctx.store,
-        VolumeType.Issued,
-        amountWrapped,
-        new Date(ctx.block.timestamp),
-        collateralCurrency,
-        wrappedCurrency
+    await entityBuffer.pushEntity(IssueExecution.name, execution);
+    await entityBuffer.pushEntity(Issue.name, issue);
+    await entityBuffer.pushEntity(
+        CumulativeVolume.name,
+        await updateCumulativeVolumes(
+            ctx.store,
+            VolumeType.Issued,
+            amountWrapped,
+            new Date(block.timestamp),
+            item
+        )
+    );
+    await entityBuffer.pushEntity(
+        CumulativeVolumePerCurrencyPair.name,
+        await updateCumulativeVolumesForCurrencyPair(
+            ctx.store,
+            VolumeType.Issued,
+            amountWrapped,
+            new Date(block.timestamp),
+            item,
+            collateralCurrency,
+            wrappedCurrency
+        )
     );
 }
 
 export async function cancelIssue(
-    ctx: EventHandlerContext<Store, eventArgs>
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem,
+    entityBuffer: EntityBuffer
 ): Promise<void> {
-    // const [id, _userParachainAddress, _griefingCollateral] =
-    //     new IssueCrate.CancelIssueEvent(event).params;
-    const rawEvent = new IssueCancelIssueEvent(ctx);
+    const rawEvent = new IssueCancelIssueEvent(ctx, item.event);
     let e;
     if (!rawEvent.isV4) ctx.log.warn(`UNKOWN EVENT VERSION: Issue.cancelIssue`);
     e = rawEvent.asV4;
@@ -190,135 +200,45 @@ export async function cancelIssue(
         where: { id: toHex(e.issueId) },
     });
     if (issue === undefined) {
-        debug(
+        ctx.log.warn(
             "WARNING: CancelIssue event did not match any existing issue requests! Skipping."
         );
         return;
     }
-    const height = await blockToHeight(
-        ctx.store,
-        ctx.block.height,
-        "CancelIssue"
-    );
+    const height = await blockToHeight(ctx, block.height, "CancelIssue");
     const cancellation = new IssueCancellation({
         id: issue.id,
         issue,
         height,
-        timestamp: new Date(ctx.block.timestamp),
+        timestamp: new Date(block.timestamp),
     });
     issue.status = IssueStatus.Cancelled;
-    await ctx.store.save(cancellation);
-    await ctx.store.save(issue);
-}
-
-export async function requestRefund(
-    ctx: EventHandlerContext<Store, eventArgs>
-): Promise<void> {
-    const rawEvent = new RefundRequestRefundEvent(ctx);
-    let e;
-    if (rawEvent.isV6) e = rawEvent.asV6;
-    else if (rawEvent.isV15) e = rawEvent.asV15;
-    else if (rawEvent.isV17) e = rawEvent.asV17;
-    else {
-        ctx.log.warn(`UNKOWN EVENT VERSION: Issue.requestRefund`);
-        e = rawEvent.asV17;
-    }
-
-    const id = toHex(e.refundId);
-    const issue = await ctx.store.get(Issue, {
-        where: { id: toHex(e.issueId) },
-    });
-    if (issue === undefined) {
-        debug(
-            "WARNING: RequestRefund event did not match any existing issue requests! Skipping."
-        );
-        return;
-    }
-    const height = await blockToHeight(
-        ctx.store,
-        ctx.block.height,
-        "RequestRefund"
-    );
-    const refund = new Refund({
-        id,
-        issue,
-        issueID: issue.id,
-        btcAddress: address.btc.encode(e.btcAddress),
-        amountPaid: e.amount,
-        btcFee: e.fee,
-        requestHeight: height,
-        requestTimestamp: new Date(ctx.block.timestamp),
-    });
-    issue.status = IssueStatus.RequestedRefund;
-    await ctx.store.save(refund);
-    await ctx.store.save(issue);
-}
-
-export async function executeRefund(
-    ctx: EventHandlerContext<Store, eventArgs>
-): Promise<void> {
-    const rawEvent = new RefundExecuteRefundEvent(ctx);
-    let e;
-    if (rawEvent.isV6) e = rawEvent.asV6;
-    else if (rawEvent.isV15) e = rawEvent.asV15;
-    else if (rawEvent.isV17) e = rawEvent.asV17;
-    else {
-        ctx.log.warn(`UNKOWN EVENT VERSION: Issue.executeRefund`);
-        e = rawEvent.asV17;
-    }
-
-    const refund = await ctx.store.get(Refund, {
-        where: { id: toHex(e.refundId) },
-    });
-    if (refund === undefined) {
-        debug(
-            "WARNING: ExecuteRefund event did not match any existing refund requests! Skipping."
-        );
-        return;
-    }
-    const issue = await ctx.store.get(Issue, {
-        where: { id: refund.issueID },
-    });
-    if (issue === undefined) {
-        debug(
-            "WARNING: ExecuteRefund event did not match any existing issue requests! Skipping."
-        );
-        return;
-    }
-    refund.executionHeight = await blockToHeight(
-        ctx.store,
-        ctx.block.height,
-        "ExecuteRefund"
-    );
-    refund.executionTimestamp = new Date(ctx.block.timestamp);
-    issue.status = IssueStatus.Completed;
-    await ctx.store.save(refund);
-    await ctx.store.save(issue);
+    issue.cancellation = cancellation;
+    await entityBuffer.pushEntity(IssueCancellation.name, cancellation);
+    await entityBuffer.pushEntity(Issue.name, issue);
 }
 
 export async function issuePeriodChange(
-    ctx: EventHandlerContext<Store, eventArgs>
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem,
+    entityBuffer: EntityBuffer
 ): Promise<void> {
-    const rawEvent = new IssueIssuePeriodChangeEvent(ctx);
+    const rawEvent = new IssueIssuePeriodChangeEvent(ctx, item.event);
     let e;
     if (!rawEvent.isV16)
         ctx.log.warn(`UNKOWN EVENT VERSION: Issue.issuePeriodChange`);
     e = rawEvent.asV16;
 
-    const height = await blockToHeight(
-        ctx.store,
-        ctx.block.height,
-        "IssuePeriodChange"
+    const height = await blockToHeight(ctx, block.height, "IssuePeriodChange");
+
+    await entityBuffer.pushEntity(
+        IssuePeriod.name,
+        new IssuePeriod({
+            id: item.event.id,
+            height,
+            timestamp: new Date(block.timestamp),
+            value: e.period,
+        })
     );
-
-    const timestamp = new Date(ctx.block.timestamp);
-
-    const issuePeriod = new IssuePeriod({
-        id: `updated-${timestamp.toString()}`,
-        height,
-        timestamp,
-        value: e.period,
-    });
-
-    await ctx.store.save(issuePeriod);
 }
