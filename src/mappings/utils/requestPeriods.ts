@@ -63,6 +63,42 @@ async function setInitialIssuePeriod(
     return issuePeriod;
 }
 
+export async function updateRedeemPeriodFromStorage(
+    ctx: Ctx,
+    block: SubstrateBlock,
+    height: Height
+): Promise<void> {
+    const rawRedeemPeriodStorage = new RedeemRedeemPeriodStorage(ctx, block);
+    let chainValue: number;
+    if (rawRedeemPeriodStorage.isV1) {
+        chainValue = await rawRedeemPeriodStorage.getAsV1();
+    } else if (rawRedeemPeriodStorage.isV16) {
+        chainValue = await rawRedeemPeriodStorage.getAsV16();
+    } else {
+        // log error/warning?
+        return;
+    }
+
+    // find latest stored period
+    const storedPeriods = await ctx.store.find(RedeemPeriod);
+    const lastPeriod = storedPeriods
+        .sort((a, b) => a.height.absolute - b.height.absolute)
+        .pop();
+
+    if (lastPeriod === undefined || chainValue != lastPeriod.value) {
+        const redeemPeriod = new RedeemPeriod({
+            id: `initial-${block.timestamp.toString()}`,
+            height,
+            timestamp: new Date(block.timestamp),
+            value: chainValue,
+        });
+
+        ctx.store.save(redeemPeriod);
+    } else {
+        // log error/warning?
+    }
+}
+
 async function setInitialRedeemPeriod(
     ctx: Ctx,
     block: SubstrateBlock,

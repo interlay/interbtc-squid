@@ -27,6 +27,7 @@ import {
     requestIssue,
     requestRedeem,
     storeMainChainHeader,
+    sudid,
     updateActiveBlock,
 } from "./mappings";
 import { deposit, withdraw } from "./mappings/event/escrow";
@@ -214,6 +215,11 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
         {
             filter: { name: "Escrow.Withdraw" },
             mapping: withdraw,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Sudo.Sudid" },
+            mapping: sudid,
             totalTime: 0,
         },
     ]);
