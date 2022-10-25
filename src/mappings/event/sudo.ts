@@ -17,5 +17,7 @@ export async function sudid(
     entityBuffer: EntityBuffer
 ): Promise<void> {
     const height = await blockToHeight(ctx, block.height);
-    return updateRedeemPeriodFromStorage(ctx, block, height);
+    if (height.absolute === 514261) {
+        return updateRedeemPeriodFromStorage(ctx, block, height);
+    }
 }

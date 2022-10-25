@@ -27,16 +27,23 @@ export async function getCurrentIssuePeriod(
 
 export async function getCurrentRedeemPeriod(ctx: Ctx, block: SubstrateBlock) {
     const height = await blockToHeight(ctx, block.height);
-    const latest = await ctx.store.get(RedeemPeriod, {
-        where: {
-            height: { absolute: LessThanOrEqual(block.height) },
-        },
-        order: { timestamp: "DESC" },
-    });
+    const latest = getLatestStoredRedeemPeriod(ctx, block.height);
     if (latest !== undefined) return latest;
 
     // else fetch from storage
     return await setInitialRedeemPeriod(ctx, block, height);
+}
+
+async function getLatestStoredRedeemPeriod(
+    ctx: Ctx,
+    height: number
+): Promise<RedeemPeriod | undefined> {
+    return ctx.store.get(RedeemPeriod, {
+        where: {
+            height: { absolute: LessThanOrEqual(height) },
+        },
+        order: { timestamp: "DESC" },
+    });
 }
 
 async function setInitialIssuePeriod(
@@ -72,30 +79,26 @@ export async function updateRedeemPeriodFromStorage(
     let chainValue: number;
     if (rawRedeemPeriodStorage.isV1) {
         chainValue = await rawRedeemPeriodStorage.getAsV1();
-    } else if (rawRedeemPeriodStorage.isV16) {
-        chainValue = await rawRedeemPeriodStorage.getAsV16();
     } else {
         // log error/warning?
+        console.warn(
+            `Failed to get rawRedeemPeriodStorage value, unknown version`
+        );
         return;
     }
 
     // find latest stored period
-    const storedPeriods = await ctx.store.find(RedeemPeriod);
-    const lastPeriod = storedPeriods
-        .sort((a, b) => a.height.absolute - b.height.absolute)
-        .pop();
+    const lastPeriod = await getLatestStoredRedeemPeriod(ctx, block.height);
 
     if (lastPeriod === undefined || chainValue != lastPeriod.value) {
         const redeemPeriod = new RedeemPeriod({
-            id: `initial-${block.timestamp.toString()}`,
+            id: `update-${block.timestamp.toString()}`,
             height,
             timestamp: new Date(block.timestamp),
             value: chainValue,
         });
 
-        ctx.store.save(redeemPeriod);
-    } else {
-        // log error/warning?
+        ctx.store.insert(redeemPeriod);
     }
 }
 

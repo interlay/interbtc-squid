@@ -71,6 +71,7 @@ const processor = new SubstrateBatchProcessor()
     .addEvent("VaultRegistry.RegisterVault", eventArgsData)
     .addEvent("VaultRegistry.IncreaseLockedCollateral", eventArgsData)
     .addEvent("VaultRegistry.DecreaseLockedCollateral", eventArgsData)
+    .addEvent("Sudo.Sudid", eventArgsData)
     .addCall("BTCRelay.store_block_header", {
         data: {
             extrinsic: {
