@@ -40,7 +40,7 @@ export async function withdraw(
 ): Promise<void> {
     const rawEvent = new EscrowWithdrawEvent(ctx, item.event);
     let e;
-    if (rawEvent.isV6) ctx.log.warn(`UNKOWN EVENT VERSION: Escrow.withdraw`);
+    if (!rawEvent.isV6) ctx.log.warn(`UNKOWN EVENT VERSION: Escrow.withdraw`);
     e = rawEvent.asV6;
 
     const timestamp = new Date(block.timestamp);
