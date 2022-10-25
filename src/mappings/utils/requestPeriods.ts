@@ -81,7 +81,7 @@ export async function updateRedeemPeriodFromStorage(
         chainValue = await rawRedeemPeriodStorage.getAsV1();
     } else {
         // log error/warning?
-        console.warn(
+        ctx.log.warn(
             `Failed to get rawRedeemPeriodStorage value, unknown version`
         );
         return;
