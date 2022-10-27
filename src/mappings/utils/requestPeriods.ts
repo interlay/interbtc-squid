@@ -1,3 +1,4 @@
+import { xxhashAsHex } from "@polkadot/util-crypto";
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { LessThanOrEqual } from "typeorm";
 import { Height, IssuePeriod, RedeemPeriod } from "../../model";
@@ -7,6 +8,10 @@ import {
     RedeemRedeemPeriodStorage,
 } from "../../types/storage";
 import { blockToHeight } from "./heights";
+
+export const REDEEM_REDEEMPERIOD_KEY =
+    xxhashAsHex("Redeem", 128).substring(2) +
+    xxhashAsHex("RedeemPeriod", 128).substring(2);
 
 export async function getCurrentIssuePeriod(
     ctx: Ctx,
@@ -70,19 +75,16 @@ async function setInitialIssuePeriod(
     return issuePeriod;
 }
 
-export async function updateRedeemPeriodFromStorage(
+export async function updateRedeemPeriodFromBufferValue(
     ctx: Ctx,
     block: SubstrateBlock,
-    height: Height
+    bufferValue: Buffer
 ): Promise<void> {
-    const rawRedeemPeriodStorage = new RedeemRedeemPeriodStorage(ctx, block);
-    let chainValue: number;
-    if (rawRedeemPeriodStorage.isV1) {
-        chainValue = await rawRedeemPeriodStorage.getAsV1();
-    } else {
-        // log error/warning?
+    const newPeriodValue = bufferValue.readUIntLE(0, bufferValue.length);
+
+    if (newPeriodValue == undefined) {
         ctx.log.warn(
-            `Failed to get rawRedeemPeriodStorage value, unknown version`
+            `REDEEM PERIOD: Failed to convert setStorage value to number. Buffer contains: ${bufferValue?.toString()}`
         );
         return;
     }
@@ -90,12 +92,14 @@ export async function updateRedeemPeriodFromStorage(
     // find latest stored period
     const lastPeriod = await getLatestStoredRedeemPeriod(ctx, block.height);
 
-    if (lastPeriod === undefined || chainValue != lastPeriod.value) {
+    // add new entry if value has changed
+    if (lastPeriod === undefined || newPeriodValue != lastPeriod.value) {
+        const height = await blockToHeight(ctx, block.height);
         const redeemPeriod = new RedeemPeriod({
             id: `update-${block.timestamp.toString()}`,
             height,
             timestamp: new Date(block.timestamp),
-            value: chainValue,
+            value: newPeriodValue,
         });
 
         ctx.store.insert(redeemPeriod);

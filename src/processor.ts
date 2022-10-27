@@ -26,8 +26,8 @@ import {
     registerVault,
     requestIssue,
     requestRedeem,
+    setStorage,
     storeMainChainHeader,
-    sudid,
     updateActiveBlock,
 } from "./mappings";
 import { deposit, withdraw } from "./mappings/event/escrow";
@@ -72,6 +72,23 @@ const processor = new SubstrateBatchProcessor()
     .addEvent("VaultRegistry.IncreaseLockedCollateral", eventArgsData)
     .addEvent("VaultRegistry.DecreaseLockedCollateral", eventArgsData)
     .addEvent("Sudo.Sudid", eventArgsData)
+    .addCall("System.set_storage", {
+        data: {
+            call: true,
+            extrinsic: {
+                signature: true,
+                call: true,
+            },
+        },
+    })
+    // .addCall("System.set_storage", {
+    //     data: {
+    //         extrinsic: {
+    //             signature: true,
+    //             call: true,
+    //         },
+    //     },
+    // })
     .addCall("BTCRelay.store_block_header", {
         data: {
             extrinsic: {
@@ -112,20 +129,29 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
         const processingStartTime = Date.now();
         for (const block of ctx.blocks) {
             for (const item of block.items) {
-                for (const mapping of mappings) {
-                    if (
-                        mapping.filter.name === item.name &&
-                        item.name !== "*"
-                    ) {
-                        const execStartTime = Date.now();
-                        await mapping.mapping(
-                            ctx,
-                            block.header,
-                            item,
-                            entityBuffer
-                        );
-                        mapping.totalTime += Date.now() - execStartTime;
+                if (item.kind === "event") {
+                    for (const mapping of mappings) {
+                        if (
+                            mapping.filter.name === item.name &&
+                            item.name !== "*"
+                        ) {
+                            const execStartTime = Date.now();
+                            await mapping.mapping(
+                                ctx,
+                                block.header,
+                                item,
+                                entityBuffer
+                            );
+                            mapping.totalTime += Date.now() - execStartTime;
+                        }
                     }
+                }
+
+                if (
+                    item.kind === "call" &&
+                    item.name === "System.set_storage"
+                ) {
+                    await setStorage(ctx, block.header, item);
                 }
             }
         }
@@ -216,11 +242,6 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
         {
             filter: { name: "Escrow.Withdraw" },
             mapping: withdraw,
-            totalTime: 0,
-        },
-        {
-            filter: { name: "Sudo.Sudid" },
-            mapping: sudid,
             totalTime: 0,
         },
     ]);

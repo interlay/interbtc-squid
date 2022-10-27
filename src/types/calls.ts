@@ -87,3 +87,46 @@ export class BtcRelayStoreBlockHeaderCall {
     return this._chain.decodeCall(this.call)
   }
 }
+
+export class SystemSetStorageCall {
+  private readonly _chain: Chain
+  private readonly call: Call
+
+  constructor(ctx: CallContext)
+  constructor(ctx: ChainContext, call: Call)
+  constructor(ctx: CallContext, call?: Call) {
+    call = call || ctx.call
+    assert(call.name === 'System.set_storage')
+    this._chain = ctx._chain
+    this.call = call
+  }
+
+  /**
+   *  Set some items of storage.
+   * 
+   *  # <weight>
+   *  - `O(I)` where `I` length of `items`
+   *  - `I` storage writes (`O(1)`).
+   *  - Base Weight: 0.568 * i µs
+   *  - Writes: Number of items
+   *  # </weight>
+   */
+  get isV1(): boolean {
+    return this._chain.getCallHash('System.set_storage') === 'a4fb507615d69849afb1b2ee654006f9be48bb6e960a4674624d6e46e4382083'
+  }
+
+  /**
+   *  Set some items of storage.
+   * 
+   *  # <weight>
+   *  - `O(I)` where `I` length of `items`
+   *  - `I` storage writes (`O(1)`).
+   *  - Base Weight: 0.568 * i µs
+   *  - Writes: Number of items
+   *  # </weight>
+   */
+  get asV1(): {items: [Uint8Array, Uint8Array][]} {
+    assert(this.isV1)
+    return this._chain.decodeCall(this.call)
+  }
+}

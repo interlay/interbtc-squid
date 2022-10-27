@@ -22,7 +22,8 @@
         "VaultRegistry.DecreaseLockedCollateral"
     ],
     "calls": [
-        "BTCRelay.store_block_header"
+        "BTCRelay.store_block_header",
+        "System.set_storage"
     ],
     "storage": [
         "Issue.IssuePeriod",
