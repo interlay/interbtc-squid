@@ -4,7 +4,6 @@ import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
 import { updateRedeemPeriodFromStorage } from "../utils/requestPeriods";
 
-// This function only really exists to check if redeem period has been set using sudo
 /**
  * This function only really exists to check if redeem period has
  * been set using sudo and update the value if it has changed.
