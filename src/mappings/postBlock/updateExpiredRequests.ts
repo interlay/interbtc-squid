@@ -72,7 +72,7 @@ export async function findAndUpdateExpiredRequests(ctx: Ctx): Promise<void> {
         latestPeriod: IssuePeriod | RedeemPeriod
     ) => {
         const updated = [];
-        const period = Math.max(latestPeriod.value, request.period.value);
+        const period = Math.max(latestPeriod.value, request.period?.value || 0);
         const isExpired = await isRequestExpired(
             ctx.store,
             request,
