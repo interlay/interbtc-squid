@@ -21,7 +21,9 @@
         "vaultRegistry.IncreaseLockedCollateral",
         "vaultRegistry.DecreaseLockedCollateral"
     ],
-    "calls": [],
+    "calls": [
+        "system.SetStorage"
+    ],
     "storage": [
         "Issue.IssuePeriod",
         "Redeem.RedeemPeriod"

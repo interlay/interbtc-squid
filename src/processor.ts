@@ -26,6 +26,7 @@ import {
     registerVault,
     requestIssue,
     requestRedeem,
+    setStorage,
     storeMainChainHeader,
     updateActiveBlock,
 } from "./mappings";
@@ -70,6 +71,15 @@ const processor = new SubstrateBatchProcessor()
     .addEvent("VaultRegistry.RegisterVault", eventArgsData)
     .addEvent("VaultRegistry.IncreaseLockedCollateral", eventArgsData)
     .addEvent("VaultRegistry.DecreaseLockedCollateral", eventArgsData)
+    .addCall("System.set_storage", {
+        data: {
+            call: true,
+            extrinsic: {
+                signature: true,
+                call: true,
+            },
+        },
+    })
     .addCall("BTCRelay.store_block_header", {
         data: {
             extrinsic: {
@@ -110,20 +120,29 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
         const processingStartTime = Date.now();
         for (const block of ctx.blocks) {
             for (const item of block.items) {
-                for (const mapping of mappings) {
-                    if (
-                        mapping.filter.name === item.name &&
-                        item.name !== "*"
-                    ) {
-                        const execStartTime = Date.now();
-                        await mapping.mapping(
-                            ctx,
-                            block.header,
-                            item,
-                            entityBuffer
-                        );
-                        mapping.totalTime += Date.now() - execStartTime;
+                if (item.kind === "event") {
+                    for (const mapping of mappings) {
+                        if (
+                            mapping.filter.name === item.name &&
+                            item.name !== "*"
+                        ) {
+                            const execStartTime = Date.now();
+                            await mapping.mapping(
+                                ctx,
+                                block.header,
+                                item,
+                                entityBuffer
+                            );
+                            mapping.totalTime += Date.now() - execStartTime;
+                        }
                     }
+                }
+
+                if (
+                    item.kind === "call" &&
+                    item.name === "System.set_storage"
+                ) {
+                    await setStorage(ctx, block.header, item);
                 }
             }
         }
