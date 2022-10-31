@@ -32,7 +32,7 @@ export async function getCurrentIssuePeriod(
 
 export async function getCurrentRedeemPeriod(ctx: Ctx, block: SubstrateBlock) {
     const height = await blockToHeight(ctx, block.height);
-    const latest = getLatestStoredRedeemPeriod(ctx, block.height);
+    const latest = await getLatestStoredRedeemPeriod(ctx, block.height);
     if (latest !== undefined) return latest;
 
     // else fetch from storage
