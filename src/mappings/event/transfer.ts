@@ -1,7 +1,11 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
-import { Transfer } from "../../model";
+import { Currency, Transfer } from "../../model";
 import { Ctx, EventItem } from "../../processor";
 import { TokensTransferEvent } from "../../types/events";
+import { CurrencyId_Token as CurrencyId_Token_V6 } from "../../types/v6";
+import { CurrencyId_Token as CurrencyId_Token_V10 } from "../../types/v10";
+import { CurrencyId_Token as CurrencyId_Token_V15 } from "../../types/v15";
+import { CurrencyId as CurrencyId_V17 } from "../../types/v17";
 import { address, currencyId, legacyCurrencyId } from "../encoding";
 import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
@@ -13,18 +17,31 @@ export async function tokensTransfer(
     entityBuffer: EntityBuffer
 ): Promise<void> {
     const rawEvent = new TokensTransferEvent(ctx, item.event);
-    let e;
-    let currency;
-    if (rawEvent.isV10 || rawEvent.isV15) {
-        if (rawEvent.isV10) e = rawEvent.asV10;
-        else e = rawEvent.asV15;
-        currency = legacyCurrencyId.encode(e.currencyId);
+    let amount: bigint;
+    let to: Uint8Array;
+    let from: Uint8Array;
+    let eventCcyId:
+        | CurrencyId_Token_V6
+        | CurrencyId_Token_V10
+        | CurrencyId_Token_V15
+        | CurrencyId_V17;
+    let currency: Currency;
+    if (rawEvent.isV6 || rawEvent.isV10 || rawEvent.isV15) {
+        if (rawEvent.isV6) {
+            [eventCcyId, from, to, amount] = rawEvent.asV6;
+        } else if (rawEvent.isV10) {
+            ({ currencyId: eventCcyId, from, to, amount } = rawEvent.asV10);
+        } else {
+            ({ currencyId: eventCcyId, from, to, amount } = rawEvent.asV15);
+        }
+        currency = legacyCurrencyId.encode(eventCcyId);
     } else {
         if (!rawEvent.isV17) {
             ctx.log.warn(`UNKOWN EVENT VERSION: tokens.transfer`);
+            return;
         }
-        e = rawEvent.asV17;
-        currency = currencyId.encode(e.currencyId);
+        ({ currencyId: eventCcyId, from, to, amount } = rawEvent.asV17);
+        currency = currencyId.encode(eventCcyId);
     }
 
     const height = await blockToHeight(ctx, block.height, "TokensTransfer");
@@ -35,10 +52,10 @@ export async function tokensTransfer(
             id: item.event.id,
             height,
             timestamp: new Date(block.timestamp),
-            from: address.interlay.encode(e.from),
-            to: address.interlay.encode(e.to),
+            from: address.interlay.encode(from),
+            to: address.interlay.encode(to),
             token: currency,
-            amount: e.amount,
+            amount,
         })
     );
 }
