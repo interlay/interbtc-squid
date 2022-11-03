@@ -164,7 +164,7 @@ export async function executeRedeem(
             VolumeType.Redeemed,
             redeem.request.requestedAmountBacking,
             new Date(block.timestamp),
-            item
+            entityBuffer
         )
     );
     await entityBuffer.pushEntity(
@@ -174,9 +174,9 @@ export async function executeRedeem(
             VolumeType.Redeemed,
             redeem.request.requestedAmountBacking,
             new Date(block.timestamp),
-            item,
             collateralCurrency,
-            wrappedCurrency
+            wrappedCurrency,
+            entityBuffer
         )
     );
 }

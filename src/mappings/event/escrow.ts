@@ -27,7 +27,7 @@ export async function deposit(
             VolumeType.Staked,
             e.amount,
             timestamp,
-            item
+            entityBuffer
         )
     );
 }
@@ -53,7 +53,7 @@ export async function withdraw(
             VolumeType.Staked,
             -e.amount,
             timestamp,
-            item
+            entityBuffer
         )
     );
 }
