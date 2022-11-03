@@ -7,16 +7,90 @@ import {
 import { Equal, LessThanOrEqual } from "typeorm";
 import { Store } from "@subsquid/typeorm-store";
 import { EventItem } from "../../processor";
+import EntityBuffer from "./entityBuffer";
+
+function getLatestCurrencyPairCumulativeVolume(
+    cumulativeVolumes: CumulativeVolumePerCurrencyPair[],
+    atOrBeforeTimestamp: Date,
+    collateralCurrency: Currency,
+    wrappedCurrency: Currency
+): CumulativeVolumePerCurrencyPair | undefined {
+    if (cumulativeVolumes.length < 1) {
+        return undefined;
+    }
+
+    return cumulativeVolumes
+        .filter(
+            (entity) =>
+                entity.tillTimestamp.getTime() <= atOrBeforeTimestamp.getTime()
+        )
+        .filter(
+            (entity) =>
+                entity.collateralCurrency?.toJSON().toString() ===
+                collateralCurrency.toJSON().toString()
+        )
+        .filter(
+            (entity) =>
+                entity.wrappedCurrency?.toJSON().toString() ===
+                wrappedCurrency.toJSON().toString()
+        )
+        .reduce((prev, current) => {
+            // if timestamps are equal, the larger amount is latest for accumulative amounts
+            if (
+                prev.tillTimestamp.getTime() === current.tillTimestamp.getTime()
+            ) {
+                return prev.amount > current.amount ? prev : current;
+            }
+            return prev.tillTimestamp.getTime() >
+                current.tillTimestamp.getTime()
+                ? prev
+                : current;
+        });
+}
+
+function getLatestCumulativeVolume(
+    cumulativeVolumes: CumulativeVolume[],
+    atOrBeforeTimestamp: Date
+): CumulativeVolume | undefined {
+    if (cumulativeVolumes.length < 1) {
+        return undefined;
+    }
+
+    // find the latest entry that has a tillTimestamp of less than or equal to timestamp
+    return cumulativeVolumes
+        .filter(
+            (entity) =>
+                entity.tillTimestamp.getTime() <= atOrBeforeTimestamp.getTime()
+        )
+        .reduce((prev, current) => {
+            // if timestamps are equal, the larger amount is latest for accumulative amounts
+            if (
+                prev.tillTimestamp.getTime() === current.tillTimestamp.getTime()
+            ) {
+                return prev.amount > current.amount ? prev : current;
+            }
+            return prev.tillTimestamp.getTime() >
+                current.tillTimestamp.getTime()
+                ? prev
+                : current;
+        });
+}
 
 export async function updateCumulativeVolumes(
     store: Store,
     type: VolumeType,
     amount: bigint,
     timestamp: Date,
-    item: EventItem
+    entityBuffer: EntityBuffer
 ): Promise<CumulativeVolume> {
-    const id = `${type.toString()}-${item.event.id}`;
-    const existingValueInBlock = await store.get(CumulativeVolume, id);
+    const id = `${type.toString()}-${timestamp.getTime().toString()}`;
+
+    // find by id if it exists in either entity buffer or db
+    const existingValueInBlock =
+        (entityBuffer.getBufferedEntityBy(
+            CumulativeVolume.name,
+            id
+        ) as CumulativeVolume) || (await store.get(CumulativeVolume, id));
 
     if (existingValueInBlock !== undefined) {
         // new event in same block, update total
@@ -24,13 +98,28 @@ export async function updateCumulativeVolumes(
         return existingValueInBlock;
     } else {
         // new event in new block, insert new entity
-        const existingCumulativeVolume = await store.get(CumulativeVolume, {
-            where: {
-                tillTimestamp: LessThanOrEqual(timestamp),
-                type: type,
-            },
-            order: { tillTimestamp: "DESC" },
-        });
+
+        // get last entity in buffer, otherwise from DB
+        const cumulativeVolumeEntitiesInBuffer = (
+            entityBuffer.getBufferedEntities(
+                CumulativeVolume.name
+            ) as CumulativeVolume[]
+        ).filter((entity) => entity.type === type);
+
+        // find CumulativeVolume entities of specific type in buffer first
+        const maybeLatestEntityInBuffer = getLatestCumulativeVolume(
+            cumulativeVolumeEntitiesInBuffer,
+            timestamp
+        );
+        const existingCumulativeVolume =
+            maybeLatestEntityInBuffer ||
+            (await store.get(CumulativeVolume, {
+                where: {
+                    tillTimestamp: LessThanOrEqual(timestamp),
+                    type: type,
+                },
+                order: { tillTimestamp: "DESC" },
+            }));
         let newCumulativeVolume = new CumulativeVolume({
             id,
             type,
@@ -46,17 +135,21 @@ export async function updateCumulativeVolumesForCurrencyPair(
     type: VolumeType,
     amount: bigint,
     timestamp: Date,
-    item: EventItem,
     collateralCurrency: Currency,
-    wrappedCurrency: Currency
+    wrappedCurrency: Currency,
+    entityBuffer: EntityBuffer
 ): Promise<CumulativeVolumePerCurrencyPair> {
-    const currencyPairId = `${type.toString()}-${
-        item.event.id
-    }-${collateralCurrency?.toString()}-${wrappedCurrency?.toString()}`;
-    const existingValueInBlock = await store.get(
-        CumulativeVolumePerCurrencyPair,
-        currencyPairId
-    );
+    const currencyPairId = `${type.toString()}-${timestamp
+        .getTime()
+        .toString()}-${collateralCurrency?.toString()}-${wrappedCurrency?.toString()}`;
+
+    // find by id if it exists in either entity buffer or database
+    const existingValueInBlock =
+        (entityBuffer.getBufferedEntityBy(
+            CumulativeVolumePerCurrencyPair.name,
+            currencyPairId
+        ) as CumulativeVolumePerCurrencyPair) ||
+        (await store.get(CumulativeVolumePerCurrencyPair, currencyPairId));
 
     if (existingValueInBlock !== undefined) {
         // new event in same block, update total
@@ -64,7 +157,23 @@ export async function updateCumulativeVolumesForCurrencyPair(
         return existingValueInBlock;
     } else {
         // new event in new block, insert new entity
+
+        // find CumulativeVolumePerCurrencyPair entities of specific type in buffer first
+        const cumulativeEntitiesInBuffer = (
+            entityBuffer.getBufferedEntities(
+                CumulativeVolumePerCurrencyPair.name
+            ) as CumulativeVolumePerCurrencyPair[]
+        ).filter((entity) => entity.type === type);
+
+        // get last cumulative amount in buffer, otherwise from DB
+        const maybeLatestAmountInBuffer = getLatestCurrencyPairCumulativeVolume(
+            cumulativeEntitiesInBuffer,
+            timestamp,
+            collateralCurrency,
+            wrappedCurrency
+        )?.amount;
         const existingCumulativeVolumeForCollateral =
+            maybeLatestAmountInBuffer ||
             (
                 await store.get(CumulativeVolumePerCurrencyPair, {
                     where: {
@@ -75,7 +184,8 @@ export async function updateCumulativeVolumesForCurrencyPair(
                     },
                     order: { tillTimestamp: "DESC" },
                 })
-            )?.amount || 0n;
+            )?.amount ||
+            0n;
         let cumulativeVolumeForCollateral = new CumulativeVolumePerCurrencyPair(
             {
                 id: currencyPairId,
