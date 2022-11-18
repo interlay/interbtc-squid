@@ -29,7 +29,7 @@ Please check the Interlay GraphQL API docs for currently deployed versions of sq
 
 ## Important Notes
 
-This project is built on [squid]. For development work, please refer to the [subsquid docs](https://docs.subsquid.io/overview/).
+For development work and questions around squid development, please refer to the [subsquid docs](https://docs.subsquid.io/overview/).
 
 The following files are required for pre-v14 chains (**do not edit**):
 - `indexer/types.json`
