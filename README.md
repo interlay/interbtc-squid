@@ -1,5 +1,26 @@
-# Interbtc Squid
-Squid project that indexes interBTC chains (testnet, Kintsugi, and Interlay networks).
+# interBTC Squid
+
+Squid project that indexes interBTC chains (testnet, Kintsugi, and Interlay networks). Built with [squid](https://github.com/subsquid/squid).
+
+## Overview
+
+### High Level
+
+![image](https://user-images.githubusercontent.com/14966470/202604252-d6cab206-1553-4789-bc37-851ad7943c10.png)
+
+### Lower Level
+
+1. The **archive** crawls chain and collects block data (incl. events and extrinsics).
+2. The **gateway** makes this data available through a fast GraphQL endpoint. The gateway is accessible online, e.g., for diagnostics or easy access to raw block data.
+3. The **processor** ingests this raw data and runs a number of user-defined mapping functions.
+4. These mappings ingest parachain events and save user-defined entities. For example: `Issue`, or `IssueCancellation`, or `OracleUpdate`
+5. GraphQL node then makes these entities available to be consumed in front-end.
+
+![image](https://user-images.githubusercontent.com/14966470/202604314-4b4c93f6-cb24-4deb-91dd-fefc2f73e063.png)
+
+### Deployed squid instances
+
+Please check the Interlay GraphQL API docs for currently deployed versions of squid: https://docs.interlay.io/#/developers/api?id=graphql-apis
 
 ## Prerequisites
 
@@ -7,6 +28,8 @@ Squid project that indexes interBTC chains (testnet, Kintsugi, and Interlay netw
 * Docker
 
 ## Important Notes
+
+This project is built on [squid]. For development work, please refer to the [subsquid docs](https://docs.subsquid.io/overview/).
 
 The following files are required for pre-v14 chains (**do not edit**):
 - `indexer/types.json`
@@ -17,6 +40,7 @@ The `distributable` files should be re-generated with `gen:distributables` (**do
 ## Development
 
 ### Quick bootstrap
+
 ```bash
 yarn install
 yarn build
@@ -59,6 +83,7 @@ Note the query-node doesn't need to be restarted, as it is stateless.
 The mappings also use the `Debug` package, whose output can be enabled by passing the `DEBUG` variable. E.g. `DEBUG="*"` will enable all debug output, or `DEBUG="interbtc-mappings:issue"` will enable printouts only from the issue event mappings (in `src/mappings/event/issue.ts`).
 
 ### Workflow - connecting to a specific chain
+
 The processor processes events from a specific parachain. The `.env` file controls which URLs the processor uses for the archive node/indexer, and for the parachain RPC. Both should correspond to the same chain, and whichever these are set to will be the chain used for processing.
 
 Note that the typings and metadata should match the currently used chain. See [this section](#workflow---updating-chain-metadata) below for more info on that.
@@ -68,6 +93,7 @@ Additionally, the `SS58_CODEC` variable should be set to `interlay` for Interlay
 `PROCESS_FROM=540000` should be set for Kintsugi, but can be left at 0 for other nodes. It can also be set to whatever value desired for development - but be wary of dependence on historic events, e.g. IssueRequest events will fail to process if they're made against a `vault` whose `RegisterVault` event has not been processed.
 
 ### Workflow - updating chain metadata
+
 Squid auto-generates types from parachain metadata. This is a two-step process:
  1. Dump ("explore") the metadata versions. This is achieved using `yarn gen:explore` commands.
  2. Use the metadata json to generated Typescript definition files. This is done using `yarn gen:types` commands.
@@ -85,6 +111,7 @@ However, until the abstraction is implemented, you will need to switch between b
 Currently package.json defines `gen:explore` and `gen:types` commands for Kintsugi and testnet. To generate metadata against a different network (e.g. to add an Interlay branch, or to develop against a local chain) simply copy the format and change the URLs and filenames involved.
 
 ### Workflow - updating the SQL schema
+
 The GraphQL entities are defined in `schema.graphql`. When the schema is changed:
  1. Ensure your DB is up to date (e.g. you recently ran `yarn db:reset` or `yarn db:migrate`)
  2. Run `yarn db:create-migration`, and enter a name for the migration. This will auto-generate it.
