@@ -9,7 +9,7 @@
         "build": "rm -rf lib && tsc",
         "gen:json": "node indexer/generateTypes.js",
         "gen:explore:kintsugi": "squid-substrate-metadata-explorer --chain wss://api-kusama.interlay.io/parachain --archive https://kintsugi.archive.subsquid.io/graphql --out indexer/kintsugi.chainVersions.jsonl",
-        "gen:explore:testnet": "squid-substrate-metadata-explorer --chain wss://api-testnet.interlay.io/parachain --archive https://api-testnet.interlay.io/gateway-graphql/v1/graphql --out indexer/testnet.chainVersions.json",
+        "gen:explore:testnet": "squid-substrate-metadata-explorer --chain wss://api-testnet.interlay.io/parachain --archive https://api-testnet.interlay.io/gateway-graphql/graphql  --out indexer/testnet.chainVersions.jsonl",
         "gen:types:kintsugi": "squid-substrate-typegen kintsugi.typegen.json",
         "gen:types:testnet": "squid-substrate-typegen testnet.typegen.json",
         "gen:code": "squid-typeorm-codegen",
