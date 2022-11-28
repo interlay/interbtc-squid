@@ -13,9 +13,12 @@ export async function updateActiveBlock(
 ): Promise<void> {
     const rawEvent = new SecurityUpdateActiveBlockEvent(ctx, item.event);
     let e;
-    if (!rawEvent.isV4)
-        ctx.log.warn(`UNKOWN EVENT VERSION: Security.updateActiveBlock`);
-    e = rawEvent.asV4;
+    if (rawEvent.isV4) e = rawEvent.asV4;
+    else {
+        e = rawEvent.asV1019000;
+        if (!rawEvent.isV1019000)
+            ctx.log.warn(`UNKOWN EVENT VERSION: Security.updateActiveBlock`);
+    }
 
     const newHeight = new Height({
         id: block.height.toString(),

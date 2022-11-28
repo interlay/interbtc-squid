@@ -52,9 +52,14 @@ export async function requestRedeem(
         vault = await getVaultIdLegacy(ctx.store, e.vaultId);
         vaultIdString = encodeLegacyVaultId(e.vaultId);
     } else {
-        if (!rawEvent.isV17)
-            ctx.log.warn(`UNKOWN EVENT VERSION: Redeem.requestRedeem`);
-        e = rawEvent.asV17;
+        if (rawEvent.isV17) e = rawEvent.asV17;
+        else if (rawEvent.isV1019000) e = rawEvent.asV1019000;
+        else {
+            e = rawEvent.asV1020000;
+            if (!rawEvent.isV1020000)
+                ctx.log.warn(`UNKOWN EVENT VERSION: Redeem.requestRedeem`);
+        }
+
         vault = await getVaultId(ctx.store, e.vaultId);
         vaultIdString = encodeVaultId(e.vaultId);
     }
@@ -129,9 +134,14 @@ export async function executeRedeem(
         );
         wrappedCurrency = legacyCurrencyId.encode(e.vaultId.currencies.wrapped);
     } else {
-        if (!rawEvent.isV17)
-            ctx.log.warn(`UNKOWN EVENT VERSION: Redeem.executeRedeem`);
-        e = rawEvent.asV17;
+        if (rawEvent.isV17) e = rawEvent.asV17;
+        else if (rawEvent.isV1019000) e = rawEvent.asV1019000;
+        else {
+            e = rawEvent.asV1020000;
+            if (!rawEvent.isV1020000)
+                ctx.log.warn(`UNKOWN EVENT VERSION: Redeem.executeRedeem`);
+        }
+
         collateralCurrency = currencyId.encode(e.vaultId.currencies.collateral);
         wrappedCurrency = currencyId.encode(e.vaultId.currencies.wrapped);
     }
@@ -192,9 +202,11 @@ export async function cancelRedeem(
     if (rawEvent.isV6) e = rawEvent.asV6;
     else if (rawEvent.isV15) e = rawEvent.asV15;
     else if (rawEvent.isV17) e = rawEvent.asV17;
+    else if (rawEvent.isV1019000) e = rawEvent.asV1019000;
     else {
-        ctx.log.warn(`UNKOWN EVENT VERSION: Redeem.cancelRedeem`);
-        e = rawEvent.asV17;
+        e = rawEvent.asV1020000;
+        if (!rawEvent.isV1020000)
+            ctx.log.warn(`UNKOWN EVENT VERSION: Redeem.cancelRedeem`);
     }
 
     const redeem = await ctx.store.get(Redeem, {
@@ -232,9 +244,12 @@ export async function redeemPeriodChange(
 ): Promise<void> {
     const rawEvent = new RedeemRedeemPeriodChangeEvent(ctx, item.event);
     let e;
-    if (!rawEvent.isV16)
-        ctx.log.warn(`UNKOWN EVENT VERSION: redeem.redeemPeriodChange`);
-    e = rawEvent.asV16;
+    if (rawEvent.isV16) e = rawEvent.asV16;
+    else {
+        e = rawEvent.asV1019000;
+        if (!rawEvent.isV1019000)
+            ctx.log.warn(`UNKOWN EVENT VERSION: redeem.redeemPeriodChange`);
+    }
 
     const height = await blockToHeight(ctx, block.height, "RedeemPeriodChange");
 

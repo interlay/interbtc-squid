@@ -1,11 +1,9 @@
 import { Entity, Store } from "@subsquid/typeorm-store";
-import {
-    Height,
-    Issue, Redeem, Vault
-} from "../model";
+import { Height, Issue, Redeem, Vault } from "../model";
 import { VaultId as VaultIdV15 } from "../types/v15";
 import { VaultId as VaultIdV17 } from "../types/v17";
 import { VaultId as VaultIdV6 } from "../types/v6";
+import { VaultId as VaultIdV1020000 } from "../types/v1020000";
 import { encodeLegacyVaultId, encodeVaultId } from "./encoding";
 
 export type eventArgs = {
@@ -26,7 +24,7 @@ export async function getVaultIdLegacy(
     });
 }
 
-export async function getVaultId(store: Store, vaultId: VaultIdV17) {
+export async function getVaultId(store: Store, vaultId: VaultIdV1020000) {
     return store.get(Vault, {
         where: { id: encodeVaultId(vaultId) },
     });
@@ -51,4 +49,3 @@ export async function isRequestExpired(
         requestHeight.active + period < latestActiveBlock
     );
 }
-

@@ -22,10 +22,12 @@ export async function feedValues(
     }
     if (rawEvent.isV6) e = rawEvent.asV6;
     else if (rawEvent.isV15) e = rawEvent.asV15;
+    else if (rawEvent.isV17) e = rawEvent.asV17;
+    else if (rawEvent.isV1019000) e = rawEvent.asV1019000;
     else {
-        if (!rawEvent.isV17)
+        e = rawEvent.asV1020000;
+        if (!rawEvent.isV1020000)
             ctx.log.warn(`UNKOWN EVENT VERSION: Oracle.feedValues`);
-        e = rawEvent.asV17;
     }
     for (const [key, value] of e.values) {
         const height = await blockToHeight(ctx, block.height, "FeedValues");

@@ -6,6 +6,7 @@ import { CurrencyId_Token as CurrencyId_Token_V6 } from "../../types/v6";
 import { CurrencyId_Token as CurrencyId_Token_V10 } from "../../types/v10";
 import { CurrencyId_Token as CurrencyId_Token_V15 } from "../../types/v15";
 import { CurrencyId as CurrencyId_V17 } from "../../types/v17";
+import { CurrencyId as CurrencyId_V1020000 } from "../../types/v1020000";
 import { address, currencyId, legacyCurrencyId } from "../encoding";
 import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
@@ -24,7 +25,8 @@ export async function tokensTransfer(
         | CurrencyId_Token_V6
         | CurrencyId_Token_V10
         | CurrencyId_Token_V15
-        | CurrencyId_V17;
+        | CurrencyId_V17
+        | CurrencyId_V1020000;
     let currency: Currency;
     if (rawEvent.isV6 || rawEvent.isV10 || rawEvent.isV15) {
         if (rawEvent.isV6) {
@@ -36,11 +38,27 @@ export async function tokensTransfer(
         }
         currency = legacyCurrencyId.encode(eventCcyId);
     } else {
-        if (!rawEvent.isV17) {
+        if (rawEvent.isV17)
+            ({ currencyId: eventCcyId, from, to, amount } = rawEvent.asV17);
+        else if (rawEvent.isV1019000)
+            ({
+                currencyId: eventCcyId,
+                from,
+                to,
+                amount,
+            } = rawEvent.asV1019000);
+        else if (rawEvent.isV1020000)
+            ({
+                currencyId: eventCcyId,
+                from,
+                to,
+                amount,
+            } = rawEvent.asV1020000);
+        else {
             ctx.log.warn(`UNKOWN EVENT VERSION: tokens.transfer`);
             return;
         }
-        ({ currencyId: eventCcyId, from, to, amount } = rawEvent.asV17);
+
         currency = currencyId.encode(eventCcyId);
     }
 

@@ -1,11 +1,16 @@
 import * as ss58 from "@subsquid/ss58";
 import { Network } from "bitcoinjs-lib";
-import { Token, NativeToken, ForeignAsset, Currency } from "../model";
-
 import {
-    CurrencyId as CurrencyId_V17,
-    VaultId as VaultIdV17,
-} from "../types/v17";
+    Token,
+    NativeToken,
+    ForeignAsset,
+    Currency,
+    LendToken,
+} from "../model";
+import {
+    VaultId as VaultIdV1020000,
+    CurrencyId as CurrencyId_V1020000,
+} from "../types/v1020000";
 import {
     Address as AddressV15,
     CurrencyId_Token as CurrencyId_TokenV15,
@@ -51,8 +56,12 @@ export const legacyCurrencyId = {
 };
 
 export const currencyId = {
-    encode: (asset: CurrencyId_V17): Currency => {
-        if (asset.__kind === "ForeignAsset") {
+    encode: (asset: CurrencyId_V1020000): Currency => {
+        if (asset.__kind === "LendToken") {
+            return new LendToken({
+                lendTokenId: asset.value,
+            });
+        } else if (asset.__kind === "ForeignAsset") {
             // TODO: add asset-registry event decoding for more metadata?
             return new ForeignAsset({
                 asset: asset.value,
@@ -66,7 +75,10 @@ export const currencyId = {
 };
 
 function currencyToString(currency: Currency): string {
-    if (currency.isTypeOf === "ForeignAsset") {
+    if (currency.isTypeOf === "LendToken") {
+        // TODO: decide how we want to distinguish lend tokens from foreign assets
+        return `lendToken_${currency.lendTokenId.toString()}`;
+    } else if (currency.isTypeOf === "ForeignAsset") {
         return currency.asset.toString();
     } else {
         return currency.token.toString();
@@ -82,7 +94,7 @@ export function encodeLegacyVaultId(vaultId: VaultIdV6 | VaultIdV15) {
     )}`;
 }
 
-export function encodeVaultId(vaultId: VaultIdV17) {
+export function encodeVaultId(vaultId: VaultIdV1020000) {
     const addressStr = address.interlay.encode(vaultId.accountId).toString();
     const wrapped = currencyId.encode(vaultId.currencies.wrapped);
     const collateral = currencyId.encode(vaultId.currencies.collateral);
