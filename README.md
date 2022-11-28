@@ -26,6 +26,7 @@ Please check the Interlay GraphQL API docs for currently deployed versions of sq
 
 * Node v16x
 * Docker
+* Docker compose (for development)
 
 ## Important Notes
 
@@ -42,14 +43,15 @@ The `distributable` files should be re-generated with `gen:distributables` (**do
 ### Quick bootstrap
 
 ```bash
+# Ensure you are on node 16
+nvm use 16
+
+# Install and build
 yarn install
 yarn build
 
 # Start a postgres instance
-docker-compose up db # add optional -d flag to detach from terminal
-
-# Initialize the database
-yarn db:create
+docker-compose up db -d # add optional -d flag to detach from terminal
 
 # Apply the project's migrations
 yarn db:migrate
@@ -65,20 +67,23 @@ yarn query-node:start
 Access the GraphQL IDE here: http://localhost:4000/graphql
 
 ### Workflow - developing the processor
-When making changes to the processor (e.g. adding a new event), you may wish to reset the database to restart processing the chain from scratch. To do so:
 
-```
-yarn db:reset
+When making changes to the processor (e.g. adding a new event), you may wish to reset the database to restart processing the chain from scratch.
+
+```bash
+# -v removes named volumes declared in the volumes section of the Compose file and anonymous volumes attached to containers.
+docker-compose down -v
 ```
 
 Then you can
 
-```
+```bash
+docker-compose up db -d
 yarn build
 yarn processor:start
 ```
 
-Note the query-node doesn't need to be restarted, as it is stateless.
+The query-node doesn't need to be restarted as it is stateless.
 
 The mappings also use the `Debug` package, whose output can be enabled by passing the `DEBUG` variable. E.g. `DEBUG="*"` will enable all debug output, or `DEBUG="interbtc-mappings:issue"` will enable printouts only from the issue event mappings (in `src/mappings/event/issue.ts`).
 
@@ -94,32 +99,65 @@ Additionally, the `SS58_CODEC` variable should be set to `interlay` for Interlay
 
 ### Workflow - updating chain metadata
 
-Squid auto-generates types from parachain metadata. This is a two-step process:
- 1. Dump ("explore") the metadata versions. This is achieved using `yarn gen:explore` commands.
- 2. Use the metadata json to generated Typescript definition files. This is done using `yarn gen:types` commands.
+Squid auto-generates types from parachain metadata.
+
+This is a two-step process:
+
+1. Dump ("explore") the metadata versions.
+2. Use the metadata json to generated Typescript definition files.
 
 This needs to be done every time a network has a runtime upgrade, which will likely create a new metadata version and may (or may not) also alter the types. If the types are altered, mappings in the processor will also need to be updated for the new types.
 
-Because different networks will have different metadata histories, currently developing against different networks requires regenerating metadata. For deployment, therefore, parallel branches are maintained. Currently:
- * `master` uses Kintsugi metadata (and is deployed on Kintsugi and Interlay, which match)
- * `testnet` uses kint-testnet metadata (and is deployed on kintnet)
+#### Deployment Branches
+
+Because different networks will have different metadata histories, currently developing against different networks requires regenerating metadata.
+
+For deployment, therefore, parallel branches are maintained. Currently:
+
+* `master` uses Kintsugi metadata (and is deployed on Kintsugi and Interlay, which match)
+* `testnet` uses kint-testnet metadata (and is deployed on kintnet)
 
 This may change as a) Interlay diverges, and a new branch is created for it; and b) even decoding is abstracted and the need for separate branches is obviated.
 
 However, until the abstraction is implemented, you will need to switch between branches and metadatas to develop on different networks.
 
-Currently package.json defines `gen:explore` and `gen:types` commands for Kintsugi and testnet. To generate metadata against a different network (e.g. to add an Interlay branch, or to develop against a local chain) simply copy the format and change the URLs and filenames involved.
+#### Interlay and Kintsugi
+
+Updating Interlay:
+
+```bash
+yarn gen:explore:interlay
+yarn gen:types:interlay
+```
+
+Updating Kintsugi:
+
+```bash
+yarn gen:explore:kintsugi
+yarn gen:types:kintsugi
+```
+
+#### Testnets
+
+Assumes that Interlay and Kintsugi testnets are always at the same versions.
+
+```bash
+yarn gen:explore:testnet
+yarn gen:types:testnet
+```
 
 ### Workflow - updating the SQL schema
 
 The GraphQL entities are defined in `schema.graphql`. When the schema is changed:
- 1. Ensure your DB is up to date (e.g. you recently ran `yarn db:reset` or `yarn db:migrate`)
- 2. Run `yarn db:create-migration`, and enter a name for the migration. This will auto-generate it.
- 3. Run `yarn db:migrate` to apply your new migration. (Or `yarn db:reset` if you wish to restart processing on the newly migrated DB, which is often a new idea - `db:reset` automatically applies runs `migrate` as well.)
- 4. Run `yarn gen:code` to regenerate Typescript types for the GraphQL entities.
- 5. You can now develop the mappings against the new entities. Run `yarn build` as usual to proceed.
+
+1. Ensure your DB is up to date (e.g. you recently ran `yarn db:migrate`)
+2. Run `yarn db:create-migration`, and enter a name for the migration. This will auto-generate it.
+3. Run `yarn db:migrate` to apply your new migration. (Or `yarn db:reset` if you wish to restart processing on the newly migrated DB, which is often a new idea - `db:reset` automatically applies runs `migrate` as well.)
+4. Run `yarn gen:code` to regenerate Typescript types for the GraphQL entities.
+5. You can now develop the mappings against the new entities. Run `yarn build` as usual to proceed.
 
 ### Workflow - connecting to a local chain
+
 Given the metadata mismatches described above, it is often a good idea to run directly against existing chains, but for heavy development it can be easier to use a local chain which gives you full control over the events that happen and avoids the need to process thousands of superfluous blocks with no interesting data.
 
 For this, a docker-compose file is provided under `indexer`. As it's not frequently maintained, first edit it and ensure the components are the correct up-to-date version, including `interbtc`, `oracle`(s), `faucet` and `vault`. Then you may start it, which will run a local chain instance as well as the Squid indexer/archive for it. The ports for the various databases should be pre-configured to work.
@@ -127,3 +165,17 @@ For this, a docker-compose file is provided under `indexer`. As it's not frequen
 Then simply switch the URLs in .env to your local archive/indexer and chain (`http://localhost:4010/v1/graphql` and `ws://localhost:9944`, normally). You can then proceed with development as normal - `docker-compose up` in the root to bring up the processor's database, `yarn build` and `yarn processor:start`. You may need to regenerate the metadata.
 
 Once development is completed, always double-check that it works with metadata from the actual live chains.
+
+## Help
+
+### Docker
+
+You can hard-reset the docker dependency setup with the following commands:
+
+```bash
+# DANGER ZONE: This will reset ALL docker containers on your machine.
+docker kill $(docker ps -q)
+docker rm $(docker ps -a -q)
+docker rmi $(docker images -q)
+docker volume rm $(docker volume ls -q)
+```
