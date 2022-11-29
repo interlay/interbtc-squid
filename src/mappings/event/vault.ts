@@ -91,7 +91,7 @@ export async function increaseLockedCollateral(
         collateralToken = legacyCurrencyId.encode(e.currencyPair.collateral);
     } else {
         if (rawEvent.isV17) e = rawEvent.asV17;
-        else if (rawEvent.asV1019000) e = rawEvent.asV1019000;
+        else if (rawEvent.isV1019000) e = rawEvent.asV1019000;
         else {
             e = rawEvent.asV1020000;
             if (!rawEvent.isV1020000)
