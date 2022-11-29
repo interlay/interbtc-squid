@@ -1,28 +1,29 @@
 {
     "outDir": "src/types",
-    "chainVersions": "indexer/testnet.chainVersions.json",
+    "specVersions": "indexer/testnet.chainVersions.jsonl",
     "typesBundle": "indexer/typesBundle.json",
     "events": [
-        "btcRelay.StoreMainChainHeader",
-        "escrow.Deposit",
-        "escrow.Withdraw",
-        "issue.CancelIssue",
-        "issue.ExecuteIssue",
-        "issue.IssuePeriodChange",
-        "issue.RequestIssue",
-        "oracle.FeedValues",
-        "redeem.CancelRedeem",
-        "redeem.ExecuteRedeem",
-        "redeem.RequestRedeem",
-        "redeem.RedeemPeriodChange",
-        "security.UpdateActiveBlock",
-        "tokens.Transfer",
-        "vaultRegistry.RegisterVault",
-        "vaultRegistry.IncreaseLockedCollateral",
-        "vaultRegistry.DecreaseLockedCollateral"
+        "BTCRelay.StoreMainChainHeader",
+        "Escrow.Deposit",
+        "Escrow.Withdraw",
+        "Issue.CancelIssue",
+        "Issue.ExecuteIssue",
+        "Issue.IssuePeriodChange",
+        "Issue.RequestIssue",
+        "Oracle.FeedValues",
+        "Redeem.CancelRedeem",
+        "Redeem.ExecuteRedeem",
+        "Redeem.RequestRedeem",
+        "Redeem.RedeemPeriodChange",
+        "Security.UpdateActiveBlock",
+        "Tokens.Transfer",
+        "VaultRegistry.RegisterVault",
+        "VaultRegistry.IncreaseLockedCollateral",
+        "VaultRegistry.DecreaseLockedCollateral"
     ],
     "calls": [
-        "system.SetStorage"
+        "BTCRelay.store_block_header",
+        "System.set_storage"
     ],
     "storage": [
         "Issue.IssuePeriod",

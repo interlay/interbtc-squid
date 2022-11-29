@@ -7,6 +7,8 @@ import * as v6 from './v6'
 import * as v10 from './v10'
 import * as v15 from './v15'
 import * as v17 from './v17'
+import * as v1019000 from './v1019000'
+import * as v1020000 from './v1020000'
 
 export class BtcRelayStoreMainChainHeaderEvent {
   private readonly _chain: Chain
@@ -57,6 +59,15 @@ export class BtcRelayStoreMainChainHeaderEvent {
 
   get asV4(): {blockHeight: number, blockHash: v4.H256Le, relayerId: Uint8Array} {
     assert(this.isV4)
+    return this._chain.decodeEvent(this.event);
+  }
+
+  get isV1019000(): boolean {
+    return this._chain.getEventHash('BTCRelay.StoreMainChainHeader') === '3a178b8aa8fda895164a8d649ecb2cd8dfbc42daa449008b2b703520d2768e74'
+  }
+
+  get asV1019000(): {blockHeight: number, blockHash: v1019000.H256Le, relayerId: Uint8Array} {
+    assert(this.isV1019000)
     return this._chain.decodeEvent(this.event)
   }
 }
@@ -82,6 +93,15 @@ export class EscrowDepositEvent {
     assert(this.isV6)
     return this._chain.decodeEvent(this.event)
   }
+
+  get isV1019000(): boolean {
+    return this._chain.getEventHash('Escrow.Deposit') === 'cffee376c25258e64c55b292b2ef7fd293b8dae2b1bded46ae86117b6bef1e06'
+  }
+
+  get asV1019000(): {who: Uint8Array, amount: bigint, unlockHeight: number} {
+    assert(this.isV1019000)
+    return this._chain.decodeEvent(this.event)
+  }
 }
 
 export class EscrowWithdrawEvent {
@@ -103,6 +123,15 @@ export class EscrowWithdrawEvent {
 
   get asV6(): {who: Uint8Array, amount: bigint} {
     assert(this.isV6)
+    return this._chain.decodeEvent(this.event)
+  }
+
+  get isV1019000(): boolean {
+    return this._chain.getEventHash('Escrow.Withdraw') === 'e84a34a6a3d577b31f16557bd304282f4fe4cbd7115377f4687635dc48e52ba5'
+  }
+
+  get asV1019000(): {who: Uint8Array, amount: bigint} {
+    assert(this.isV1019000)
     return this._chain.decodeEvent(this.event)
   }
 }
@@ -135,6 +164,15 @@ export class IssueCancelIssueEvent {
 
   get asV4(): {issueId: Uint8Array, requester: Uint8Array, griefingCollateral: bigint} {
     assert(this.isV4)
+    return this._chain.decodeEvent(this.event)
+  }
+
+  get isV1019000(): boolean {
+    return this._chain.getEventHash('Issue.CancelIssue') === 'dd10ea1f015728a5572b75e327aaa9f9728439faeebf53fdb44dfd30dab17474'
+  }
+
+  get asV1019000(): {issueId: Uint8Array, requester: Uint8Array, griefingCollateral: bigint} {
+    assert(this.isV1019000)
     return this._chain.decodeEvent(this.event)
   }
 }
@@ -205,6 +243,24 @@ export class IssueExecuteIssueEvent {
     assert(this.isV17)
     return this._chain.decodeEvent(this.event)
   }
+
+  get isV1019000(): boolean {
+    return this._chain.getEventHash('Issue.ExecuteIssue') === '566276893c9ed457216387ebf43f6abe618732a1c66cf1fce9ec1e6549b3e23a'
+  }
+
+  get asV1019000(): {issueId: Uint8Array, requester: Uint8Array, vaultId: v1019000.VaultId, amount: bigint, fee: bigint} {
+    assert(this.isV1019000)
+    return this._chain.decodeEvent(this.event)
+  }
+
+  get isV1020000(): boolean {
+    return this._chain.getEventHash('Issue.ExecuteIssue') === 'bae508274af5c9fc4bd05965c69829482ed886550bb4ffd798a9f91033ce8c9e'
+  }
+
+  get asV1020000(): {issueId: Uint8Array, requester: Uint8Array, vaultId: v1020000.VaultId, amount: bigint, fee: bigint} {
+    assert(this.isV1020000)
+    return this._chain.decodeEvent(this.event)
+  }
 }
 
 export class IssueIssuePeriodChangeEvent {
@@ -226,6 +282,15 @@ export class IssueIssuePeriodChangeEvent {
 
   get asV16(): {period: number} {
     assert(this.isV16)
+    return this._chain.decodeEvent(this.event)
+  }
+
+  get isV1019000(): boolean {
+    return this._chain.getEventHash('Issue.IssuePeriodChange') === 'e4e1ffe21a95b5f4c933e4d40a2443e9cc2637c056d780de97e2e7ad5f6a7f59'
+  }
+
+  get asV1019000(): {period: number} {
+    assert(this.isV1019000)
     return this._chain.decodeEvent(this.event)
   }
 }
@@ -294,6 +359,24 @@ export class IssueRequestIssueEvent {
 
   get asV17(): {issueId: Uint8Array, requester: Uint8Array, amount: bigint, fee: bigint, griefingCollateral: bigint, vaultId: v17.VaultId, vaultAddress: v17.Address, vaultPublicKey: Uint8Array} {
     assert(this.isV17)
+    return this._chain.decodeEvent(this.event)
+  }
+
+  get isV1019000(): boolean {
+    return this._chain.getEventHash('Issue.RequestIssue') === '769ffeb97beaff8fe740f3751c457b8fc376b93ebf99b41c29772f70804e3b37'
+  }
+
+  get asV1019000(): {issueId: Uint8Array, requester: Uint8Array, amount: bigint, fee: bigint, griefingCollateral: bigint, vaultId: v1019000.VaultId, vaultAddress: v1019000.Address, vaultPublicKey: Uint8Array} {
+    assert(this.isV1019000)
+    return this._chain.decodeEvent(this.event)
+  }
+
+  get isV1020000(): boolean {
+    return this._chain.getEventHash('Issue.RequestIssue') === 'dec8a3f27b7c40d26a4cb398193a1e9d6acd7b0d5297dd6cf8c276afd738d913'
+  }
+
+  get asV1020000(): {issueId: Uint8Array, requester: Uint8Array, amount: bigint, fee: bigint, griefingCollateral: bigint, vaultId: v1020000.VaultId, vaultAddress: v1020000.Address, vaultPublicKey: Uint8Array} {
+    assert(this.isV1020000)
     return this._chain.decodeEvent(this.event)
   }
 }
@@ -400,6 +483,36 @@ export class OracleFeedValuesEvent {
     assert(this.isV17)
     return this._chain.decodeEvent(this.event)
   }
+
+  /**
+   * Event emitted when exchange rate is set
+   */
+  get isV1019000(): boolean {
+    return this._chain.getEventHash('Oracle.FeedValues') === 'a69282ccd8a5eae74ab42e55b767eebed71035da539edf78068263113d72072e'
+  }
+
+  /**
+   * Event emitted when exchange rate is set
+   */
+  get asV1019000(): {oracleId: Uint8Array, values: [v1019000.Key, bigint][]} {
+    assert(this.isV1019000)
+    return this._chain.decodeEvent(this.event)
+  }
+
+  /**
+   * Event emitted when exchange rate is set
+   */
+  get isV1020000(): boolean {
+    return this._chain.getEventHash('Oracle.FeedValues') === '17b0897230c0b9428d2399400060f79777b074339f6fc47ee85a179d3bdf245d'
+  }
+
+  /**
+   * Event emitted when exchange rate is set
+   */
+  get asV1020000(): {oracleId: Uint8Array, values: [v1020000.Key, bigint][]} {
+    assert(this.isV1020000)
+    return this._chain.decodeEvent(this.event)
+  }
 }
 
 export class RedeemCancelRedeemEvent {
@@ -466,6 +579,24 @@ export class RedeemCancelRedeemEvent {
 
   get asV17(): {redeemId: Uint8Array, redeemer: Uint8Array, vaultId: v17.VaultId, slashedAmount: bigint, status: v17.RedeemRequestStatus} {
     assert(this.isV17)
+    return this._chain.decodeEvent(this.event)
+  }
+
+  get isV1019000(): boolean {
+    return this._chain.getEventHash('Redeem.CancelRedeem') === '046a69f6b3ee0b3f2ab566a61e763c659684c61891baeb681e8bbd95a6268e50'
+  }
+
+  get asV1019000(): {redeemId: Uint8Array, redeemer: Uint8Array, vaultId: v1019000.VaultId, slashedAmount: bigint, status: v1019000.RedeemRequestStatus} {
+    assert(this.isV1019000)
+    return this._chain.decodeEvent(this.event)
+  }
+
+  get isV1020000(): boolean {
+    return this._chain.getEventHash('Redeem.CancelRedeem') === 'e588a55546b2f967753acf659e32c423adfbd99240f3f5fa6e76870f0bb16fe1'
+  }
+
+  get asV1020000(): {redeemId: Uint8Array, redeemer: Uint8Array, vaultId: v1020000.VaultId, slashedAmount: bigint, status: v1020000.RedeemRequestStatus} {
+    assert(this.isV1020000)
     return this._chain.decodeEvent(this.event)
   }
 }
@@ -536,6 +667,24 @@ export class RedeemExecuteRedeemEvent {
     assert(this.isV17)
     return this._chain.decodeEvent(this.event)
   }
+
+  get isV1019000(): boolean {
+    return this._chain.getEventHash('Redeem.ExecuteRedeem') === 'd63793fdce1f0d01145e4515a95523737b88c284bd133a8238d7707855f20a21'
+  }
+
+  get asV1019000(): {redeemId: Uint8Array, redeemer: Uint8Array, vaultId: v1019000.VaultId, amount: bigint, fee: bigint, transferFee: bigint} {
+    assert(this.isV1019000)
+    return this._chain.decodeEvent(this.event)
+  }
+
+  get isV1020000(): boolean {
+    return this._chain.getEventHash('Redeem.ExecuteRedeem') === '52d104143dd27fd30caca3096552668103193abf96c15c9ca745cbb177967bb1'
+  }
+
+  get asV1020000(): {redeemId: Uint8Array, redeemer: Uint8Array, vaultId: v1020000.VaultId, amount: bigint, fee: bigint, transferFee: bigint} {
+    assert(this.isV1020000)
+    return this._chain.decodeEvent(this.event)
+  }
 }
 
 export class RedeemRedeemPeriodChangeEvent {
@@ -557,6 +706,15 @@ export class RedeemRedeemPeriodChangeEvent {
 
   get asV16(): {period: number} {
     assert(this.isV16)
+    return this._chain.decodeEvent(this.event)
+  }
+
+  get isV1019000(): boolean {
+    return this._chain.getEventHash('Redeem.RedeemPeriodChange') === 'e4e1ffe21a95b5f4c933e4d40a2443e9cc2637c056d780de97e2e7ad5f6a7f59'
+  }
+
+  get asV1019000(): {period: number} {
+    assert(this.isV1019000)
     return this._chain.decodeEvent(this.event)
   }
 }
@@ -627,6 +785,24 @@ export class RedeemRequestRedeemEvent {
     assert(this.isV17)
     return this._chain.decodeEvent(this.event)
   }
+
+  get isV1019000(): boolean {
+    return this._chain.getEventHash('Redeem.RequestRedeem') === '90a5e843b2f541203e4741dc0f7e19b922501aae7a1358ea8926a4ab6207281a'
+  }
+
+  get asV1019000(): {redeemId: Uint8Array, redeemer: Uint8Array, vaultId: v1019000.VaultId, amount: bigint, fee: bigint, premium: bigint, btcAddress: v1019000.Address, transferFee: bigint} {
+    assert(this.isV1019000)
+    return this._chain.decodeEvent(this.event)
+  }
+
+  get isV1020000(): boolean {
+    return this._chain.getEventHash('Redeem.RequestRedeem') === 'b8fb34832c20f92a949ec91095756dec8bfba2d0bd2c4732fe3770cede05c39e'
+  }
+
+  get asV1020000(): {redeemId: Uint8Array, redeemer: Uint8Array, vaultId: v1020000.VaultId, amount: bigint, fee: bigint, premium: bigint, btcAddress: v1020000.Address, transferFee: bigint} {
+    assert(this.isV1020000)
+    return this._chain.decodeEvent(this.event)
+  }
 }
 
 export class SecurityUpdateActiveBlockEvent {
@@ -657,6 +833,15 @@ export class SecurityUpdateActiveBlockEvent {
 
   get asV4(): {blockNumber: number} {
     assert(this.isV4)
+    return this._chain.decodeEvent(this.event)
+  }
+
+  get isV1019000(): boolean {
+    return this._chain.getEventHash('Security.UpdateActiveBlock') === '7eefc4ef9a2f34cfee29738715aa72fe2a31ffd39b1d2a62f1cef547b70ed1fd'
+  }
+
+  get asV1019000(): {blockNumber: number} {
+    assert(this.isV1019000)
     return this._chain.decodeEvent(this.event)
   }
 }
@@ -748,6 +933,36 @@ export class TokensTransferEvent {
     assert(this.isV17)
     return this._chain.decodeEvent(this.event)
   }
+
+  /**
+   * Transfer succeeded.
+   */
+  get isV1019000(): boolean {
+    return this._chain.getEventHash('Tokens.Transfer') === '7e7dbd0d1749f3d1ce62a6cb731a143be6c8c24d291fdd7dc24892ff941ffe3b'
+  }
+
+  /**
+   * Transfer succeeded.
+   */
+  get asV1019000(): {currencyId: v1019000.CurrencyId, from: Uint8Array, to: Uint8Array, amount: bigint} {
+    assert(this.isV1019000)
+    return this._chain.decodeEvent(this.event)
+  }
+
+  /**
+   * Transfer succeeded.
+   */
+  get isV1020000(): boolean {
+    return this._chain.getEventHash('Tokens.Transfer') === '45de1d47a24087e8694b4f1809c3782f0c29a2ccc42887024b90a3398bbe8063'
+  }
+
+  /**
+   * Transfer succeeded.
+   */
+  get asV1020000(): {currencyId: v1020000.CurrencyId, from: Uint8Array, to: Uint8Array, amount: bigint} {
+    assert(this.isV1020000)
+    return this._chain.decodeEvent(this.event)
+  }
 }
 
 export class VaultRegistryDecreaseLockedCollateralEvent {
@@ -789,6 +1004,24 @@ export class VaultRegistryDecreaseLockedCollateralEvent {
     assert(this.isV17)
     return this._chain.decodeEvent(this.event)
   }
+
+  get isV1019000(): boolean {
+    return this._chain.getEventHash('VaultRegistry.DecreaseLockedCollateral') === '1b67d1d86e1332ee8bb03735b995c67676bbcedc0903eb4d04ca74c4d4a61280'
+  }
+
+  get asV1019000(): {currencyPair: v1019000.VaultCurrencyPair, delta: bigint, total: bigint} {
+    assert(this.isV1019000)
+    return this._chain.decodeEvent(this.event)
+  }
+
+  get isV1020000(): boolean {
+    return this._chain.getEventHash('VaultRegistry.DecreaseLockedCollateral') === '059d867cf19d28c1711a39fcd65519b4910b3e6856410c8a1413bc21251a16c4'
+  }
+
+  get asV1020000(): {currencyPair: v1020000.VaultCurrencyPair, delta: bigint, total: bigint} {
+    assert(this.isV1020000)
+    return this._chain.decodeEvent(this.event)
+  }
 }
 
 export class VaultRegistryIncreaseLockedCollateralEvent {
@@ -828,6 +1061,24 @@ export class VaultRegistryIncreaseLockedCollateralEvent {
 
   get asV17(): {currencyPair: v17.VaultCurrencyPair, delta: bigint, total: bigint} {
     assert(this.isV17)
+    return this._chain.decodeEvent(this.event)
+  }
+
+  get isV1019000(): boolean {
+    return this._chain.getEventHash('VaultRegistry.IncreaseLockedCollateral') === '1b67d1d86e1332ee8bb03735b995c67676bbcedc0903eb4d04ca74c4d4a61280'
+  }
+
+  get asV1019000(): {currencyPair: v1019000.VaultCurrencyPair, delta: bigint, total: bigint} {
+    assert(this.isV1019000)
+    return this._chain.decodeEvent(this.event)
+  }
+
+  get isV1020000(): boolean {
+    return this._chain.getEventHash('VaultRegistry.IncreaseLockedCollateral') === '059d867cf19d28c1711a39fcd65519b4910b3e6856410c8a1413bc21251a16c4'
+  }
+
+  get asV1020000(): {currencyPair: v1020000.VaultCurrencyPair, delta: bigint, total: bigint} {
+    assert(this.isV1020000)
     return this._chain.decodeEvent(this.event)
   }
 }
@@ -902,6 +1153,24 @@ export class VaultRegistryRegisterVaultEvent {
 
   get asV17(): {vaultId: v17.VaultId, collateral: bigint} {
     assert(this.isV17)
+    return this._chain.decodeEvent(this.event)
+  }
+
+  get isV1019000(): boolean {
+    return this._chain.getEventHash('VaultRegistry.RegisterVault') === 'f1a397e34fa2b35cf9f2efc2cd39d51e3a638ef819dd4554b3d4e5af26e5b4d1'
+  }
+
+  get asV1019000(): {vaultId: v1019000.VaultId, collateral: bigint} {
+    assert(this.isV1019000)
+    return this._chain.decodeEvent(this.event)
+  }
+
+  get isV1020000(): boolean {
+    return this._chain.getEventHash('VaultRegistry.RegisterVault') === 'fa7c86fb04aaa5d94e80d2e2c3fc81d189532849207835713092ecb8d16f7b06'
+  }
+
+  get asV1020000(): {vaultId: v1020000.VaultId, collateral: bigint} {
+    assert(this.isV1020000)
     return this._chain.decodeEvent(this.event)
   }
 }

@@ -14,9 +14,13 @@ export async function deposit(
 ): Promise<void> {
     const rawEvent = new EscrowDepositEvent(ctx, item.event);
     let e;
-    if (!rawEvent.isV6) ctx.log.warn(`UNKOWN EVENT VERSION: Escrow.deposit`);
-    e = rawEvent.asV6;
 
+    if (rawEvent.isV6) e = rawEvent.asV6;
+    else {
+        e = rawEvent.asV1019000;
+        if (!rawEvent.isV1019000)
+            ctx.log.warn(`UNKOWN EVENT VERSION: Escrow.deposit`);
+    }
     const timestamp = new Date(block.timestamp);
 
     if (e.amount === 0n) return;
@@ -40,8 +44,12 @@ export async function withdraw(
 ): Promise<void> {
     const rawEvent = new EscrowWithdrawEvent(ctx, item.event);
     let e;
-    if (!rawEvent.isV6) ctx.log.warn(`UNKNOWN EVENT VERSION: Escrow.withdraw`);
-    e = rawEvent.asV6;
+    if (rawEvent.isV6) e = rawEvent.asV6;
+    else {
+        e = rawEvent.asV1019000;
+        if (!rawEvent.isV1019000)
+            ctx.log.warn(`UNKNOWN EVENT VERSION: Escrow.withdraw`);
+    }
 
     const timestamp = new Date(block.timestamp);
 

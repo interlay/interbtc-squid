@@ -31,7 +31,11 @@ type ForeignAsset {
     asset: Int!
 }
 
-union Currency = NativeToken | ForeignAsset
+type LendToken {
+    lendTokenId: Int!
+}
+
+union Currency = NativeToken | ForeignAsset | LendToken
 
 type Vault @entity {
     id: ID!

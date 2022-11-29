@@ -40,9 +40,14 @@ export async function registerVault(
             e.vaultId.currencies.collateral
         );
     } else {
-        if (!rawEvent.isV17)
-            ctx.log.warn(`UNKOWN EVENT VERSION: Vault.registerVault`);
-        e = rawEvent.asV17;
+        if (rawEvent.isV17) e = rawEvent.asV17;
+        else if (rawEvent.isV1019000) e = rawEvent.asV1019000;
+        else {
+            e = rawEvent.asV1020000;
+            if (!rawEvent.isV1020000)
+                ctx.log.warn(`UNKOWN EVENT VERSION: Vault.registerVault`);
+        }
+
         vaultId = encodeVaultId(e.vaultId);
         wrappedToken = currencyId.encode(e.vaultId.currencies.wrapped);
         collateralToken = currencyId.encode(e.vaultId.currencies.collateral);
@@ -85,11 +90,16 @@ export async function increaseLockedCollateral(
         wrappedToken = legacyCurrencyId.encode(e.currencyPair.wrapped);
         collateralToken = legacyCurrencyId.encode(e.currencyPair.collateral);
     } else {
-        if (!rawEvent.isV17)
-            ctx.log.warn(
-                `UNKOWN EVENT VERSION: Vault.increaseLockedCollateral`
-            );
-        e = rawEvent.asV17;
+        if (rawEvent.isV17) e = rawEvent.asV17;
+        else if (rawEvent.isV1019000) e = rawEvent.asV1019000;
+        else {
+            e = rawEvent.asV1020000;
+            if (!rawEvent.isV1020000)
+                ctx.log.warn(
+                    `UNKOWN EVENT VERSION: Vault.increaseLockedCollateral`
+                );
+        }
+
         wrappedToken = currencyId.encode(e.currencyPair.wrapped);
         collateralToken = currencyId.encode(e.currencyPair.collateral);
     }
@@ -126,11 +136,16 @@ export async function decreaseLockedCollateral(
         wrappedToken = legacyCurrencyId.encode(e.currencyPair.wrapped);
         collateralToken = legacyCurrencyId.encode(e.currencyPair.collateral);
     } else {
-        if (!rawEvent.isV17)
-            ctx.log.warn(
-                `UNKOWN EVENT VERSION: Vault.decreaseLockedCollateral`
-            );
-        e = rawEvent.asV17;
+        if (rawEvent.isV17) e = rawEvent.asV17;
+        else if (rawEvent.isV1019000) e = rawEvent.asV1019000;
+        else {
+            e = rawEvent.asV1020000;
+            if (!rawEvent.isV1020000)
+                ctx.log.warn(
+                    `UNKOWN EVENT VERSION: Vault.decreaseLockedCollateral`
+                );
+        }
+
         wrappedToken = currencyId.encode(e.currencyPair.wrapped);
         collateralToken = currencyId.encode(e.currencyPair.collateral);
     }
