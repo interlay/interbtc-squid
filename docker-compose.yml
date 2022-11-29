@@ -5,9 +5,9 @@ services:
     image: postgres:12
     restart: always
     ports:
-      - "5434:5432"
+      - "127.0.0.1:5434:5432"
     volumes:
-      - /var/lib/postgresql/data
+      - /var/lib/postgresql/data_kint
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASS}
@@ -17,9 +17,9 @@ services:
     image: postgres:12
     restart: always
     ports:
-      - "5435:5432"
+      - "127.0.0.1:5435:5432"
     volumes:
-      - /var/lib/postgresql/data2
+      - /var/lib/postgresql/data_intr
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASS}
@@ -29,21 +29,21 @@ services:
     image: postgres:12
     restart: always
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
     volumes:
-      - /var/lib/postgresql/data2
+      - /var/lib/postgresql/data_test_kint
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASS}
       POSTGRES_DB: ${DB_NAME}
 
-  db-interlay-temp:
+  db-interlay-testnet:
     image: postgres:12
     restart: always
     ports:
-      - "5436:5432"
+      - "127.0.0.1:5436:5432"
     volumes:
-      - /var/lib/postgresql/data_temp
+      - /var/lib/postgresql/data_test_intr
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASS}
@@ -53,9 +53,9 @@ services:
     image: postgres:12
     restart: always
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
     volumes:
-      - /var/lib/postgresql/data3
+      - /var/lib/postgresql/data
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASS}

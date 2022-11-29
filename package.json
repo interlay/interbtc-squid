@@ -8,8 +8,10 @@
     "scripts": {
         "build": "rm -rf lib && tsc",
         "gen:json": "node indexer/generateTypes.js",
+        "gen:explore:interlay": "squid-substrate-metadata-explorer --chain wss://api.interlay.io/parachain --archive https://interlay.archive.subsquid.io/graphql --out indexer/interlay.chainVersions.jsonl",
         "gen:explore:kintsugi": "squid-substrate-metadata-explorer --chain wss://api-kusama.interlay.io/parachain --archive https://kintsugi.archive.subsquid.io/graphql --out indexer/kintsugi.chainVersions.jsonl",
-        "gen:explore:testnet": "squid-substrate-metadata-explorer --chain wss://api-testnet.interlay.io/parachain --archive https://api-testnet.interlay.io/gateway-graphql/graphql  --out indexer/testnet.chainVersions.jsonl",
+        "gen:explore:testnet": "squid-substrate-metadata-explorer --chain wss://api-testnet.interlay.io/parachain --archive https://api-testnet.interlay.io/subsquid-explorer/graphql --out indexer/testnet.chainVersions.jsonl",
+        "gen:types:interlay": "squid-substrate-typegen interlay.typegen.json",
         "gen:types:kintsugi": "squid-substrate-typegen kintsugi.typegen.json",
         "gen:types:testnet": "squid-substrate-typegen testnet.typegen.json",
         "gen:code": "squid-typeorm-codegen",
