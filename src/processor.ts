@@ -35,6 +35,7 @@ import { tokensTransfer } from "./mappings/event/transfer";
 import * as heights from "./mappings/utils/heights";
 import EntityBuffer from "./mappings/utils/entityBuffer";
 import { eventArgsData } from "./mappings/_utils";
+import { newMarket } from "./mappings/event/loans";
 
 const archive = process.env.ARCHIVE_ENDPOINT;
 assert(!!archive);
@@ -67,6 +68,9 @@ const processor = new SubstrateBatchProcessor()
     .addEvent("Redeem.RedeemPeriodChange", eventArgsData)
     .addEvent("Security.UpdateActiveBlock", eventArgsData)
     .addEvent("Tokens.Transfer", eventArgsData)
+    .addEvent("Loans.NewMarket", eventArgsData)
+    .addEvent("Loans.UpdatedMarket", eventArgsData)
+    .addEvent("Loans.ActivatedMarket", eventArgsData)
     .addEvent("VaultRegistry.RegisterVault", eventArgsData)
     .addEvent("VaultRegistry.IncreaseLockedCollateral", eventArgsData)
     .addEvent("VaultRegistry.DecreaseLockedCollateral", eventArgsData)
@@ -278,6 +282,15 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
         {
             filter: { name: "Redeem.ExecuteRedeem" },
             mapping: executeRedeem,
+            totalTime: 0,
+        },
+    ]);
+
+    // add Loan Market processing
+    await processConcurrently([
+        {
+            filter: { name: "Loans.NewMarket" },
+            mapping: newMarket,
             totalTime: 0,
         },
     ]);
