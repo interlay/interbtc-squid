@@ -106,7 +106,6 @@ type Issue @entity {
     period: IssuePeriod!
     backingPayment: IssuePayment @derivedFrom(field: "issue")
     status: IssueStatus @index
-    banana: IssueExecution @derivedFrom(field: "issue")
     execution: IssueExecution @derivedFrom(field: "issue")
     cancellation: IssueCancellation @derivedFrom(field: "issue")
     refund: Refund @derivedFrom(field: "issue")
@@ -312,5 +311,3 @@ type Deposit @entity {
     timestamp: DateTime!
     comment: String
 }
-
-
