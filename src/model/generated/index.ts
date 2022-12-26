@@ -30,3 +30,6 @@ export * from "./cumulativeVolumePerCurrencyPair.model"
 export * from "./issuePeriod.model"
 export * from "./redeemPeriod.model"
 export * from "./transfer.model"
+export * from "./loanMarket.model"
+// added this ^
+
