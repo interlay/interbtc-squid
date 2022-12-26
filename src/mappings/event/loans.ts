@@ -40,8 +40,9 @@ export async function newMarket(
 ): Promise<void> {
     const rawEvent = new LoansNewMarketEvent(ctx, item.event);
     let [currency_id, market] = rawEvent.asV1020000;
-    const currency = new LendToken()
-    currency.lendTokenId = currency_id.value as number
+    const currency = currencyId.encode(currency_id)
+    // const currency = new LendToken()
+    // currency.lendTokenId = currency_id.value as number
     const height = await blockToHeight(ctx, block.height, "NewMarket");
     const timestamp = new Date(block.timestamp);
     const my_market = new LoanMarket({
@@ -51,42 +52,6 @@ export async function newMarket(
         timestamp: timestamp
     });
     console.log(JSON.stringify(my_market));
-    // const redeem = new Redeem({
-    //     id: toHex(e.redeemId),
-    //     bridgeFee: e.fee,
-    //     collateralPremium: e.premium,
-    //     userParachainAddress: address.interlay.encode(e.redeemer),
-    //     vault: vault,
-    //     userBackingAddress: address.btc.encode(e.btcAddress),
-    //     btcTransferFee: e.transferFee,
-    //     status: RedeemStatus.Pending,
-    //     period,
-    // });
-    // const height = await blockToHeight(ctx, block.height, "RequestIssue");
-    //
-    // const backingBlock = await ctx.store.get(RelayedBlock, {
-    //     order: { backingHeight: "DESC" },
-    //     relations: { relayedAtHeight: true },
-    //     where: {
-    //         relayedAtHeight: {
-    //             absolute: LessThanOrEqual(height.absolute),
-    //         },
-    //     },
-    // });
-    //
-    // if (backingBlock === undefined) {
-    //     ctx.log.warn(
-    //         `WARNING: no BTC blocks relayed before redeem request ${redeem.id} (at parachain absolute height ${height.absolute})`
-    //     );
-    // }
-    //
-    // redeem.request = new RedeemRequest({
-    //     requestedAmountBacking: e.amount,
-    //     height: height.id,
-    //     timestamp: new Date(block.timestamp),
-    //     backingHeight: backingBlock?.backingHeight || 0,
-    // });
-    //
     await entityBuffer.pushEntity(LoanMarket.name, my_market);
 }
 
