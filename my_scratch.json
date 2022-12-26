@@ -1,0 +1,26 @@
+{
+  "borrowCap": "200000000000",
+  "closeFactor": 500000,
+  "collateralFactor": 650000,
+  "lendTokenId": {
+    "__kind": "LendToken",
+    "value": 3
+  },
+  "liquidateIncentive": "1100000000000000000",
+  "liquidateIncentiveReservedFactor": 25000,
+  "liquidationThreshold": 710000,
+  "rateModel": {
+    "__kind": "Jump",
+    "value": {
+      "baseRate": "0",
+      "fullRate": "40000000000000000",
+      "jumpRate": "15000000000000000",
+      "jumpUtilization": 900000
+    }
+  },
+  "reserveFactor": 200000,
+  "state": {
+    "__kind": "Pending"
+  },
+  "supplyCap": "200000000000"
+}
