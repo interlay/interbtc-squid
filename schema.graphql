@@ -230,3 +230,11 @@ type Transfer @entity {
     height: Height!
     timestamp: DateTime!
 }
+
+type LoanMarket @entity {
+    id: ID!
+    token: Currency!
+    height: Height!
+    timestamp: DateTime!
+}
+
