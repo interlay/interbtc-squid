@@ -35,7 +35,14 @@ import { tokensTransfer } from "./mappings/event/transfer";
 import * as heights from "./mappings/utils/heights";
 import EntityBuffer from "./mappings/utils/entityBuffer";
 import { eventArgsData } from "./mappings/_utils";
-import { newMarket } from "./mappings/event/loans";
+import {    newMarket,
+            borrow,
+            depositCollateral,
+            depositForLending,
+            distributeBorrowerReward,
+            distributeSupplierReward,
+            repay,
+} from "./mappings/event/loans";
 
 const archive = process.env.ARCHIVE_ENDPOINT;
 assert(!!archive);
@@ -68,10 +75,15 @@ const processor = new SubstrateBatchProcessor()
     .addEvent("Redeem.RedeemPeriodChange", eventArgsData)
     .addEvent("Security.UpdateActiveBlock", eventArgsData)
     .addEvent("Tokens.Transfer", eventArgsData)
-    .addEvent("Loans.NewMarket", eventArgsData)
-    .addEvent("Loans.UpdatedMarket", eventArgsData)
+    .addEvent("Loans.DistributedBorrowerReward", eventArgsData)
+    .addEvent("Loans.RepaidBorrow", eventArgsData)
+    .addEvent("Loans.DepositCollateral", eventArgsData)
+    .addEvent("Loans.Deposited", eventArgsData)
+    .addEvent("Loans.DistributedSupplierReward", eventArgsData)
+    .addEvent("Loans.Borrowed", eventArgsData)
     .addEvent("Loans.ActivatedMarket", eventArgsData)
-    .addEvent("VaultRegistry.RegisterVault", eventArgsData)
+    .addEvent("Loans.NewMarket", eventArgsData)
+    .addEvent("Loans.UpdatedMarket", eventArgsData)    .addEvent("VaultRegistry.RegisterVault", eventArgsData)
     .addEvent("VaultRegistry.IncreaseLockedCollateral", eventArgsData)
     .addEvent("VaultRegistry.DecreaseLockedCollateral", eventArgsData)
     .addCall("System.set_storage", {
@@ -293,6 +305,46 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
             mapping: newMarket,
             totalTime: 0,
         },
+        // {
+        //     filter: { name: "Loans.ActivatedMarket" },
+        //     mapping: newMarket,
+        //     totalTime: 0,
+        // },
+        {
+            filter: { name: "Loans.Borrowed" },
+            mapping: borrow,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Loans.DepositCollateral" },
+            mapping: depositCollateral,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Loans.Deposited" },
+            mapping: depositForLending,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Loans.DistributedBorrowerReward" },
+            mapping: distributeBorrowerReward,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Loans.DistributedSupplierReward" },
+            mapping: distributeSupplierReward,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Loans.RepaidBorrow" },
+            mapping: repay,
+            totalTime: 0,
+        },
+        // {
+        //     filter: { name: "Loans.UpdatedMarket" },
+        //     mapping: newMarket,
+        //     totalTime: 0,
+        // },
     ]);
 
     // finally, check request expiration, once all events have been processed
