@@ -24,7 +24,8 @@ import { CurrencyId_Token as CurrencyId_Token_V10 } from "../../types/v10";
 import { CurrencyId_Token as CurrencyId_Token_V15 } from "../../types/v15";
 import { CurrencyId as CurrencyId_V17 } from "../../types/v17";
 import { CurrencyId as CurrencyId_V1020000 } from "../../types/v1020000";
-import { address, currencyId, legacyCurrencyId } from "../encoding";
+import { InterestRateModel as InterestRateModel_V1020000 } from "../../types/v1020000";
+import { address, currencyId, legacyCurrencyId, rateModel } from "../encoding";
 import {
     updateCumulativeVolumes,
     updateCumulativeVolumesForCurrencyPair,
@@ -45,6 +46,9 @@ export async function newMarket(
     let [currency_id, market] = rawEvent.asV1020000;
     const currency = currencyId.encode(currency_id);
     const lendTokenId = currencyId.encode(market.lendTokenId);
+
+    const InterestRateModel = rateModel.encode(market.rateModel)
+
     const height = await blockToHeight(ctx, block.height, "NewMarket");
     const timestamp = new Date(block.timestamp);
 
@@ -58,6 +62,7 @@ export async function newMarket(
         timestamp: timestamp,
         borrowCap: market.borrowCap,
         supplyCap: market.supplyCap,
+        rateModel: InterestRateModel,
         closeFactor: market.closeFactor,
         lendTokenId: lendTokenId,
         reserveFactor: market.reserveFactor,

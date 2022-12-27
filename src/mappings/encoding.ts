@@ -6,10 +6,14 @@ import {
     ForeignAsset,
     Currency,
     LendToken,
+    RateModelJump,
+    RateModelCurve,
+    RateModel,
 } from "../model";
 import {
     VaultId as VaultIdV1020000,
     CurrencyId as CurrencyId_V1020000,
+    InterestRateModel as InterestRateModel_V1020000,
 } from "../types/v1020000";
 import {
     Address as AddressV15,
@@ -69,6 +73,23 @@ export const currencyId = {
         } else {
             return new NativeToken({
                 token: Token[asset.value.__kind],
+            });
+        }
+    },
+};
+
+export const rateModel = {
+    encode: (model: InterestRateModel_V1020000): RateModel => {
+        if (model.__kind === "Jump") {
+            return new RateModelJump({
+                baseRate: model.value.baseRate,
+                jumpRate: model.value.jumpRate,
+                fullRate: model.value.fullRate,
+                jumpUtilization: model.value.jumpUtilization,
+            });
+        } else {
+            return new RateModelCurve({
+                baseRate: model.value.baseRate,
             });
         }
     },

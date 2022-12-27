@@ -29,4 +29,8 @@ export * from "./redeemPeriod.model"
 export * from "./transfer.model"
 export * from "./loanMarket.model"
 // added this ^
-
+export * from "./_rateModels";
+export * from "./_rateModel";
+export * from "./_rateModelJump";
+export * from "./_rateModelCurve";
+// added this for InterestRateModel
