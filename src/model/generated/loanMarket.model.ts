@@ -21,4 +21,28 @@ export class LoanMarket {
 
     @Column_("timestamp with time zone", {nullable: false})
     timestamp!: Date
+
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    borrowCap!: bigint
+
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    supplyCap!: bigint
+
+    @Column_("int4", {nullable: false})
+    closeFactor!: number
+
+    @Column_("int4", {nullable: false})
+    reserveFactor!: number
+
+    @Column_("int4", {nullable: false})
+    collateralFactor!: number
+
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    liquidateIncentive!: bigint
+
+    @Column_("int4", {nullable: false})
+    liquidationThreshold!: number
+
+    @Column_("int4", {nullable: false})
+    liquidateIncentiveReservedFactor!: number
 }
