@@ -2,7 +2,8 @@ import { SubstrateBlock, toHex } from "@subsquid/substrate-processor";
 import { LessThanOrEqual } from "typeorm";
 import {
     CumulativeVolume,
-    CumulativeVolumePerCurrencyPair, LendToken,
+    CumulativeVolumePerCurrencyPair, 
+    LendToken,
     Redeem,
     RedeemCancellation,
     RedeemExecution,
@@ -45,18 +46,14 @@ export async function newMarket(
     const rawEvent = new LoansNewMarketEvent(ctx, item.event);
     let [currency_id, market] = rawEvent.asV1020000;
     const currency = currencyId.encode(currency_id);
-    const lendTokenId = currencyId.encode(market.lendTokenId);
-
     const InterestRateModel = rateModel.encode(market.rateModel)
 
     const height = await blockToHeight(ctx, block.height, "NewMarket");
     const timestamp = new Date(block.timestamp);
-
-    const borrowCap = market.borrowCap
-
+    const lendTokenId = market.lendTokenId.value;
 
     const my_market = new LoanMarket({
-        id: `Market created at ${timestamp}`,
+        id: lendTokenId.toString(),
         token: currency,
         height: height,
         timestamp: timestamp,
@@ -64,7 +61,6 @@ export async function newMarket(
         supplyCap: market.supplyCap,
         rateModel: InterestRateModel,
         closeFactor: market.closeFactor,
-        lendTokenId: lendTokenId,
         reserveFactor: market.reserveFactor,
         collateralFactor: market.collateralFactor,
         liquidateIncentive: market.liquidateIncentive,

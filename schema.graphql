@@ -253,7 +253,6 @@ type LoanMarket @entity {
     rateModel: RateModel!
     supplyCap: BigInt!
     closeFactor: Int!
-    lendTokenId: Currency!
     reserveFactor: Int!
     collateralFactor: Int!
     liquidateIncentive: BigInt!
