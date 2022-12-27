@@ -15,6 +15,9 @@ import {
 import { Ctx, EventItem } from "../../processor";
 import {
     LoansNewMarketEvent,
+    LoansActivatedMarketEvent,
+    LoansUpdatedMarketEvent,
+
 } from "../../types/events";
 import { CurrencyId_Token as CurrencyId_Token_V6 } from "../../types/v6";
 import { CurrencyId_Token as CurrencyId_Token_V10 } from "../../types/v10";
@@ -40,18 +43,29 @@ export async function newMarket(
 ): Promise<void> {
     const rawEvent = new LoansNewMarketEvent(ctx, item.event);
     let [currency_id, market] = rawEvent.asV1020000;
-    const currency = currencyId.encode(currency_id)
-    // const currency = new LendToken()
-    // currency.lendTokenId = currency_id.value as number
+    const currency = currencyId.encode(currency_id);
+    const lendToken = currencyId.encode(market.lendTokenId);
     const height = await blockToHeight(ctx, block.height, "NewMarket");
     const timestamp = new Date(block.timestamp);
+
+    const borrowCap = market.borrowCap
+
+
     const my_market = new LoanMarket({
         id: `Market created at ${timestamp}`,
         token: currency,
         height: height,
-        timestamp: timestamp
+        timestamp: timestamp,
+        borrowCap: market.borrowCap,
+        supplyCap: market.supplyCap,
+        closeFactor: market.closeFactor,
+        reserveFactor: market.reserveFactor,
+        collateralFactor: market.collateralFactor,
+        liquidateIncentive: market.liquidateIncentive,
+        liquidationThreshold: market.liquidationThreshold,
+        liquidateIncentiveReservedFactor: market.liquidateIncentiveReservedFactor
     });
-    console.log(JSON.stringify(my_market));
+    // console.log(JSON.stringify(my_market));
     await entityBuffer.pushEntity(LoanMarket.name, my_market);
 }
 
