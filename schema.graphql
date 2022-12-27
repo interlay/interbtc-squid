@@ -236,6 +236,15 @@ type LoanMarket @entity {
     token: Currency!
     height: Height!
     timestamp: DateTime!
+    borrowCap: BigInt!
+    supplyCap: BigInt!
+    closeFactor: Int!
+    lendTokenId: Currency!
+    reserveFactor: Int!
+    collateralFactor: Int!
+    liquidateIncentive: BigInt!
+    liquidationThreshold: Int!
+    liquidateIncentiveReservedFactor: Int!
 }
 
 type Loan @entity {
