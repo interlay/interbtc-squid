@@ -48,6 +48,19 @@ type LpToken {
 
 union Currency = NativeToken | ForeignAsset | LendToken | LpToken | StableLpToken
 
+type RateModelJump {
+    baseRate: BigInt!
+    jumpRate: BigInt!
+    fullRate: BigInt!
+    jumpUtilization: Int!
+}
+
+type RateModelCurve {
+    baseRate: BigInt!
+}
+
+union RateModel = RateModelJump | RateModelCurve
+
 type Vault @entity {
     id: ID!
     accountId: String! @index
@@ -250,6 +263,7 @@ type LoanMarket @entity {
     height: Height!
     timestamp: DateTime!
     borrowCap: BigInt!
+    rateModel: RateModel!
     supplyCap: BigInt!
     closeFactor: Int!
     lendTokenId: Currency!
