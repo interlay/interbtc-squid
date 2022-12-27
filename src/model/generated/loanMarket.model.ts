@@ -31,6 +31,9 @@ export class LoanMarket {
     @Column_("int4", {nullable: false})
     closeFactor!: number
 
+    @Column_("jsonb", {transformer: {to: obj => obj.toJSON(), from: obj => obj == null ? undefined : fromJsonCurrency(obj)}, nullable: false})
+    lendTokenId!: Currency
+
     @Column_("int4", {nullable: false})
     reserveFactor!: number
 

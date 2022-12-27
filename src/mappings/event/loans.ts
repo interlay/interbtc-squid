@@ -44,7 +44,7 @@ export async function newMarket(
     const rawEvent = new LoansNewMarketEvent(ctx, item.event);
     let [currency_id, market] = rawEvent.asV1020000;
     const currency = currencyId.encode(currency_id);
-    const lendToken = currencyId.encode(market.lendTokenId);
+    const lendTokenId = currencyId.encode(market.lendTokenId);
     const height = await blockToHeight(ctx, block.height, "NewMarket");
     const timestamp = new Date(block.timestamp);
 
@@ -59,6 +59,7 @@ export async function newMarket(
         borrowCap: market.borrowCap,
         supplyCap: market.supplyCap,
         closeFactor: market.closeFactor,
+        lendTokenId: lendTokenId,
         reserveFactor: market.reserveFactor,
         collateralFactor: market.collateralFactor,
         liquidateIncentive: market.liquidateIncentive,
