@@ -31,5 +31,5 @@ export * from "./issuePeriod.model"
 export * from "./redeemPeriod.model"
 export * from "./transfer.model"
 export * from "./loanMarket.model"
-// added this ^
-
+export * from "./loan.model"
+export * from "./deposit.model"

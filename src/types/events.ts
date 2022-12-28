@@ -1401,6 +1401,37 @@ export class LoansNewMarketEvent {
     }
 }
 
+export class LoansRedeemedEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'Loans.Redeemed')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * Event emitted when assets are redeemed
+     * [sender, asset_id, amount]
+     */
+    get isV1020000(): boolean {
+        return this._chain.getEventHash('Loans.Redeemed') === '3b17aa6a6744611f20e350ba8ef796f73999bc9edcc3ae0eaf4738374966395d'
+    }
+
+    /**
+     * Event emitted when assets are redeemed
+     * [sender, asset_id, amount]
+     */
+    get asV1020000(): [Uint8Array, v1020000.CurrencyId, bigint] {
+        assert(this.isV1020000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
 export class LoansRepaidBorrowEvent {
     private readonly _chain: Chain
     private readonly event: Event
@@ -1458,6 +1489,37 @@ export class LoansUpdatedMarketEvent {
      * [admin, asset_id]
      */
     get asV1020000(): [v1020000.CurrencyId, v1020000.Market] {
+        assert(this.isV1020000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
+export class LoansWithdrawCollateralEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'Loans.WithdrawCollateral')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * Disable collateral for certain asset
+     * [sender, asset_id]
+     */
+    get isV1020000(): boolean {
+        return this._chain.getEventHash('Loans.WithdrawCollateral') === '3b17aa6a6744611f20e350ba8ef796f73999bc9edcc3ae0eaf4738374966395d'
+    }
+
+    /**
+     * Disable collateral for certain asset
+     * [sender, asset_id]
+     */
+    get asV1020000(): [Uint8Array, v1020000.CurrencyId, bigint] {
         assert(this.isV1020000)
         return this._chain.decodeEvent(this.event)
     }

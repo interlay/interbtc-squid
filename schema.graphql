@@ -251,3 +251,24 @@ type LoanMarket @entity {
     timestamp: DateTime!
 }
 
+type Loan @entity {
+    id: ID!
+    token: Currency!
+    userParachainAddress: String!
+    amountBorrowed: BigInt
+    amountRepaid: BigInt
+    height: Height!
+    timestamp: DateTime!
+}
+
+type Deposit @entity {
+    id: ID!
+    token: Currency!
+    userParachainAddress: String!
+    amountDeposited: BigInt
+    amountWithdrawn: BigInt
+    height: Height!
+    timestamp: DateTime!
+}
+
+
