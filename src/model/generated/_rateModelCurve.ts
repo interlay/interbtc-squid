@@ -1,30 +1,30 @@
 import assert from "assert"
 import * as marshal from "./marshal"
-import {RateModels} from "./_rateModels"
 
 export class RateModelCurve {
-  public readonly isTypeOf = 'Curve'
-  private _baseRate!: bigint
+    public readonly isTypeOf = 'RateModelCurve'
+    private _baseRate!: bigint
 
-  constructor(props?: Partial<Omit<RateModelCurve, 'toJSON'>>, json?: any) {
-    Object.assign(this, props)
-    if (json != null) {
-      this._baseRate = marshal.bigint.fromJSON(json.baseRate)
+    constructor(props?: Partial<Omit<RateModelCurve, 'toJSON'>>, json?: any) {
+        Object.assign(this, props)
+        if (json != null) {
+            this._baseRate = marshal.bigint.fromJSON(json.baseRate)
+        }
     }
-  }
 
-  get baseRate(): bigint {
-    assert(this._baseRate != null, 'uninitialized access')
-    return this._baseRate
-  }
-
-  set baseRate(value: bigint) {
-    this._baseRate = value
-  }
-
-  toJSON(): object {
-    return {
-      baseRate: marshal.bigint.toJSON(this.baseRate),
+    get baseRate(): bigint {
+        assert(this._baseRate != null, 'uninitialized access')
+        return this._baseRate
     }
-  }
+
+    set baseRate(value: bigint) {
+        this._baseRate = value
+    }
+
+    toJSON(): object {
+        return {
+            isTypeOf: this.isTypeOf,
+            baseRate: marshal.bigint.toJSON(this.baseRate),
+        }
+    }
 }
