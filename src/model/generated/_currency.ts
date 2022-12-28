@@ -12,3 +12,12 @@ export function fromJsonCurrency(json: any): Currency {
     default: throw new TypeError('Unknown json object passed as Currency')
   }
 }
+
+export function currencySymbol(currency: Currency): String {
+  switch(currency.isTypeOf) {
+    case 'NativeToken': return currency.token
+    case 'ForeignAsset': return `foreign ${ currency.asset.toString() }`
+    case 'LendToken': return `lend ${ currency.lendTokenId.toString() }`
+    default: throw new TypeError('Unknown object passed as Currency')
+  }
+}

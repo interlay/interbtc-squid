@@ -42,6 +42,8 @@ import {    newMarket,
             distributeBorrowerReward,
             distributeSupplierReward,
             repay,
+            withdrawCollateral,
+            withdrawDeposit,
 } from "./mappings/event/loans";
 
 const archive = process.env.ARCHIVE_ENDPOINT;
@@ -75,16 +77,17 @@ const processor = new SubstrateBatchProcessor()
     .addEvent("Redeem.RedeemPeriodChange", eventArgsData)
     .addEvent("Security.UpdateActiveBlock", eventArgsData)
     .addEvent("Tokens.Transfer", eventArgsData)
+    .addEvent("Loans.WithdrawCollateral", eventArgsData)
+    .addEvent("Loans.DepositCollateral", eventArgsData)
+    .addEvent("Loans.DistributedSupplierReward", eventArgsData)
+    .addEvent("Loans.Redeemed", eventArgsData)
+    .addEvent("Loans.Deposited", eventArgsData)
     .addEvent("Loans.DistributedBorrowerReward", eventArgsData)
     .addEvent("Loans.RepaidBorrow", eventArgsData)
-    .addEvent("Loans.DepositCollateral", eventArgsData)
-    .addEvent("Loans.Deposited", eventArgsData)
-    .addEvent("Loans.DistributedSupplierReward", eventArgsData)
     .addEvent("Loans.Borrowed", eventArgsData)
     .addEvent("Loans.ActivatedMarket", eventArgsData)
     .addEvent("Loans.NewMarket", eventArgsData)
-    .addEvent("Loans.UpdatedMarket", eventArgsData)    .addEvent("VaultRegistry.RegisterVault", eventArgsData)
-    .addEvent("VaultRegistry.IncreaseLockedCollateral", eventArgsData)
+    .addEvent("Loans.UpdatedMarket", eventArgsData)    .addEvent("VaultRegistry.IncreaseLockedCollateral", eventArgsData)
     .addEvent("VaultRegistry.DecreaseLockedCollateral", eventArgsData)
     .addCall("System.set_storage", {
         data: {
@@ -338,6 +341,16 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
         {
             filter: { name: "Loans.RepaidBorrow" },
             mapping: repay,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Loans.Redeemed" },
+            mapping: withdrawDeposit,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Loans.WithdrawCollateral" },
+            mapping: withdrawCollateral,
             totalTime: 0,
         },
         // {
