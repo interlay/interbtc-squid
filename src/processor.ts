@@ -36,6 +36,7 @@ import * as heights from "./mappings/utils/heights";
 import EntityBuffer from "./mappings/utils/entityBuffer";
 import { eventArgsData } from "./mappings/_utils";
 import {    newMarket,
+            updatedMarket,
             borrow,
             depositCollateral,
             depositForLending,
@@ -87,7 +88,8 @@ const processor = new SubstrateBatchProcessor()
     .addEvent("Loans.Borrowed", eventArgsData)
     .addEvent("Loans.ActivatedMarket", eventArgsData)
     .addEvent("Loans.NewMarket", eventArgsData)
-    .addEvent("Loans.UpdatedMarket", eventArgsData)    .addEvent("VaultRegistry.IncreaseLockedCollateral", eventArgsData)
+    .addEvent("Loans.UpdatedMarket", eventArgsData)    
+    .addEvent("VaultRegistry.IncreaseLockedCollateral", eventArgsData)
     .addEvent("VaultRegistry.DecreaseLockedCollateral", eventArgsData)
     .addCall("System.set_storage", {
         data: {
@@ -308,6 +310,11 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
             mapping: newMarket,
             totalTime: 0,
         },
+        {
+            filter: { name: "Loans.UpdatedMarket" },
+            mapping: updatedMarket,
+            totalTime: 0,
+        },
         // {
         //     filter: { name: "Loans.ActivatedMarket" },
         //     mapping: newMarket,
@@ -353,11 +360,6 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
             mapping: withdrawCollateral,
             totalTime: 0,
         },
-        // {
-        //     filter: { name: "Loans.UpdatedMarket" },
-        //     mapping: newMarket,
-        //     totalTime: 0,
-        // },
     ]);
 
     // finally, check request expiration, once all events have been processed

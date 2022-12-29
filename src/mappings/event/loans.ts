@@ -33,7 +33,7 @@ import { CurrencyId_Token as CurrencyId_Token_V15 } from "../../types/v15";
 import { CurrencyId as CurrencyId_V17 } from "../../types/v17";
 import { CurrencyId as CurrencyId_V1020000 } from "../../types/v1020000";
 import { InterestRateModel as InterestRateModel_V1020000 } from "../../types/v1020000";
-import { address, currencyId, legacyCurrencyId, rateModel } from "../encoding";
+import { address, currencyId, currencyToString, legacyCurrencyId, rateModel } from "../encoding";
 import {
     updateCumulativeVolumes,
     updateCumulativeVolumesForCurrencyPair,
@@ -56,6 +56,7 @@ export async function newMarket(
     const rawEvent = new LoansNewMarketEvent(ctx, item.event);
     let [currency_id, market] = rawEvent.asV1020000;
     const currency = currencyId.encode(currency_id);
+    const id = currencyToString(currency);
     const InterestRateModel = rateModel.encode(market.rateModel)
 
     const height = await blockToHeight(ctx, block.height, "NewMarket");
@@ -63,7 +64,43 @@ export async function newMarket(
     const lendTokenId = market.lendTokenId.value;
 
     const my_market = new LoanMarket({
-        id: lendTokenId.toString(),
+        id: "market_" + id, //lendTokenId.toString(),
+        token: currency,
+        height: height,
+        timestamp: timestamp,
+        borrowCap: market.borrowCap,
+        supplyCap: market.supplyCap,
+        rateModel: InterestRateModel,
+        closeFactor: market.closeFactor,
+        reserveFactor: market.reserveFactor,
+        collateralFactor: market.collateralFactor,
+        liquidateIncentive: market.liquidateIncentive,
+        liquidationThreshold: market.liquidationThreshold,
+        liquidateIncentiveReservedFactor: market.liquidateIncentiveReservedFactor
+    });
+    // console.log(JSON.stringify(my_market));
+    await entityBuffer.pushEntity(LoanMarket.name, my_market);
+}
+
+// Updated market just adds new market with same id
+export async function updatedMarket(
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem,
+    entityBuffer: EntityBuffer
+): Promise<void> {
+    const rawEvent = new LoansUpdatedMarketEvent(ctx, item.event);
+    let [currency_id, market] = rawEvent.asV1020000;
+    const currency = currencyId.encode(currency_id);
+    const id = currencyToString(currency);
+    const InterestRateModel = rateModel.encode(market.rateModel)
+
+    const height = await blockToHeight(ctx, block.height, "UpdatedMarket");
+    const timestamp = new Date(block.timestamp);
+    const lendTokenId = market.lendTokenId.value;
+
+    const my_market = new LoanMarket({
+        id: "market_" + id, //lendTokenId.toString(),
         token: currency,
         height: height,
         timestamp: timestamp,
