@@ -95,14 +95,14 @@ export const rateModel = {
     },
 };
 
-function currencyToString(currency: Currency): string {
+export function currencyToString(currency: Currency): string {
     if (currency.isTypeOf === "LendToken") {
         // TODO: decide how we want to distinguish lend tokens from foreign assets
         return `lendToken_${currency.lendTokenId.toString()}`;
     } else if (currency.isTypeOf === "ForeignAsset") {
-        return currency.asset.toString();
+        return `foreignAsset_${currency.asset.toString()}`;
     } else {
-        return currency.token.toString();
+        return `nativeToken_${currency.token.toString()}`;
     }
 }
 
