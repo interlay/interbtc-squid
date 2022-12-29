@@ -48,6 +48,8 @@ import { Loan } from "../../model/generated/loan.model";
 import { Deposit } from "../../model/generated/deposit.model";
 import {Currency, currencySymbol} from "../../model/generated/_currency"
 
+
+
 export async function newMarket(
     ctx: Ctx,
     block: SubstrateBlock,
