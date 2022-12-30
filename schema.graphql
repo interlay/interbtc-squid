@@ -272,12 +272,22 @@ type LoanMarket @entity {
     supplyCap: BigInt!
     rateModel: RateModel!
     closeFactor: Int!
+    lendTokenId: Int! @unique
     state: MarketState!
     reserveFactor: Int!
     collateralFactor: Int!
     liquidateIncentive: BigInt!
     liquidationThreshold: Int!
     liquidateIncentiveReservedFactor: Int!
+    activation: LoanMarketActivation @derivedFrom(field: "market")
+}
+
+type LoanMarketActivation @entity {
+    id: ID!
+    market: LoanMarket! @unique
+    token: Currency!
+    height: Height!
+    timestamp: DateTime!
 }
 
 type Loan @entity {
