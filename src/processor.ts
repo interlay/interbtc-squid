@@ -314,11 +314,6 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
             totalTime: 0,
         },
         {
-            filter: { name: "Loans.UpdatedMarket" },
-            mapping: updatedMarket,
-            totalTime: 0,
-        },
-        {
             filter: { name: "Loans.Borrowed" },
             mapping: borrow,
             totalTime: 0,
@@ -364,6 +359,11 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
         {
             filter: { name: "Loans.ActivatedMarket" },
             mapping: activatedMarket,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Loans.UpdatedMarket" },
+            mapping: updatedMarket,
             totalTime: 0,
         },
     ]);
