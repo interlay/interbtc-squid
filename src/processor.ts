@@ -29,6 +29,7 @@ import {
     setStorage,
     storeMainChainHeader,
     updateActiveBlock,
+    updateVaultActivity,
 } from "./mappings";
 import { deposit, withdraw } from "./mappings/event/escrow";
 import { tokensTransfer } from "./mappings/event/transfer";

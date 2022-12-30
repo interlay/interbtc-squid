@@ -10,8 +10,10 @@ import {
     RedeemPeriod,
     RedeemRequest,
     RedeemStatus,
-    RelayedBlock, Transfer,
-    VolumeType
+    RelayedBlock, 
+    Transfer,
+    VolumeType,
+    MarketState,
 } from "../../model";
 import { Ctx, EventItem } from "../../processor";
 import {
@@ -56,35 +58,36 @@ export async function newMarket(
     entityBuffer: EntityBuffer
 ): Promise<void> {
     const rawEvent = new LoansNewMarketEvent(ctx, item.event);
-    let [currency_id, market] = rawEvent.asV1020000;
-    const currency = currencyId.encode(currency_id);
+    let [token, e] = rawEvent.asV1020000;
+    const currency = currencyId.encode(token);
     const id = currencyToString(currency);
-    const InterestRateModel = rateModel.encode(market.rateModel)
+    const InterestRateModel = rateModel.encode(e.rateModel)
 
     const height = await blockToHeight(ctx, block.height, "NewMarket");
     const timestamp = new Date(block.timestamp);
-    const lendTokenId = market.lendTokenId.value;
+    const lendTokenId = e.lendTokenId.value;
 
     const my_market = new LoanMarket({
-        id: "market_" + id, //lendTokenId.toString(),
+        id: "loanMarket_" + id, //lendTokenId.toString(),
         token: currency,
         height: height,
         timestamp: timestamp,
-        borrowCap: market.borrowCap,
-        supplyCap: market.supplyCap,
+        borrowCap: e.borrowCap,
+        supplyCap: e.supplyCap,
         rateModel: InterestRateModel,
-        closeFactor: market.closeFactor,
-        reserveFactor: market.reserveFactor,
-        collateralFactor: market.collateralFactor,
-        liquidateIncentive: market.liquidateIncentive,
-        liquidationThreshold: market.liquidationThreshold,
-        liquidateIncentiveReservedFactor: market.liquidateIncentiveReservedFactor
+        closeFactor: e.closeFactor,
+        state: MarketState.Pending,
+        reserveFactor: e.reserveFactor,
+        collateralFactor: e.collateralFactor,
+        liquidateIncentive: e.liquidateIncentive,
+        liquidationThreshold: e.liquidationThreshold,
+        liquidateIncentiveReservedFactor: e.liquidateIncentiveReservedFactor
     });
     // console.log(JSON.stringify(my_market));
     await entityBuffer.pushEntity(LoanMarket.name, my_market);
 }
 
-// Updated market just adds new market with same id
+// Updated market just adds new market with same id (replacing newMarket)
 export async function updatedMarket(
     ctx: Ctx,
     block: SubstrateBlock,
@@ -92,29 +95,30 @@ export async function updatedMarket(
     entityBuffer: EntityBuffer
 ): Promise<void> {
     const rawEvent = new LoansUpdatedMarketEvent(ctx, item.event);
-    let [currency_id, market] = rawEvent.asV1020000;
-    const currency = currencyId.encode(currency_id);
+    let [token, e] = rawEvent.asV1020000;
+    const currency = currencyId.encode(token);
     const id = currencyToString(currency);
-    const InterestRateModel = rateModel.encode(market.rateModel)
+    const InterestRateModel = rateModel.encode(e.rateModel)
 
     const height = await blockToHeight(ctx, block.height, "UpdatedMarket");
     const timestamp = new Date(block.timestamp);
-    const lendTokenId = market.lendTokenId.value;
+    const lendTokenId = e.lendTokenId.value;
 
     const my_market = new LoanMarket({
-        id: "market_" + id, //lendTokenId.toString(),
+        id: "loanMarket_" + id, //lendTokenId.toString(),
         token: currency,
         height: height,
         timestamp: timestamp,
-        borrowCap: market.borrowCap,
-        supplyCap: market.supplyCap,
+        borrowCap: e.borrowCap,
+        supplyCap: e.supplyCap,
         rateModel: InterestRateModel,
-        closeFactor: market.closeFactor,
-        reserveFactor: market.reserveFactor,
-        collateralFactor: market.collateralFactor,
-        liquidateIncentive: market.liquidateIncentive,
-        liquidationThreshold: market.liquidationThreshold,
-        liquidateIncentiveReservedFactor: market.liquidateIncentiveReservedFactor
+        closeFactor: e.closeFactor,
+        state: MarketState.Pending,
+        reserveFactor: e.reserveFactor,
+        collateralFactor: e.collateralFactor,
+        liquidateIncentive: e.liquidateIncentive,
+        liquidationThreshold: e.liquidationThreshold,
+        liquidateIncentiveReservedFactor: e.liquidateIncentiveReservedFactor
     });
     // console.log(JSON.stringify(my_market));
     await entityBuffer.pushEntity(LoanMarket.name, my_market);
