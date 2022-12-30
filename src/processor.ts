@@ -38,6 +38,7 @@ import EntityBuffer from "./mappings/utils/entityBuffer";
 import { eventArgsData } from "./mappings/_utils";
 import {    newMarket,
             updatedMarket,
+            activatedMarket,
             borrow,
             depositCollateral,
             depositForLending,
@@ -317,11 +318,6 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
             mapping: updatedMarket,
             totalTime: 0,
         },
-        // {
-        //     filter: { name: "Loans.ActivatedMarket" },
-        //     mapping: newMarket,
-        //     totalTime: 0,
-        // },
         {
             filter: { name: "Loans.Borrowed" },
             mapping: borrow,
@@ -360,6 +356,14 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
         {
             filter: { name: "Loans.WithdrawCollateral" },
             mapping: withdrawCollateral,
+            totalTime: 0,
+        },
+    ]);
+
+    await processConcurrently([
+        {
+            filter: { name: "Loans.ActivatedMarket" },
+            mapping: activatedMarket,
             totalTime: 0,
         },
     ]);
