@@ -118,15 +118,22 @@ export async function updatedMarket(
         rateModel: InterestRateModel,
         closeFactor: e.closeFactor,
         lendTokenId: lendTokenIdNo,
-        state: MarketState.Pending,
         reserveFactor: e.reserveFactor,
         collateralFactor: e.collateralFactor,
         liquidateIncentive: e.liquidateIncentive,
         liquidationThreshold: e.liquidationThreshold,
         liquidateIncentiveReservedFactor: e.liquidateIncentiveReservedFactor
     });
+
+    my_market.state =
+        e.state.__kind === "Supervision"
+            ? MarketState.Supervision
+            : MarketState.Pending;
+
     // console.log(JSON.stringify(my_market));
     await entityBuffer.pushEntity(LoanMarket.name, my_market);
+
+    console.log(`Updated ${my_market.id}`);
 }
 
 export async function activatedMarket(
@@ -161,6 +168,7 @@ export async function activatedMarket(
     market.activation = activation;
     await entityBuffer.pushEntity(LoanMarketActivation.name, activation);
     await entityBuffer.pushEntity(LoanMarket.name, market);
+
     console.log(`Activated ${market.id}`);
 }
 
