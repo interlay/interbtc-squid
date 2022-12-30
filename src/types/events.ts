@@ -1364,10 +1364,11 @@ export class LoansNewMarketEvent {
      * New market is set
      * [new_interest_rate_model]
      */
-    get asV1020000(): [v1020000.CurrencyId, v1020000.Market] {
-        assert(this.isV1020000)
-        return this._chain.decodeEvent(this.event)
-    }
+
+    get asV1020000(): [v1020000.CurrencyId, {state: v1020000.MarketState, borrowCap: bigint, supplyCap: bigint, rateModel: v1020000.InterestRateModel, closeFactor: number, lendTokenId: v1020000.CurrencyId, reserveFactor: number, collateralFactor: number, liquidateIncentive: bigint, liquidationThreshold: number, liquidateIncentiveReservedFactor: number}] {
+      assert(this.isV1020000)
+      return this._chain.decodeEvent(this.event)
+  }
 }
 
 export class LoansUpdatedMarketEvent {
@@ -1395,7 +1396,7 @@ export class LoansUpdatedMarketEvent {
    * New market parameters is updated
    * [admin, asset_id]
    */
-  get asV1020000(): [v1020000.CurrencyId, v1020000.Market] {
+  get asV1020000(): [v1020000.CurrencyId, {state: v1020000.MarketState, borrowCap: bigint, supplyCap: bigint, rateModel: v1020000.InterestRateModel, closeFactor: number, lendTokenId: v1020000.CurrencyId, reserveFactor: number, collateralFactor: number, liquidateIncentive: bigint, liquidationThreshold: number, liquidateIncentiveReservedFactor: number}] {
       assert(this.isV1020000)
       return this._chain.decodeEvent(this.event)
   }

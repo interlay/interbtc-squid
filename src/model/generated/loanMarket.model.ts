@@ -3,6 +3,7 @@ import * as marshal from "./marshal"
 import {Currency, fromJsonCurrency} from "./_currency"
 import {Height} from "./height.model"
 import {RateModel, fromJsonRateModel} from "./_rateModel"
+import {MarketState} from "./_marketState"
 
 @Entity_()
 export class LoanMarket {
@@ -26,14 +27,17 @@ export class LoanMarket {
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
     borrowCap!: bigint
 
-    @Column_("jsonb", {transformer: {to: obj => obj.toJSON(), from: obj => obj == null ? undefined : fromJsonRateModel(obj)}, nullable: false})
-    rateModel!: RateModel
-
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
     supplyCap!: bigint
 
+    @Column_("jsonb", {transformer: {to: obj => obj.toJSON(), from: obj => obj == null ? undefined : fromJsonRateModel(obj)}, nullable: false})
+    rateModel!: RateModel
+
     @Column_("int4", {nullable: false})
     closeFactor!: number
+
+    @Column_("varchar", {length: 11, nullable: false})
+    state!: MarketState
 
     @Column_("int4", {nullable: false})
     reserveFactor!: number

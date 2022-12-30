@@ -14,6 +14,12 @@ enum RedeemStatus {
     Pending
 }
 
+enum MarketState {
+    Active
+    Pending
+    Supervision
+}
+
 enum Token {
     DOT
     INTR
@@ -263,9 +269,10 @@ type LoanMarket @entity {
     height: Height!
     timestamp: DateTime!
     borrowCap: BigInt!
-    rateModel: RateModel!
     supplyCap: BigInt!
+    rateModel: RateModel!
     closeFactor: Int!
+    state: MarketState!
     reserveFactor: Int!
     collateralFactor: Int!
     liquidateIncentive: BigInt!
