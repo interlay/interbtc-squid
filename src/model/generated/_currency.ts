@@ -29,7 +29,7 @@ export function currencySymbol(currency: Currency): String {
 */
 
 export function friendlyAmount(currency: Currency,
-                               amount: bigint,
+                               amount: number,
                                // store: Store,
                                // entityBuffer: EntityBuffer
 ): String {
@@ -39,15 +39,15 @@ export function friendlyAmount(currency: Currency,
         switch(currency.token){
             case 'KINT':
             case 'KSM':
-                amountFriendly = Number((amount) / 1_000_000_000_000n);
+                amountFriendly = amount / 10**12;
                 return `${amountFriendly.toFixed(2)} ${currency.token}`;
             case 'INTR':
             case 'DOT':
-                amountFriendly = Number((amount) / 10_000_000_000n);
+                amountFriendly = amount / 10**10;
                 return `${amountFriendly.toFixed(2)} ${currency.token}`;
             case 'KBTC':
             case 'IBTC':
-                amountFriendly = Number(amount) / 10**8;
+                amountFriendly = amount / 10**8;
                 return `${amountFriendly.toFixed(6)} ${currency.token}`;
             default: throw new TypeError('Unknown object passed as Currency')
 
@@ -57,35 +57,35 @@ export function friendlyAmount(currency: Currency,
         switch (currency.asset) {
             case 1:
                 // TODO: look this up in the registry
-                amountFriendly = Number((amount) / 1_000_000n);
+                amountFriendly = amount / 10**6;
                 return `${amountFriendly.toFixed(2)} USDT`;
             default:
                 throw new TypeError('Unknown foreign asset passed as Currency')
         }
         break;
-    case 'LendToken':
-        const id = `${currency.lendTokenId.toString()}`;
-        switch (currency.lendTokenId) {
-            case 0:
-                // TODO: look this up in the registry
-                amountFriendly = Number((amount) / 1_000_000_000_000n) * .02;
-                return `${amountFriendly.toFixed(2)} KSM`;
-            case 1:
-                // TODO: look this up in the registry
-                amountFriendly = Number(amount) / 10**8 * .02;
-                return `${amountFriendly.toFixed(6)} KBTC`;
-            case 2:
-                // TODO: look this up in the registry
-                amountFriendly = Number((amount) / 1_000_000_000_000n) * .02;
-                return `${amountFriendly.toFixed(2)} KINT`;
-            case 4:
-                // TODO: look this up in the registry
-                amountFriendly = Number((amount) / 1_000_000n) * .02;
-                return `${amountFriendly.toFixed(2)} USDT`;
-            default:
-                throw new TypeError('Unknown lend token passed as Currency')
-        }
-        break;
+    // case 'LendToken':
+    //     const id = `${currency.lendTokenId.toString()}`;
+    //     switch (currency.lendTokenId) {
+    //         case 0:
+    //             // TODO: look this up in the registry
+    //             amountFriendly = Number((amount) / 1_000_000_000_000n) * .02;
+    //             return `${amountFriendly.toFixed(2)} KSM`;
+    //         case 1:
+    //             // TODO: look this up in the registry
+    //             amountFriendly = Number(amount) / 10**8 * .02;
+    //             return `${amountFriendly.toFixed(6)} KBTC`;
+    //         case 2:
+    //             // TODO: look this up in the registry
+    //             amountFriendly = Number((amount) / 1_000_000_000_000n) * .02;
+    //             return `${amountFriendly.toFixed(2)} KINT`;
+    //         case 4:
+    //             // TODO: look this up in the registry
+    //             amountFriendly = Number((amount) / 1_000_000n) * .02;
+    //             return `${amountFriendly.toFixed(2)} USDT`;
+    //         default:
+    //             throw new TypeError('Unknown lend token passed as Currency')
+    //     }
+    //     break;
     default: throw new TypeError('Unknown object passed as Currency')
   }
 }
