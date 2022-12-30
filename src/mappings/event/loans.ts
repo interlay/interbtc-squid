@@ -2,7 +2,7 @@ import { SubstrateBlock, toHex } from "@subsquid/substrate-processor";
 import { LessThanOrEqual } from "typeorm";
 import {
     CumulativeVolume,
-    CumulativeVolumePerCurrencyPair, 
+    CumulativeVolumePerCurrencyPair,
     LendToken,
     Redeem,
     RedeemCancellation,
@@ -10,10 +10,15 @@ import {
     RedeemPeriod,
     RedeemRequest,
     RedeemStatus,
-    RelayedBlock, 
+    RelayedBlock,
     Transfer,
     VolumeType,
     MarketState,
+    LoanMarket,
+    LoanMarketActivation,
+    Loan,
+    Deposit,
+    currencySymbol,
 } from "../../model";
 import { Ctx, EventItem } from "../../processor";
 import {
@@ -45,10 +50,6 @@ import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
 import { getCurrentRedeemPeriod } from "../utils/requestPeriods";
 import { getVaultId, getVaultIdLegacy } from "../_utils";
-import { LoanMarket} from "../../model/generated/loanMarket.model";
-import { Loan } from "../../model/generated/loan.model";
-import { Deposit } from "../../model/generated/deposit.model";
-import {Currency, currencySymbol} from "../../model/generated/_currency"
 
 
 
@@ -69,7 +70,7 @@ export async function newMarket(
     const lendTokenId = e.lendTokenId.value;
 
     const my_market = new LoanMarket({
-        id: "loanMarket_" + id, //lendTokenId.toString(),
+        id: `loanMarket_` + id, //lendTokenId.toString(),
         token: currency,
         height: height,
         timestamp: timestamp,
@@ -77,6 +78,7 @@ export async function newMarket(
         supplyCap: e.supplyCap,
         rateModel: InterestRateModel,
         closeFactor: e.closeFactor,
+        lendTokenId: lendTokenId,
         state: MarketState.Pending,
         reserveFactor: e.reserveFactor,
         collateralFactor: e.collateralFactor,
@@ -106,7 +108,7 @@ export async function updatedMarket(
     const lendTokenId = e.lendTokenId.value;
 
     const my_market = new LoanMarket({
-        id: "loanMarket_" + id, //lendTokenId.toString(),
+        id: `loanMarket_` + id, //lendTokenId.toString(),
         token: currency,
         height: height,
         timestamp: timestamp,
@@ -114,6 +116,7 @@ export async function updatedMarket(
         supplyCap: e.supplyCap,
         rateModel: InterestRateModel,
         closeFactor: e.closeFactor,
+        lendTokenId: lendTokenId,
         state: MarketState.Pending,
         reserveFactor: e.reserveFactor,
         collateralFactor: e.collateralFactor,
@@ -123,6 +126,41 @@ export async function updatedMarket(
     });
     // console.log(JSON.stringify(my_market));
     await entityBuffer.pushEntity(LoanMarket.name, my_market);
+}
+
+export async function activatedMarket(
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem,
+    entityBuffer: EntityBuffer
+): Promise<void> {
+    const rawEvent = new LoansActivatedMarketEvent(ctx, item.event);
+    let token = rawEvent.asV1020000;
+    const currency = currencyId.encode(token);
+    const id = currencyToString(currency);
+
+    const market = await ctx.store.get(LoanMarket, {
+        where: { id: `loanMarket_${id}` },
+    });
+    if (market === undefined) {
+        ctx.log.warn(
+            "WARNING: ActivatedMarket event did not match any existing LoanMarkets! Skipping."
+        );
+        return;
+    }
+    const height = await blockToHeight(ctx, block.height, "ActivatedMarket");
+    const activation = new LoanMarketActivation({
+        id: market.id,
+        market: market,
+        token: currency,
+        height,
+        timestamp: new Date(block.timestamp),
+    });
+    market.state = MarketState.Active
+    market.activation = activation;
+    await entityBuffer.pushEntity(LoanMarketActivation.name, activation);
+    await entityBuffer.pushEntity(LoanMarket.name, market);
+    console.log(`Activated ${market.id}`);
 }
 
 export async function borrow(

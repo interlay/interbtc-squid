@@ -1,9 +1,10 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_} from "typeorm"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_, OneToOne as OneToOne_} from "typeorm"
 import * as marshal from "./marshal"
 import {Currency, fromJsonCurrency} from "./_currency"
 import {Height} from "./height.model"
 import {RateModel, fromJsonRateModel} from "./_rateModel"
 import {MarketState} from "./_marketState"
+import {LoanMarketActivation} from "./loanMarketActivation.model"
 
 @Entity_()
 export class LoanMarket {
@@ -53,4 +54,7 @@ export class LoanMarket {
 
     @Column_("int4", {nullable: false})
     liquidateIncentiveReservedFactor!: number
+
+    @OneToOne_(() => LoanMarketActivation)
+    activation!: LoanMarketActivation | undefined | null
 }

@@ -1,5 +1,5 @@
-module.exports = class Data1672324201938 {
-    name = 'Data1672324201938'
+module.exports = class Data1672389748332 {
+    name = 'Data1672389748332'
 
     async up(db) {
         await db.query(`CREATE TABLE "height" ("id" character varying NOT NULL, "absolute" integer NOT NULL, "active" integer NOT NULL, CONSTRAINT "PK_90f1773799ae13708b533416960" PRIMARY KEY ("id"))`)
@@ -50,6 +50,9 @@ module.exports = class Data1672324201938 {
         await db.query(`CREATE INDEX "IDX_be54ea276e0f665ffc38630fc0" ON "transfer" ("from") `)
         await db.query(`CREATE INDEX "IDX_4cbc37e8c3b47ded161f44c24f" ON "transfer" ("to") `)
         await db.query(`CREATE INDEX "IDX_89d515806f93bf55c6dcc03c45" ON "transfer" ("height_id") `)
+        await db.query(`CREATE TABLE "loan_market_activation" ("id" character varying NOT NULL, "token" jsonb NOT NULL, "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "market_id" character varying NOT NULL, "height_id" character varying, CONSTRAINT "REL_c9596e4e44c3289adbc6c93ce8" UNIQUE ("market_id"), CONSTRAINT "PK_00c25b431b60a2154827eb4a76b" PRIMARY KEY ("id"))`)
+        await db.query(`CREATE UNIQUE INDEX "IDX_c9596e4e44c3289adbc6c93ce8" ON "loan_market_activation" ("market_id") `)
+        await db.query(`CREATE INDEX "IDX_b47d7a0d7b2bbd82490a7010db" ON "loan_market_activation" ("height_id") `)
         await db.query(`CREATE TABLE "loan_market" ("id" character varying NOT NULL, "token" jsonb NOT NULL, "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "borrow_cap" numeric NOT NULL, "supply_cap" numeric NOT NULL, "rate_model" jsonb NOT NULL, "close_factor" integer NOT NULL, "state" character varying(11) NOT NULL, "reserve_factor" integer NOT NULL, "collateral_factor" integer NOT NULL, "liquidate_incentive" numeric NOT NULL, "liquidation_threshold" integer NOT NULL, "liquidate_incentive_reserved_factor" integer NOT NULL, "height_id" character varying, CONSTRAINT "PK_e015c33030af7b9cabee542c80f" PRIMARY KEY ("id"))`)
         await db.query(`CREATE INDEX "IDX_38be14a0f173998ffce0f785b8" ON "loan_market" ("height_id") `)
         await db.query(`CREATE TABLE "loan" ("id" character varying NOT NULL, "token" jsonb NOT NULL, "user_parachain_address" text NOT NULL, "amount_borrowed" numeric, "amount_repaid" numeric, "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "height_id" character varying, CONSTRAINT "PK_4ceda725a323d254a5fd48bf95f" PRIMARY KEY ("id"))`)
@@ -80,6 +83,8 @@ module.exports = class Data1672324201938 {
         await db.query(`ALTER TABLE "redeem" ADD CONSTRAINT "FK_19baa2bc29c8e15a4f62d20ba08" FOREIGN KEY ("period_id") REFERENCES "redeem_period"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`)
         await db.query(`ALTER TABLE "oracle_update" ADD CONSTRAINT "FK_b98c119d788456a5f133024aa57" FOREIGN KEY ("height_id") REFERENCES "height"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`)
         await db.query(`ALTER TABLE "transfer" ADD CONSTRAINT "FK_89d515806f93bf55c6dcc03c45b" FOREIGN KEY ("height_id") REFERENCES "height"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`)
+        await db.query(`ALTER TABLE "loan_market_activation" ADD CONSTRAINT "FK_c9596e4e44c3289adbc6c93ce83" FOREIGN KEY ("market_id") REFERENCES "loan_market"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`)
+        await db.query(`ALTER TABLE "loan_market_activation" ADD CONSTRAINT "FK_b47d7a0d7b2bbd82490a7010db1" FOREIGN KEY ("height_id") REFERENCES "height"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`)
         await db.query(`ALTER TABLE "loan_market" ADD CONSTRAINT "FK_38be14a0f173998ffce0f785b8f" FOREIGN KEY ("height_id") REFERENCES "height"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`)
         await db.query(`ALTER TABLE "loan" ADD CONSTRAINT "FK_9d91bd14c2c870581c9cf6cf5cf" FOREIGN KEY ("height_id") REFERENCES "height"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`)
         await db.query(`ALTER TABLE "deposit" ADD CONSTRAINT "FK_2737e86cc718982faf56d573dfb" FOREIGN KEY ("height_id") REFERENCES "height"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`)
@@ -134,6 +139,9 @@ module.exports = class Data1672324201938 {
         await db.query(`DROP INDEX "public"."IDX_be54ea276e0f665ffc38630fc0"`)
         await db.query(`DROP INDEX "public"."IDX_4cbc37e8c3b47ded161f44c24f"`)
         await db.query(`DROP INDEX "public"."IDX_89d515806f93bf55c6dcc03c45"`)
+        await db.query(`DROP TABLE "loan_market_activation"`)
+        await db.query(`DROP INDEX "public"."IDX_c9596e4e44c3289adbc6c93ce8"`)
+        await db.query(`DROP INDEX "public"."IDX_b47d7a0d7b2bbd82490a7010db"`)
         await db.query(`DROP TABLE "loan_market"`)
         await db.query(`DROP INDEX "public"."IDX_38be14a0f173998ffce0f785b8"`)
         await db.query(`DROP TABLE "loan"`)
@@ -164,6 +172,8 @@ module.exports = class Data1672324201938 {
         await db.query(`ALTER TABLE "redeem" DROP CONSTRAINT "FK_19baa2bc29c8e15a4f62d20ba08"`)
         await db.query(`ALTER TABLE "oracle_update" DROP CONSTRAINT "FK_b98c119d788456a5f133024aa57"`)
         await db.query(`ALTER TABLE "transfer" DROP CONSTRAINT "FK_89d515806f93bf55c6dcc03c45b"`)
+        await db.query(`ALTER TABLE "loan_market_activation" DROP CONSTRAINT "FK_c9596e4e44c3289adbc6c93ce83"`)
+        await db.query(`ALTER TABLE "loan_market_activation" DROP CONSTRAINT "FK_b47d7a0d7b2bbd82490a7010db1"`)
         await db.query(`ALTER TABLE "loan_market" DROP CONSTRAINT "FK_38be14a0f173998ffce0f785b8f"`)
         await db.query(`ALTER TABLE "loan" DROP CONSTRAINT "FK_9d91bd14c2c870581c9cf6cf5cf"`)
         await db.query(`ALTER TABLE "deposit" DROP CONSTRAINT "FK_2737e86cc718982faf56d573dfb"`)
