@@ -6,7 +6,6 @@ import {
     LoanMarketActivation,
     Loan,
     Deposit,
-    currencySymbol,
 } from "../../model";
 import { Ctx, EventItem } from "../../processor";
 import {
@@ -37,6 +36,8 @@ import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
 import { getCurrentRedeemPeriod } from "../utils/requestPeriods";
 import { getVaultId, getVaultIdLegacy } from "../_utils";
+import {Currency, friendlyAmount} from "../../model/generated/_currency"
+import { lendTokenDetails } from "../utils/markets";
 
 
 
@@ -172,7 +173,7 @@ export async function borrow(
             amountBorrowed: amount,
         })
     );
-    console.log(`${account} borrowed ${amount} ${currencySymbol(currency)}`);
+    console.log(`${account} borrowed ${friendlyAmount(currency, amount)}`);
 }
 
 export async function depositCollateral(
@@ -197,7 +198,15 @@ export async function depositCollateral(
             amountDeposited: amount,
         })
     );
-    console.log(`${account} deposited ${amount} ${currencySymbol(currency)} for collateral`);
+    if(depositCurr.__kind==='LendToken'){
+        const newToken = await lendTokenDetails(ctx, depositCurr.value)
+        const newAmount = Number(amount) * 0.02
+        if(newToken){
+            console.log(`${account} deposited ${friendlyAmount(newToken, BigInt(newAmount))} for collateral`);
+        }
+    } else {
+        console.log(`${account} deposited ${friendlyAmount(currency, amount)} for collateral`);
+    }
 }
 
 export async function withdrawCollateral(
@@ -222,7 +231,7 @@ export async function withdrawCollateral(
             amountWithdrawn: amount,
         })
     );
-    console.log(`${account} withdrew ${amount} ${currencySymbol(currency)} from collateral`);
+    console.log(`${account} withdrew ${friendlyAmount(currency, amount)} from collateral`);
 }
 
 export async function depositForLending(
@@ -247,7 +256,7 @@ export async function depositForLending(
             amountDeposited: amount,
         })
     );
-    console.log(`${account} deposited ${amount} ${currencySymbol(currency)} for lending`);
+    console.log(`${account} deposited ${friendlyAmount(currency, amount)} for lending`);
 }
 
 export async function distributeBorrowerReward(
@@ -290,7 +299,7 @@ export async function repay(
             amountRepaid: amount,
         })
     );
-    console.log(`${account} paid back ${amount} ${currencySymbol(currency)}`);
+    console.log(`${account} paid back ${friendlyAmount(currency, amount)}`);
 }
 
 "Redeem means withdrawing a deposit by redeeming qTokens for Tokens."
@@ -316,5 +325,5 @@ export async function withdrawDeposit(
             amountWithdrawn: amount, // expand to 3 tokens: qToken, Token, equivalent in USD(T)
         })
     );
-    console.log(`${account} withdrew ${amount} ${currencySymbol(currency)} from deposit`);
+    console.log(`${account} withdrew ${friendlyAmount(currency, amount)} from deposit`);
 }
