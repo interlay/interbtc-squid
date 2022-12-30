@@ -37,6 +37,10 @@ export class LoanMarket {
     @Column_("int4", {nullable: false})
     closeFactor!: number
 
+    @Index_({unique: true})
+    @Column_("int4", {nullable: false})
+    lendTokenId!: number
+
     @Column_("varchar", {length: 11, nullable: false})
     state!: MarketState
 
