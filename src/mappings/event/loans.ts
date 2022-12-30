@@ -26,7 +26,7 @@ import { CurrencyId_Token as CurrencyId_Token_V6 } from "../../types/v6";
 import { CurrencyId_Token as CurrencyId_Token_V10 } from "../../types/v10";
 import { CurrencyId_Token as CurrencyId_Token_V15 } from "../../types/v15";
 import { CurrencyId as CurrencyId_V17 } from "../../types/v17";
-import { CurrencyId as CurrencyId_V1020000 } from "../../types/v1020000";
+import { CurrencyId as CurrencyId_V1020000, CurrencyId_LendToken } from "../../types/v1020000";
 import { InterestRateModel as InterestRateModel_V1020000 } from "../../types/v1020000";
 import { address, currencyId, currencyToString, legacyCurrencyId, rateModel } from "../encoding";
 import {
@@ -54,7 +54,7 @@ export async function newMarket(
 
     const height = await blockToHeight(ctx, block.height, "NewMarket");
     const timestamp = new Date(block.timestamp);
-    const lendTokenId = e.lendTokenId.value;
+    const lendTokenIdNo = (e.lendTokenId as CurrencyId_LendToken).value;
 
     const my_market = new LoanMarket({
         id: `loanMarket_` + id, //lendTokenId.toString(),
@@ -65,7 +65,7 @@ export async function newMarket(
         supplyCap: e.supplyCap,
         rateModel: InterestRateModel,
         closeFactor: e.closeFactor,
-        lendTokenId: lendTokenId,
+        lendTokenId: lendTokenIdNo,
         state: MarketState.Pending,
         reserveFactor: e.reserveFactor,
         collateralFactor: e.collateralFactor,
@@ -92,7 +92,7 @@ export async function updatedMarket(
 
     const height = await blockToHeight(ctx, block.height, "UpdatedMarket");
     const timestamp = new Date(block.timestamp);
-    const lendTokenId = e.lendTokenId.value;
+    const lendTokenIdNo = (e.lendTokenId as CurrencyId_LendToken).value;
 
     const my_market = new LoanMarket({
         id: `loanMarket_` + id, //lendTokenId.toString(),
@@ -103,7 +103,7 @@ export async function updatedMarket(
         supplyCap: e.supplyCap,
         rateModel: InterestRateModel,
         closeFactor: e.closeFactor,
-        lendTokenId: lendTokenId,
+        lendTokenId: lendTokenIdNo,
         state: MarketState.Pending,
         reserveFactor: e.reserveFactor,
         collateralFactor: e.collateralFactor,
