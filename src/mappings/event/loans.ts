@@ -252,7 +252,15 @@ export async function withdrawCollateral(
             amountWithdrawn: amount,
         })
     );
-    console.log(`${account} withdrew ${friendlyAmount(currency, Number(amount))} from collateral`);
+    if(depositCurr.__kind==='LendToken'){
+        const newToken = await lendTokenDetails(ctx, depositCurr.value)
+        const newAmount = Number(amount) * 0.02
+        if(newToken){
+            console.log(`${account} withdrew ${friendlyAmount(newToken, newAmount)} from collateral`);
+        }
+    } else {
+        console.log(`${account} withdrew ${friendlyAmount(currency, Number(amount))} from collateral`);
+    }
 }
 
 export async function depositForLending(
