@@ -48,6 +48,7 @@ import {    newMarket,
             withdrawCollateral,
             withdrawDeposit,
 } from "./mappings/event/loans";
+import { ApiPromise, WsProvider } from '@polkadot/api';
 
 const archive = process.env.ARCHIVE_ENDPOINT;
 assert(!!archive);

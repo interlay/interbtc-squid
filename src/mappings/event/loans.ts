@@ -51,7 +51,7 @@ import { getCurrentRedeemPeriod } from "../utils/requestPeriods";
 import { getVaultId, getVaultIdLegacy } from "../_utils";
 import {Currency, friendlyAmount} from "../../model/generated/_currency"
 import { lendTokenDetails } from "../utils/markets";
-
+import { getFirstAndLastFour } from "../_utils"
 
 
 export async function newMarket(
@@ -194,7 +194,7 @@ export async function borrow(
             amountBorrowed: amount,
         })
     );
-    console.log(`${account} borrowed ${friendlyAmount(currency, Number(amount))}`);
+    console.log(`${getFirstAndLastFour(account)} borrowed ${await friendlyAmount(currency, Number(amount))}`);
 }
 
 export async function depositCollateral(
@@ -223,10 +223,10 @@ export async function depositCollateral(
         const newToken = await lendTokenDetails(ctx, depositCurr.value)
         const newAmount = Number(amount) * 0.02
         if(newToken){
-            console.log(`${account} deposited ${friendlyAmount(newToken, newAmount)} for collateral`);
+            console.log(`${getFirstAndLastFour(account)} deposited ${await friendlyAmount(newToken, newAmount)} for collateral`);
         }
     } else {
-        console.log(`${account} deposited ${friendlyAmount(currency, Number(amount))} for collateral`);
+        console.log(`${getFirstAndLastFour(account)} deposited ${await friendlyAmount(currency, Number(amount))} for collateral`);
     }
 }
 
@@ -256,10 +256,10 @@ export async function withdrawCollateral(
         const newToken = await lendTokenDetails(ctx, depositCurr.value)
         const newAmount = Number(amount) * 0.02
         if(newToken){
-            console.log(`${account} withdrew ${friendlyAmount(newToken, newAmount)} from collateral`);
+            console.log(`${getFirstAndLastFour(account)} withdrew ${await friendlyAmount(newToken, newAmount)} from collateral`);
         }
     } else {
-        console.log(`${account} withdrew ${friendlyAmount(currency, Number(amount))} from collateral`);
+        console.log(`${getFirstAndLastFour(account)} withdrew ${await friendlyAmount(currency, Number(amount))} from collateral`);
     }
 }
 
@@ -285,7 +285,7 @@ export async function depositForLending(
             amountDeposited: amount,
         })
     );
-    console.log(`${account} deposited ${friendlyAmount(currency, Number(amount))} for lending`);
+    console.log(`${getFirstAndLastFour(account)} deposited ${await friendlyAmount(currency, Number(amount))} for lending`);
 }
 
 export async function distributeBorrowerReward(
@@ -328,7 +328,7 @@ export async function repay(
             amountRepaid: amount,
         })
     );
-    console.log(`${account} paid back ${friendlyAmount(currency, Number(amount))}`);
+    console.log(`${getFirstAndLastFour(account)} paid back ${await friendlyAmount(currency, Number(amount))}`);
 }
 
 "Redeem means withdrawing a deposit by redeeming qTokens for Tokens."
@@ -354,5 +354,5 @@ export async function withdrawDeposit(
             amountWithdrawn: amount, // expand to 3 tokens: qToken, Token, equivalent in USD(T)
         })
     );
-    console.log(`${account} withdrew ${friendlyAmount(currency, Number(amount))} from deposit`);
+    console.log(`${getFirstAndLastFour(account)} withdrew ${await friendlyAmount(currency, Number(amount))} from deposit`);
 }
