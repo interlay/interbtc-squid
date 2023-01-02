@@ -6,6 +6,8 @@ import { VaultId as VaultIdV6 } from "../types/v6";
 import { VaultId as VaultIdV1020000 } from "../types/v1020000";
 import { VaultId as VaultIdV1021000 } from "../types/v1021000";
 import { encodeLegacyVaultId, encodeVaultId } from "./encoding";
+import { ApiPromise, WsProvider } from '@polkadot/api';
+import * as process from "process";
 
 export type eventArgs = {
     event: { args: true };
@@ -49,4 +51,31 @@ export async function isRequestExpired(
         request.request.backingHeight + btcPeriod < latestBtcBlock &&
         requestHeight.active + period < latestActiveBlock
     );
+}
+
+export function getFirstAndLastFour(str: string) {
+    // If the string is less than 8 characters, return it as-is
+    if (str.length < 8) {
+        return str;
+    }
+
+    // Otherwise, return the first four characters plus "..." plus the last four characters
+    return str.substring(0, 4) + "..." + str.substring(str.length - 4);
+}
+
+type AssetMetadata = {
+    decimals: number;
+    name: string;
+    symbol: string;
+}
+
+
+export async function getForeignAsset(id: Number): Promise<AssetMetadata> {
+    const wsProvider = new WsProvider(process.env.CHAIN_ENDPOINT);
+    const api = await ApiPromise.create({ provider: wsProvider });
+    const assets = await api.query.assetRegistry.metadata(1)
+    const assetsJSON = assets.toHuman()
+    const metadata = assetsJSON as AssetMetadata;
+    console.log(`Foreign Asset (${id}): ${JSON.stringify(metadata)}`)
+    return metadata
 }
