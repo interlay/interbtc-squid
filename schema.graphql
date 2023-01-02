@@ -298,6 +298,7 @@ type Loan @entity {
     amountRepaid: BigInt
     height: Height!
     timestamp: DateTime!
+    comment: String
 }
 
 type Deposit @entity {
@@ -308,6 +309,7 @@ type Deposit @entity {
     amountWithdrawn: BigInt
     height: Height!
     timestamp: DateTime!
+    comment: String
 }
 
 
