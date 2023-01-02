@@ -69,13 +69,25 @@ type AssetMetadata = {
     symbol: string;
 }
 
+// This function uses the storage API to obtain the details directly from the
+// WSS RPC provider for the correct chain
+const cache: { [id: number]: AssetMetadata } = {};
 
-export async function getForeignAsset(id: Number): Promise<AssetMetadata> {
-    const wsProvider = new WsProvider(process.env.CHAIN_ENDPOINT);
-    const api = await ApiPromise.create({ provider: wsProvider });
-    const assets = await api.query.assetRegistry.metadata(1)
-    const assetsJSON = assets.toHuman()
-    const metadata = assetsJSON as AssetMetadata;
-    console.log(`Foreign Asset (${id}): ${JSON.stringify(metadata)}`)
-    return metadata
+export async function getForeignAsset(id: number): Promise<AssetMetadata> {
+    if (id in cache) {
+        return cache[id];
+    }
+    try {
+        const wsProvider = new WsProvider(process.env.CHAIN_ENDPOINT);
+        const api = await ApiPromise.create({ provider: wsProvider });
+        const assets = await api.query.assetRegistry.metadata(id);
+        const assetsJSON = assets.toHuman();
+        const metadata = assetsJSON as AssetMetadata;
+        console.debug(`Foreign Asset (${id}): ${JSON.stringify(metadata)}`);
+        cache[id] = metadata;
+        return metadata;
+    } catch (error) {
+        console.error(`Error getting foreign asset metadata: ${error}`);
+        throw error;
+    }
 }

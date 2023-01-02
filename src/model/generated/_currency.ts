@@ -18,19 +18,14 @@ export function fromJsonCurrency(json: any): Currency {
     }
 }
 
-/*
-export function currencySymbol(currency: Currency): String {
-  switch(currency.isTypeOf) {
-    case 'NativeToken': return currency.token
-    case 'ForeignAsset': return `foreign ${ currency.asset.toString() }`
-    case 'LendToken': return `lend ${ currency.lendTokenId.toString() }`
-    default: throw new TypeError('Unknown object passed as Currency')
-  }
-}
-*/
 
+/* This function takes a currency object (could be native, could be foreign) and
+an amount (in the smallest unit, e.g. Planck) and returns a human friendly string
+with a reasonable accuracy (6 digits after the decimal point for BTC and 2 for
+all others)
+*/
 export async function friendlyAmount(currency: Currency, amount: number): Promise<string> {
-  let amountFriendly: Number;
+  let amountFriendly: number;
   switch(currency.isTypeOf) {
       case 'NativeToken':
           switch (currency.token) {
@@ -47,9 +42,8 @@ export async function friendlyAmount(currency: Currency, amount: number): Promis
                   amountFriendly = amount / 10 ** 8;
                   return `${amountFriendly.toFixed(6)} ${currency.token}`;
               default:
-                  return 'Unknown object passed as Currency'
+                  return `Unknown token: ${currency}`
           }
-          break;
       case 'ForeignAsset':
           const details = await getForeignAsset(currency.asset)
           amountFriendly = amount / 10 ** (details.decimals);
