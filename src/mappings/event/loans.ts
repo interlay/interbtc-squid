@@ -170,6 +170,7 @@ export async function borrow(
     const currency = currencyId.encode(currencyOfLoan);
     const height = await blockToHeight(ctx, block.height, "LoansBorrowed");
     const account = address.interlay.encode(adress);
+    const comment = `${getFirstAndLastFour(account)} borrowed ${await friendlyAmount(currency, Number(amount))}`;
     await entityBuffer.pushEntity(
         Loan.name,
         new Loan({
@@ -179,9 +180,9 @@ export async function borrow(
             userParachainAddress: account,
             token: currency,
             amountBorrowed: amount,
+            comment: comment
         })
     );
-    console.log(`${getFirstAndLastFour(account)} borrowed ${await friendlyAmount(currency, Number(amount))}`);
 }
 
 export async function depositCollateral(
@@ -195,6 +196,16 @@ export async function depositCollateral(
     const currency = currencyId.encode(depositCurr);
     const height = await blockToHeight(ctx, block.height, "Deposit");
     const account = address.interlay.encode(adress);
+    let comment = '';
+    if(depositCurr.__kind==='LendToken'){
+        const newToken = await lendTokenDetails(ctx, depositCurr.value)
+        const newAmount = Number(amount) * 0.02
+        if(newToken){
+            comment = `${getFirstAndLastFour(account)} deposited ${await friendlyAmount(newToken, newAmount)} for collateral`
+        }
+    } else {
+        comment = `${getFirstAndLastFour(account)} deposited ${await friendlyAmount(currency, Number(amount))} for collateral`
+    }
     await entityBuffer.pushEntity(
         Deposit.name,
         new Deposit({
@@ -204,17 +215,9 @@ export async function depositCollateral(
             userParachainAddress: account,
             token: currency,
             amountDeposited: amount,
+            comment: comment
         })
     );
-    if(depositCurr.__kind==='LendToken'){
-        const newToken = await lendTokenDetails(ctx, depositCurr.value)
-        const newAmount = Number(amount) * 0.02
-        if(newToken){
-            console.log(`${getFirstAndLastFour(account)} deposited ${await friendlyAmount(newToken, newAmount)} for collateral`);
-        }
-    } else {
-        console.log(`${getFirstAndLastFour(account)} deposited ${await friendlyAmount(currency, Number(amount))} for collateral`);
-    }
 }
 
 export async function withdrawCollateral(
@@ -228,6 +231,16 @@ export async function withdrawCollateral(
     const currency = currencyId.encode(depositCurr);
     const height = await blockToHeight(ctx, block.height, "WithdrawDeposit");
     const account = address.interlay.encode(adress);
+    let comment = '';
+    if(depositCurr.__kind==='LendToken'){
+        const newToken = await lendTokenDetails(ctx, depositCurr.value)
+        const newAmount = Number(amount) * 0.02
+        if(newToken){
+            comment = `${getFirstAndLastFour(account)} withdrew ${await friendlyAmount(newToken, newAmount)} from collateral`;
+        }
+    } else {
+        comment = `${getFirstAndLastFour(account)} withdrew ${await friendlyAmount(currency, Number(amount))} from collateral`;
+    }
     await entityBuffer.pushEntity(
         Deposit.name,
         new Deposit({
@@ -237,17 +250,9 @@ export async function withdrawCollateral(
             userParachainAddress: account,
             token: currency,
             amountWithdrawn: amount,
+            comment: comment
         })
     );
-    if(depositCurr.__kind==='LendToken'){
-        const newToken = await lendTokenDetails(ctx, depositCurr.value)
-        const newAmount = Number(amount) * 0.02
-        if(newToken){
-            console.log(`${getFirstAndLastFour(account)} withdrew ${await friendlyAmount(newToken, newAmount)} from collateral`);
-        }
-    } else {
-        console.log(`${getFirstAndLastFour(account)} withdrew ${await friendlyAmount(currency, Number(amount))} from collateral`);
-    }
 }
 
 export async function depositForLending(
@@ -261,6 +266,7 @@ export async function depositForLending(
     const currency = currencyId.encode(depositCurr);
     const height = await blockToHeight(ctx, block.height, "Deposit");
     const account = address.interlay.encode(adress);
+    const comment = `${getFirstAndLastFour(account)} deposited ${await friendlyAmount(currency, Number(amount))} for lending`;
     await entityBuffer.pushEntity(
         Deposit.name,
         new Deposit({
@@ -270,9 +276,9 @@ export async function depositForLending(
             userParachainAddress: account,
             token: currency,
             amountDeposited: amount,
+            comment: comment
         })
     );
-    console.log(`${getFirstAndLastFour(account)} deposited ${await friendlyAmount(currency, Number(amount))} for lending`);
 }
 
 export async function distributeBorrowerReward(
@@ -304,6 +310,7 @@ export async function repay(
     const currency = currencyId.encode(currencyOfLoan);
     const height = await blockToHeight(ctx, block.height, "LoansRepaid");
     const account = address.interlay.encode(adress);
+    const comment = `${getFirstAndLastFour(account)} paid back ${await friendlyAmount(currency, Number(amount))}`
     await entityBuffer.pushEntity(
         Loan.name,
         new Loan({
@@ -313,9 +320,9 @@ export async function repay(
             userParachainAddress: account,
             token: currency,
             amountRepaid: amount,
+            comment: comment
         })
     );
-    console.log(`${getFirstAndLastFour(account)} paid back ${await friendlyAmount(currency, Number(amount))}`);
 }
 
 "Redeem means withdrawing a deposit by redeeming qTokens for Tokens."
@@ -330,6 +337,7 @@ export async function withdrawDeposit(
     const currency = currencyId.encode(currencyOfLoan);
     const height = await blockToHeight(ctx, block.height, "Redeemed");
     const account = address.interlay.encode(adress);
+    const comment = `${getFirstAndLastFour(account)} withdrew ${await friendlyAmount(currency, Number(amount))} from deposit`;
     await entityBuffer.pushEntity(
         Deposit.name,
         new Deposit({
@@ -338,8 +346,8 @@ export async function withdrawDeposit(
             timestamp: new Date(block.timestamp),
             userParachainAddress: account,
             token: currency,
-            amountWithdrawn: amount, // expand to 3 tokens: qToken, Token, equivalent in USD(T)
+            amountWithdrawn: amount,
+            comment: comment// expand to 3 tokens: qToken, Token, equivalent in USD(T)
         })
     );
-    console.log(`${getFirstAndLastFour(account)} withdrew ${await friendlyAmount(currency, Number(amount))} from deposit`);
 }
