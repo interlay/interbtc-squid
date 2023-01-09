@@ -36,9 +36,9 @@ import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
 import { getCurrentRedeemPeriod } from "../utils/requestPeriods";
 import { getVaultId, getVaultIdLegacy } from "../_utils";
-import {Currency, friendlyAmount} from "../../model/generated/_currency"
+import {Currency} from "../../model/generated/_currency"
 import { lendTokenDetails } from "../utils/markets";
-import { getFirstAndLastFour } from "../_utils"
+import { getFirstAndLastFour, friendlyAmount } from "../_utils"
 
 
 export async function newMarket(
