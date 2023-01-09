@@ -51,7 +51,7 @@ yarn install
 yarn build
 
 # Start a postgres instance
-docker-compose up db -d # add optional -d flag to detach from terminal
+docker-compose up -d db # add optional -d flag to detach from terminal
 
 # Apply the project's migrations
 yarn db:migrate
@@ -78,7 +78,7 @@ docker-compose down -v
 Then you can
 
 ```bash
-docker-compose up db -d
+docker-compose up -d db
 yarn build
 yarn processor:start
 ```
