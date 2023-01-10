@@ -167,7 +167,7 @@ export async function executeRedeem(
 
     await entityBuffer.pushEntity(RedeemExecution.name, execution);
     await entityBuffer.pushEntity(Redeem.name, redeem);
-    const volumeTypes = [VolumeType.Issued, VolumeType.BridgeVolume];
+    const volumeTypes = [VolumeType.Redeemed, VolumeType.BridgeVolume];
     for (const volumeType of volumeTypes) {
         await entityBuffer.pushEntity(
             CumulativeVolume.name,
