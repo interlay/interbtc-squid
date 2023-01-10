@@ -171,7 +171,6 @@ export async function executeIssue(
     await entityBuffer.pushEntity(Issue.name, issue);
     
     const volumeTypes = [VolumeType.Issued, VolumeType.Locked, VolumeType.BridgeVolume];
-
     for (const volumeType of volumeTypes) {
         await entityBuffer.pushEntity(
             CumulativeVolume.name,
@@ -184,7 +183,6 @@ export async function executeIssue(
             )
         );
     }
-    
     await entityBuffer.pushEntity(
         CumulativeVolumePerCurrencyPair.name,
         await updateCumulativeVolumesForCurrencyPair(
