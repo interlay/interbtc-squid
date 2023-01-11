@@ -58,7 +58,7 @@ export async function registerVault(
         block.height,
         "RegisterVault"
     );
-    await entityBuffer.pushEntity(
+    entityBuffer.pushEntity(
         Vault.name,
         new Vault({
             id: vaultId,
@@ -104,11 +104,22 @@ export async function increaseLockedCollateral(
         collateralToken = currencyId.encode(e.currencyPair.collateral);
     }
 
-    await entityBuffer.pushEntity(
+    entityBuffer.pushEntity(
         CumulativeVolumePerCurrencyPair.name,
         new CumulativeVolumePerCurrencyPair({
             id: `Collateral-${item.event.id}`,
             type: VolumeType.Collateral,
+            amount: e.total,
+            tillTimestamp: new Date(block.timestamp),
+            collateralCurrency: collateralToken,
+            wrappedCurrency: wrappedToken,
+        })
+    );
+    entityBuffer.pushEntity(
+        CumulativeVolumePerCurrencyPair.name,
+        new CumulativeVolumePerCurrencyPair({
+            id: `Collateral-${item.event.id}`,
+            type: VolumeType.BridgeCapacity,
             amount: e.total,
             tillTimestamp: new Date(block.timestamp),
             collateralCurrency: collateralToken,
@@ -150,12 +161,23 @@ export async function decreaseLockedCollateral(
         collateralToken = currencyId.encode(e.currencyPair.collateral);
     }
 
-    await entityBuffer.pushEntity(
+    entityBuffer.pushEntity(
         CumulativeVolumePerCurrencyPair.name,
         new CumulativeVolumePerCurrencyPair({
             id: `Collateral-${item.event.id}`,
             type: VolumeType.Collateral,
             amount: e.total,
+            tillTimestamp: new Date(block.timestamp),
+            collateralCurrency: collateralToken,
+            wrappedCurrency: wrappedToken,
+        })
+    );
+    entityBuffer.pushEntity(
+        CumulativeVolumePerCurrencyPair.name,
+        new CumulativeVolumePerCurrencyPair({
+            id: `Collateral-${item.event.id}`,
+            type: VolumeType.BridgeCapacity,
+            amount: - e.total,
             tillTimestamp: new Date(block.timestamp),
             collateralCurrency: collateralToken,
             wrappedCurrency: wrappedToken,

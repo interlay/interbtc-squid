@@ -3,4 +3,5 @@ export enum VolumeType {
   Redeemed = "Redeemed",
   Collateral = "Collateral",
   Staked = "Staked",
+  BridgeCapacity = "BridgeCapacity"
 }

@@ -113,7 +113,7 @@ export async function requestIssue(
         backingHeight: backingBlock?.backingHeight || 0,
     });
 
-    await entityBuffer.pushEntity(Issue.name, issue);
+    entityBuffer.pushEntity(Issue.name, issue);
 }
 
 export async function executeIssue(
@@ -167,9 +167,9 @@ export async function executeIssue(
     issue.status = IssueStatus.Completed;
     issue.execution = execution;
 
-    await entityBuffer.pushEntity(IssueExecution.name, execution);
-    await entityBuffer.pushEntity(Issue.name, issue);
-    await entityBuffer.pushEntity(
+    entityBuffer.pushEntity(IssueExecution.name, execution);
+    entityBuffer.pushEntity(Issue.name, issue);
+    entityBuffer.pushEntity(
         CumulativeVolume.name,
         await updateCumulativeVolumes(
             ctx.store,
@@ -179,7 +179,7 @@ export async function executeIssue(
             entityBuffer
         )
     );
-    await entityBuffer.pushEntity(
+    entityBuffer.pushEntity(
         CumulativeVolumePerCurrencyPair.name,
         await updateCumulativeVolumesForCurrencyPair(
             ctx.store,
@@ -225,8 +225,8 @@ export async function cancelIssue(
     });
     issue.status = IssueStatus.Cancelled;
     issue.cancellation = cancellation;
-    await entityBuffer.pushEntity(IssueCancellation.name, cancellation);
-    await entityBuffer.pushEntity(Issue.name, issue);
+    entityBuffer.pushEntity(IssueCancellation.name, cancellation);
+    entityBuffer.pushEntity(Issue.name, issue);
 }
 
 export async function issuePeriodChange(
@@ -246,7 +246,7 @@ export async function issuePeriodChange(
 
     const height = await blockToHeight(ctx, block.height, "IssuePeriodChange");
 
-    await entityBuffer.pushEntity(
+    entityBuffer.pushEntity(
         IssuePeriod.name,
         new IssuePeriod({
             id: item.event.id,

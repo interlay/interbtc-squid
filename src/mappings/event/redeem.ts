@@ -113,7 +113,7 @@ export async function requestRedeem(
         backingHeight: backingBlock?.backingHeight || 0,
     });
 
-    await entityBuffer.pushEntity(Redeem.name, redeem);
+    entityBuffer.pushEntity(Redeem.name, redeem);
 }
 
 export async function executeRedeem(
@@ -165,9 +165,9 @@ export async function executeRedeem(
     redeem.status = RedeemStatus.Completed;
     redeem.execution = execution;
 
-    await entityBuffer.pushEntity(RedeemExecution.name, execution);
-    await entityBuffer.pushEntity(Redeem.name, redeem);
-    await entityBuffer.pushEntity(
+    entityBuffer.pushEntity(RedeemExecution.name, execution);
+    entityBuffer.pushEntity(Redeem.name, redeem);
+    entityBuffer.pushEntity(
         CumulativeVolume.name,
         await updateCumulativeVolumes(
             ctx.store,
@@ -177,7 +177,7 @@ export async function executeRedeem(
             entityBuffer
         )
     );
-    await entityBuffer.pushEntity(
+    entityBuffer.pushEntity(
         CumulativeVolumePerCurrencyPair.name,
         await updateCumulativeVolumesForCurrencyPair(
             ctx.store,
@@ -232,8 +232,8 @@ export async function cancelRedeem(
             ? RedeemStatus.Reimbursed
             : RedeemStatus.Retried;
     redeem.cancellation = cancellation;
-    await entityBuffer.pushEntity(RedeemCancellation.name, cancellation);
-    await entityBuffer.pushEntity(Redeem.name, redeem);
+    entityBuffer.pushEntity(RedeemCancellation.name, cancellation);
+    entityBuffer.pushEntity(Redeem.name, redeem);
 }
 
 export async function redeemPeriodChange(
@@ -253,7 +253,7 @@ export async function redeemPeriodChange(
 
     const height = await blockToHeight(ctx, block.height, "RedeemPeriodChange");
 
-    await entityBuffer.pushEntity(
+    entityBuffer.pushEntity(
         RedeemPeriod.name,
         new RedeemPeriod({
             id: item.event.id,
