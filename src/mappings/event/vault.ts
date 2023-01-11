@@ -115,17 +115,6 @@ export async function increaseLockedCollateral(
             wrappedCurrency: wrappedToken,
         })
     );
-    entityBuffer.pushEntity(
-        CumulativeVolumePerCurrencyPair.name,
-        new CumulativeVolumePerCurrencyPair({
-            id: `Collateral-${item.event.id}`,
-            type: VolumeType.BridgeCapacity,
-            amount: e.total,
-            tillTimestamp: new Date(block.timestamp),
-            collateralCurrency: collateralToken,
-            wrappedCurrency: wrappedToken,
-        })
-    );
 }
 
 export async function decreaseLockedCollateral(
@@ -167,17 +156,6 @@ export async function decreaseLockedCollateral(
             id: `Collateral-${item.event.id}`,
             type: VolumeType.Collateral,
             amount: e.total,
-            tillTimestamp: new Date(block.timestamp),
-            collateralCurrency: collateralToken,
-            wrappedCurrency: wrappedToken,
-        })
-    );
-    entityBuffer.pushEntity(
-        CumulativeVolumePerCurrencyPair.name,
-        new CumulativeVolumePerCurrencyPair({
-            id: `Collateral-${item.event.id}`,
-            type: VolumeType.BridgeCapacity,
-            amount: - e.total,
             tillTimestamp: new Date(block.timestamp),
             collateralCurrency: collateralToken,
             wrappedCurrency: wrappedToken,
