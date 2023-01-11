@@ -7,27 +7,27 @@ import {Issue} from "./issue.model"
  */
 @Entity_()
 export class IssuePayment {
-  constructor(props?: Partial<IssuePayment>) {
-    Object.assign(this, props)
-  }
+    constructor(props?: Partial<IssuePayment>) {
+        Object.assign(this, props)
+    }
 
-  @PrimaryColumn_()
-  id!: string
+    @PrimaryColumn_()
+    id!: string
 
-  @Index_({unique: true})
-  @OneToOne_(() => Issue, {nullable: false})
-  @JoinColumn_()
-  issue!: Issue
+    @Index_({unique: true})
+    @OneToOne_(() => Issue, {nullable: false})
+    @JoinColumn_()
+    issue!: Issue
 
-  @Column_("text", {nullable: false})
-  btcTxId!: string
+    @Column_("text", {nullable: false})
+    btcTxId!: string
 
-  @Column_("int4", {nullable: false})
-  confirmations!: number
+    @Column_("int4", {nullable: false})
+    confirmations!: number
 
-  @Column_("int4", {nullable: true})
-  blockHeight!: number | undefined | null
+    @Column_("int4", {nullable: true})
+    blockHeight!: number | undefined | null
 
-  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-  amount!: bigint
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    amount!: bigint
 }

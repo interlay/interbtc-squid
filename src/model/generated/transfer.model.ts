@@ -5,31 +5,31 @@ import {Height} from "./height.model"
 
 @Entity_()
 export class Transfer {
-  constructor(props?: Partial<Transfer>) {
-    Object.assign(this, props)
-  }
+    constructor(props?: Partial<Transfer>) {
+        Object.assign(this, props)
+    }
 
-  @PrimaryColumn_()
-  id!: string
+    @PrimaryColumn_()
+    id!: string
 
-  @Column_("jsonb", {transformer: {to: obj => obj.toJSON(), from: obj => fromJsonCurrency(obj)}, nullable: false})
-  token!: Currency
+    @Column_("jsonb", {transformer: {to: obj => obj.toJSON(), from: obj => obj == null ? undefined : fromJsonCurrency(obj)}, nullable: false})
+    token!: Currency
 
-  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-  amount!: bigint
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    amount!: bigint
 
-  @Index_()
-  @Column_("text", {nullable: false})
-  from!: string
+    @Index_()
+    @Column_("text", {nullable: false})
+    from!: string
 
-  @Index_()
-  @Column_("text", {nullable: false})
-  to!: string
+    @Index_()
+    @Column_("text", {nullable: false})
+    to!: string
 
-  @Index_()
-  @ManyToOne_(() => Height, {nullable: true})
-  height!: Height
+    @Index_()
+    @ManyToOne_(() => Height, {nullable: true})
+    height!: Height
 
-  @Column_("timestamp with time zone", {nullable: false})
-  timestamp!: Date
+    @Column_("timestamp with time zone", {nullable: false})
+    timestamp!: Date
 }

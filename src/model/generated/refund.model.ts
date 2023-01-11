@@ -8,41 +8,41 @@ import {Height} from "./height.model"
  */
 @Entity_()
 export class Refund {
-  constructor(props?: Partial<Refund>) {
-    Object.assign(this, props)
-  }
+    constructor(props?: Partial<Refund>) {
+        Object.assign(this, props)
+    }
 
-  @PrimaryColumn_()
-  id!: string
+    @PrimaryColumn_()
+    id!: string
 
-  @Index_({unique: true})
-  @OneToOne_(() => Issue, {nullable: false})
-  @JoinColumn_()
-  issue!: Issue
+    @Index_({unique: true})
+    @OneToOne_(() => Issue, {nullable: false})
+    @JoinColumn_()
+    issue!: Issue
 
-  @Column_("text", {nullable: false})
-  issueID!: string
+    @Column_("text", {nullable: false})
+    issueID!: string
 
-  @Column_("text", {nullable: false})
-  btcAddress!: string
+    @Column_("text", {nullable: false})
+    btcAddress!: string
 
-  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-  amountPaid!: bigint
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    amountPaid!: bigint
 
-  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-  btcFee!: bigint
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    btcFee!: bigint
 
-  @Index_()
-  @ManyToOne_(() => Height, {nullable: true})
-  requestHeight!: Height
+    @Index_()
+    @ManyToOne_(() => Height, {nullable: true})
+    requestHeight!: Height
 
-  @Column_("timestamp with time zone", {nullable: false})
-  requestTimestamp!: Date
+    @Column_("timestamp with time zone", {nullable: false})
+    requestTimestamp!: Date
 
-  @Index_()
-  @ManyToOne_(() => Height, {nullable: true})
-  executionHeight!: Height | undefined | null
+    @Index_()
+    @ManyToOne_(() => Height, {nullable: true})
+    executionHeight!: Height | undefined | null
 
-  @Column_("timestamp with time zone", {nullable: true})
-  executionTimestamp!: Date | undefined | null
+    @Column_("timestamp with time zone", {nullable: true})
+    executionTimestamp!: Date | undefined | null
 }
