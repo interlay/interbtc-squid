@@ -6,29 +6,29 @@ import {Currency, fromJsonCurrency} from "./_currency"
 
 @Entity_()
 export class OracleUpdate {
-  constructor(props?: Partial<OracleUpdate>) {
-    Object.assign(this, props)
-  }
+    constructor(props?: Partial<OracleUpdate>) {
+        Object.assign(this, props)
+    }
 
-  @PrimaryColumn_()
-  id!: string
+    @PrimaryColumn_()
+    id!: string
 
-  @Index_()
-  @ManyToOne_(() => Height, {nullable: true})
-  height!: Height
+    @Index_()
+    @ManyToOne_(() => Height, {nullable: true})
+    height!: Height
 
-  @Column_("timestamp with time zone", {nullable: false})
-  timestamp!: Date
+    @Column_("timestamp with time zone", {nullable: false})
+    timestamp!: Date
 
-  @Column_("text", {nullable: false})
-  oracleId!: string
+    @Column_("text", {nullable: false})
+    oracleId!: string
 
-  @Column_("varchar", {length: 13, nullable: false})
-  type!: OracleUpdateType
+    @Column_("varchar", {length: 13, nullable: false})
+    type!: OracleUpdateType
 
-  @Column_("jsonb", {transformer: {to: obj => obj == null ? undefined : obj.toJSON(), from: obj => obj == null ? undefined : fromJsonCurrency(obj)}, nullable: true})
-  typeKey!: Currency | undefined | null
+    @Column_("jsonb", {transformer: {to: obj => obj == null ? undefined : obj.toJSON(), from: obj => obj == null ? undefined : fromJsonCurrency(obj)}, nullable: true})
+    typeKey!: Currency | undefined | null
 
-  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-  updateValue!: bigint
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    updateValue!: bigint
 }

@@ -191,6 +191,8 @@ enum VolumeType {
     Redeemed
     Collateral
     Staked
+    Locked
+    BridgeVolume
 }
 
 type CumulativeVolume @entity {

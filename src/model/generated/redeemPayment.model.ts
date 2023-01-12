@@ -6,24 +6,24 @@ import {Redeem} from "./redeem.model"
  */
 @Entity_()
 export class RedeemPayment {
-  constructor(props?: Partial<RedeemPayment>) {
-    Object.assign(this, props)
-  }
+    constructor(props?: Partial<RedeemPayment>) {
+        Object.assign(this, props)
+    }
 
-  @PrimaryColumn_()
-  id!: string
+    @PrimaryColumn_()
+    id!: string
 
-  @Index_({unique: true})
-  @OneToOne_(() => Redeem, {nullable: false})
-  @JoinColumn_()
-  redeem!: Redeem
+    @Index_({unique: true})
+    @OneToOne_(() => Redeem, {nullable: false})
+    @JoinColumn_()
+    redeem!: Redeem
 
-  @Column_("text", {nullable: false})
-  btcTxId!: string
+    @Column_("text", {nullable: false})
+    btcTxId!: string
 
-  @Column_("int4", {nullable: false})
-  confirmations!: number
+    @Column_("int4", {nullable: false})
+    confirmations!: number
 
-  @Column_("int4", {nullable: true})
-  blockHeight!: number | undefined | null
+    @Column_("int4", {nullable: true})
+    blockHeight!: number | undefined | null
 }

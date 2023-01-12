@@ -167,12 +167,27 @@ export async function executeRedeem(
 
     await entityBuffer.pushEntity(RedeemExecution.name, execution);
     await entityBuffer.pushEntity(Redeem.name, redeem);
+
+    const volumeTypes = [VolumeType.Redeemed, VolumeType.BridgeVolume];
+    for (const volumeType of volumeTypes) {
+        await entityBuffer.pushEntity(
+            CumulativeVolume.name,
+            await updateCumulativeVolumes(
+                ctx.store,
+                volumeType,
+                redeem.request.requestedAmountBacking,
+                new Date(block.timestamp),
+                entityBuffer
+            )
+        );
+    }
+    // amount is negated as locked value is decreasing
     await entityBuffer.pushEntity(
         CumulativeVolume.name,
         await updateCumulativeVolumes(
             ctx.store,
-            VolumeType.Redeemed,
-            redeem.request.requestedAmountBacking,
+            VolumeType.Locked,
+            - redeem.request.requestedAmountBacking,
             new Date(block.timestamp),
             entityBuffer
         )

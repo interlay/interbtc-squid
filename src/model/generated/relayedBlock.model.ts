@@ -6,27 +6,27 @@ import {Height} from "./height.model"
  */
 @Entity_()
 export class RelayedBlock {
-  constructor(props?: Partial<RelayedBlock>) {
-    Object.assign(this, props)
-  }
+    constructor(props?: Partial<RelayedBlock>) {
+        Object.assign(this, props)
+    }
 
-  @PrimaryColumn_()
-  id!: string
+    @PrimaryColumn_()
+    id!: string
 
-  @Index_()
-  @ManyToOne_(() => Height, {nullable: true})
-  relayedAtHeight!: Height
+    @Index_()
+    @ManyToOne_(() => Height, {nullable: true})
+    relayedAtHeight!: Height
 
-  @Column_("timestamp with time zone", {nullable: false})
-  timestamp!: Date
+    @Column_("timestamp with time zone", {nullable: false})
+    timestamp!: Date
 
-  @Column_("text", {nullable: false})
-  blockHash!: string
+    @Column_("text", {nullable: false})
+    blockHash!: string
 
-  @Index_()
-  @Column_("int4", {nullable: false})
-  backingHeight!: number
+    @Index_()
+    @Column_("int4", {nullable: false})
+    backingHeight!: number
 
-  @Column_("text", {nullable: true})
-  relayer!: string | undefined | null
+    @Column_("text", {nullable: true})
+    relayer!: string | undefined | null
 }
