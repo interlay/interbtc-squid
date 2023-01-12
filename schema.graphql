@@ -207,6 +207,7 @@ type CumulativeVolumePerCurrencyPair @entity {
     type: VolumeType!
     tillTimestamp: DateTime!
     amount: BigInt!
+    amountHuman: BigInt!
     wrappedCurrency: Currency
     collateralCurrency: Currency
 }
@@ -227,6 +228,7 @@ type Transfer @entity {
     id: ID!
     token: Currency!
     amount: BigInt!
+    amountHuman: BigInt!
     from: String! @index
     to: String! @index
     height: Height!
