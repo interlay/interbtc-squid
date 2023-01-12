@@ -21,8 +21,14 @@ import {
     CurrencyId_Token as CurrencyId_TokenV6,
     VaultId as VaultIdV6,
 } from "../types/v6";
+import {
+    VaultId as VaultIdV1021000,
+    CurrencyId as CurrencyId_V1021000,
+} from "../types/v1021000";
+
 import { CurrencyId_Token as CurrencyId_TokenV10 } from "../types/v10";
 import { encodeBtcAddress, getBtcNetwork } from "./bitcoinUtils";
+import { createExchangeRateOracleKey } from "@interlay/interbtc-api";
 
 const bitcoinNetwork: Network = getBtcNetwork(process.env.BITCOIN_NETWORK);
 const ss58format = process.env.SS58_CODEC || "substrate";
@@ -56,7 +62,7 @@ export const legacyCurrencyId = {
 };
 
 export const currencyId = {
-    encode: (asset: CurrencyId_V1020000): Currency => {
+    encode: (asset: CurrencyId_V1020000 | CurrencyId_V1021000): Currency => {
         if (asset.__kind === "LendToken") {
             return new LendToken({
                 lendTokenId: asset.value,
@@ -66,10 +72,13 @@ export const currencyId = {
             return new ForeignAsset({
                 asset: asset.value,
             });
-        } else {
+        } else if (asset.__kind === "Token"){
             return new NativeToken({
                 token: Token[asset.value.__kind],
             });
+        } else {
+            // TODO: implement other missing ones, LpToken and StableLpToken
+            throw new Error(`Unknown currency type to encode: ${asset.__kind}`);
         }
     },
 };
@@ -94,7 +103,7 @@ export function encodeLegacyVaultId(vaultId: VaultIdV6 | VaultIdV15) {
     )}`;
 }
 
-export function encodeVaultId(vaultId: VaultIdV1020000) {
+export function encodeVaultId(vaultId: VaultIdV1020000 | VaultIdV1021000) {
     const addressStr = address.interlay.encode(vaultId.accountId).toString();
     const wrapped = currencyId.encode(vaultId.currencies.wrapped);
     const collateral = currencyId.encode(vaultId.currencies.collateral);

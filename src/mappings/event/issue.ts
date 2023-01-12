@@ -53,11 +53,11 @@ export async function requestIssue(
         vaultIdString = encodeLegacyVaultId(e.vaultId);
     } else {
         if (rawEvent.isV17) e = rawEvent.asV17;
-        else if (rawEvent.isV1019000) e = rawEvent.asV1019000;
+        else if (rawEvent.isV1020000) e = rawEvent.asV1020000;
+        else if (rawEvent.isV1021000) e = rawEvent.asV1021000;
         else {
-            e = rawEvent.asV1020000;
-            if (!rawEvent.isV1020000)
-                ctx.log.warn(`UNKOWN EVENT VERSION: Issue.requestIssue`);
+            ctx.log.warn(`UNKOWN EVENT VERSION: Issue.requestIssue`);
+            return;
         }
         vault = await getVaultId(ctx.store, e.vaultId);
         vaultIdString = encodeVaultId(e.vaultId);
@@ -135,11 +135,11 @@ export async function executeIssue(
         wrappedCurrency = legacyCurrencyId.encode(e.vaultId.currencies.wrapped);
     } else {
         if (rawEvent.isV17) e = rawEvent.asV17;
-        else if (rawEvent.isV1019000) e = rawEvent.asV1019000;
+        else if (rawEvent.isV1020000) e = rawEvent.asV1020000;
+        else if (rawEvent.isV1021000) e = rawEvent.asV1021000;
         else {
-            e = rawEvent.asV1020000;
-            if (!rawEvent.isV1020000)
-                ctx.log.warn(`UNKOWN EVENT VERSION: Issue.executeIssue`);
+            ctx.log.warn(`UNKOWN EVENT VERSION: Issue.executeIssue`);
+            return;
         }
         collateralCurrency = currencyId.encode(e.vaultId.currencies.collateral);
         wrappedCurrency = currencyId.encode(e.vaultId.currencies.wrapped);
@@ -205,12 +205,11 @@ export async function cancelIssue(
 ): Promise<void> {
     const rawEvent = new IssueCancelIssueEvent(ctx, item.event);
     let e;
-    if (rawEvent.isV4) e = rawEvent.asV4;
-    else {
-        e = rawEvent.asV1019000;
-        if (!rawEvent.isV1019000)
-            ctx.log.warn(`UNKOWN EVENT VERSION: Issue.cancelIssue`);
+    if (!rawEvent.isV4) {
+        ctx.log.warn(`UNKOWN EVENT VERSION: Issue.cancelIssue`);
+        return;
     }
+    e = rawEvent.asV4;
     const issue = await ctx.store.get(Issue, {
         where: { id: toHex(e.issueId) },
     });
@@ -241,12 +240,11 @@ export async function issuePeriodChange(
 ): Promise<void> {
     const rawEvent = new IssueIssuePeriodChangeEvent(ctx, item.event);
     let e;
-    if (rawEvent.isV16) e = rawEvent.asV16;
-    else {
-        e = rawEvent.asV1019000;
-        if (!rawEvent.isV1019000)
-            ctx.log.warn(`UNKOWN EVENT VERSION: Issue.issuePeriodChange`);
-    }
+    if (!rawEvent.isV16) {
+        ctx.log.warn(`UNKOWN EVENT VERSION: Issue.issuePeriodChange`);
+        return;
+    } 
+    e = rawEvent.asV16;
 
     const height = await blockToHeight(ctx, block.height, "IssuePeriodChange");
 
