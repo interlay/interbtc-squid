@@ -3,20 +3,20 @@ import {Height} from "./height.model"
 
 @Entity_()
 export class RedeemPeriod {
-  constructor(props?: Partial<RedeemPeriod>) {
-    Object.assign(this, props)
-  }
+    constructor(props?: Partial<RedeemPeriod>) {
+        Object.assign(this, props)
+    }
 
-  @PrimaryColumn_()
-  id!: string
+    @PrimaryColumn_()
+    id!: string
 
-  @Index_()
-  @ManyToOne_(() => Height, {nullable: true})
-  height!: Height
+    @Index_()
+    @ManyToOne_(() => Height, {nullable: true})
+    height!: Height
 
-  @Column_("timestamp with time zone", {nullable: false})
-  timestamp!: Date
+    @Column_("timestamp with time zone", {nullable: false})
+    timestamp!: Date
 
-  @Column_("int4", {nullable: false})
-  value!: number
+    @Column_("int4", {nullable: false})
+    value!: number
 }

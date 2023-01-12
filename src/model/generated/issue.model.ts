@@ -11,49 +11,49 @@ import {Refund} from "./refund.model"
 
 @Entity_()
 export class Issue {
-  constructor(props?: Partial<Issue>) {
-    Object.assign(this, props)
-  }
+    constructor(props?: Partial<Issue>) {
+        Object.assign(this, props)
+    }
 
-  @PrimaryColumn_()
-  id!: string
+    @PrimaryColumn_()
+    id!: string
 
-  @Column_("jsonb", {transformer: {to: obj => obj.toJSON(), from: obj => new IssueRequest(undefined, marshal.nonNull(obj))}, nullable: false})
-  request!: IssueRequest
+    @Column_("jsonb", {transformer: {to: obj => obj.toJSON(), from: obj => obj == null ? undefined : new IssueRequest(undefined, obj)}, nullable: false})
+    request!: IssueRequest
 
-  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-  griefingCollateral!: bigint
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    griefingCollateral!: bigint
 
-  @Column_("text", {nullable: false})
-  userParachainAddress!: string
+    @Column_("text", {nullable: false})
+    userParachainAddress!: string
 
-  @Column_("text", {nullable: false})
-  vaultWalletPubkey!: string
+    @Column_("text", {nullable: false})
+    vaultWalletPubkey!: string
 
-  @Column_("text", {nullable: false})
-  vaultBackingAddress!: string
+    @Column_("text", {nullable: false})
+    vaultBackingAddress!: string
 
-  @Index_()
-  @ManyToOne_(() => Vault, {nullable: true})
-  vault!: Vault
+    @Index_()
+    @ManyToOne_(() => Vault, {nullable: true})
+    vault!: Vault
 
-  @Index_()
-  @ManyToOne_(() => IssuePeriod, {nullable: true})
-  period!: IssuePeriod
+    @Index_()
+    @ManyToOne_(() => IssuePeriod, {nullable: true})
+    period!: IssuePeriod
 
-  @OneToOne_(() => IssuePayment)
-  backingPayment!: IssuePayment | undefined | null
+    @OneToOne_(() => IssuePayment)
+    backingPayment!: IssuePayment | undefined | null
 
-  @Index_()
-  @Column_("varchar", {length: 15, nullable: true})
-  status!: IssueStatus | undefined | null
+    @Index_()
+    @Column_("varchar", {length: 15, nullable: true})
+    status!: IssueStatus | undefined | null
 
-  @OneToOne_(() => IssueExecution)
-  execution!: IssueExecution | undefined | null
+    @OneToOne_(() => IssueExecution)
+    execution!: IssueExecution | undefined | null
 
-  @OneToOne_(() => IssueCancellation)
-  cancellation!: IssueCancellation | undefined | null
+    @OneToOne_(() => IssueCancellation)
+    cancellation!: IssueCancellation | undefined | null
 
-  @OneToOne_(() => Refund)
-  refund!: Refund | undefined | null
+    @OneToOne_(() => Refund)
+    refund!: Refund | undefined | null
 }

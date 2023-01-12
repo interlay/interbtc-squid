@@ -5,28 +5,28 @@ import {Height} from "./height.model"
 
 @Entity_()
 export class RedeemCancellation {
-  constructor(props?: Partial<RedeemCancellation>) {
-    Object.assign(this, props)
-  }
+    constructor(props?: Partial<RedeemCancellation>) {
+        Object.assign(this, props)
+    }
 
-  @PrimaryColumn_()
-  id!: string
+    @PrimaryColumn_()
+    id!: string
 
-  @Index_({unique: true})
-  @OneToOne_(() => Redeem, {nullable: false})
-  @JoinColumn_()
-  redeem!: Redeem
+    @Index_({unique: true})
+    @OneToOne_(() => Redeem, {nullable: false})
+    @JoinColumn_()
+    redeem!: Redeem
 
-  @Index_()
-  @ManyToOne_(() => Height, {nullable: true})
-  height!: Height
+    @Index_()
+    @ManyToOne_(() => Height, {nullable: true})
+    height!: Height
 
-  @Column_("timestamp with time zone", {nullable: false})
-  timestamp!: Date
+    @Column_("timestamp with time zone", {nullable: false})
+    timestamp!: Date
 
-  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-  slashedCollateral!: bigint
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    slashedCollateral!: bigint
 
-  @Column_("bool", {nullable: false})
-  reimbursed!: boolean
+    @Column_("bool", {nullable: false})
+    reimbursed!: boolean
 }

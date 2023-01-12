@@ -1,4 +1,4 @@
 export enum OracleUpdateType {
-  ExchangeRate = "ExchangeRate",
-  FeeEstimation = "FeeEstimation",
+    ExchangeRate = "ExchangeRate",
+    FeeEstimation = "FeeEstimation",
 }

@@ -169,16 +169,20 @@ export async function executeIssue(
 
     entityBuffer.pushEntity(IssueExecution.name, execution);
     entityBuffer.pushEntity(Issue.name, issue);
-    entityBuffer.pushEntity(
-        CumulativeVolume.name,
-        await updateCumulativeVolumes(
-            ctx.store,
-            VolumeType.Issued,
-            amountWrapped,
-            new Date(block.timestamp),
-            entityBuffer
-        )
-    );
+    
+    const volumeTypes = [VolumeType.Issued, VolumeType.Locked, VolumeType.BridgeVolume];
+    for (const volumeType of volumeTypes) {
+        entityBuffer.pushEntity(
+            CumulativeVolume.name,
+            await updateCumulativeVolumes(
+                ctx.store,
+                volumeType,
+                amountWrapped,
+                new Date(block.timestamp),
+                entityBuffer
+            )
+        );
+    }
     entityBuffer.pushEntity(
         CumulativeVolumePerCurrencyPair.name,
         await updateCumulativeVolumesForCurrencyPair(
