@@ -123,7 +123,7 @@ const currencyMap = {
 }
 export function convertAmountToHuman(currency: Currency, amount: BigInt ) : BigInt {
     if (currency.isTypeOf === "NativeToken") {
-        return amount.valueOf() / (BigInt(10) ** currencyMap[currency.token].decimals);
+        return amount.valueOf() / (BigInt(10) ** BigInt(currencyMap[currency.token].decimals));
     } else if (currency.isTypeOf === "ForeignAsset") {
 
     } else if (currency.isTypeOf === "LendToken") {
