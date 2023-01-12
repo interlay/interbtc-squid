@@ -23,8 +23,7 @@
         "query-node:start": "squid-graphql-server"
     },
     "dependencies": {
-        "@interlay/interbtc-api": "1.5.20",
-        "@interlay/interbtc-types": "1.1.1",
+        "@interlay/interbtc-api": "1.20.0",
         "@polkadot/util-crypto": "^10.1.7",
         "@subsquid/archive-registry": "^1.0.12",
         "@subsquid/graphql-server": "^2.1.0",
@@ -39,6 +38,7 @@
         "typeorm": "^0.3.9"
     },
     "devDependencies": {
+        "@interlay/interbtc-types": "1.1.1",
         "@subsquid/cli": "^0.7.4",
         "@subsquid/substrate-metadata-explorer": "^1.0.9",
         "@subsquid/substrate-typegen": "^1.5.1",
