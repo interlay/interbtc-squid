@@ -23,6 +23,17 @@ import {
 } from "../types/v6";
 import { CurrencyId_Token as CurrencyId_TokenV10 } from "../types/v10";
 import { encodeBtcAddress, getBtcNetwork } from "./bitcoinUtils";
+import {
+    Bitcoin,
+    Currency as mCurrency,
+    InterBtc,
+    Interlay,
+    KBtc,
+    Kintsugi,
+    Kusama,
+    MonetaryAmount,
+    Polkadot
+} from "@interlay/monetary-js";
 
 const bitcoinNetwork: Network = getBtcNetwork(process.env.BITCOIN_NETWORK);
 const ss58format = process.env.SS58_CODEC || "substrate";
