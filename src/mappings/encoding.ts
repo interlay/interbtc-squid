@@ -6,6 +6,9 @@ import {
     ForeignAsset,
     Currency,
     LendToken,
+    LpTokenPair,
+    LpToken,
+    StableLpToken,
 } from "../model";
 import {
     VaultId as VaultIdV1020000,
@@ -22,13 +25,13 @@ import {
     VaultId as VaultIdV6,
 } from "../types/v6";
 import {
+    LpToken as LpToken_V1021000,
     VaultId as VaultIdV1021000,
     CurrencyId as CurrencyId_V1021000,
 } from "../types/v1021000";
 
 import { CurrencyId_Token as CurrencyId_TokenV10 } from "../types/v10";
 import { encodeBtcAddress, getBtcNetwork } from "./bitcoinUtils";
-import { createExchangeRateOracleKey } from "@interlay/interbtc-api";
 
 const bitcoinNetwork: Network = getBtcNetwork(process.env.BITCOIN_NETWORK);
 const ss58format = process.env.SS58_CODEC || "substrate";
@@ -61,36 +64,79 @@ export const legacyCurrencyId = {
     },
 };
 
+export const lpTokenId = {
+    encode: (lpToken: LpToken_V1021000): LpToken => {
+        if (lpToken.__kind === "StableLpToken") {
+            return new StableLpToken({
+                poolId: lpToken.value,
+            });
+        } else if (lpToken.__kind === "ForeignAsset") {
+            return new ForeignAsset({
+                asset: lpToken.value,
+            });
+        } else if (lpToken.__kind === "Token"){
+            return new NativeToken({
+                token: Token[lpToken.value.__kind],
+            });
+        }
+
+        // throw if unhandled
+        throw new Error(`Unknown LpToken type to encode: ${JSON.stringify(lpToken)}`);
+    }
+};
+
 export const currencyId = {
     encode: (asset: CurrencyId_V1020000 | CurrencyId_V1021000): Currency => {
-        if (asset.__kind === "LendToken") {
-            return new LendToken({
-                lendTokenId: asset.value,
-            });
-        } else if (asset.__kind === "ForeignAsset") {
-            // TODO: add asset-registry event decoding for more metadata?
-            return new ForeignAsset({
-                asset: asset.value,
-            });
-        } else if (asset.__kind === "Token"){
-            return new NativeToken({
-                token: Token[asset.value.__kind],
-            });
-        } else {
-            // TODO: implement other missing ones, LpToken and StableLpToken
-            throw new Error(`Unknown currency type to encode: ${asset.__kind}`);
+        switch(asset.__kind) {
+            case "LendToken":
+                return new LendToken({
+                    lendTokenId: asset.value,
+                });
+            case "ForeignAsset":
+                return new ForeignAsset({
+                    asset: asset.value,
+                });
+            case "Token":
+                return new NativeToken({
+                    token: Token[asset.value.__kind],
+                });
+            case "StableLpToken":
+                return lpTokenId.encode(asset);
+            case "LpToken":
+                return new LpTokenPair({
+                    token0: lpTokenId.encode(asset.value[0]),
+                    token1: lpTokenId.encode(asset.value[1])
+                });
+                
+            default:
+                // throw if not handled
+                throw new Error(`Unknown currency type to encode: ${JSON.stringify(asset)}`);
         }
     },
 };
 
+// Note: At the moment, this method is primarily used to encode vault_ids.
+// So adding lend tokens, lp token pairs, etc is kinda overkill
+// and mainly done for future proofing.
+// Very much unlike the currencyId.encode and lpTokenId.encode methods.
 function currencyToString(currency: Currency): string {
-    if (currency.isTypeOf === "LendToken") {
-        // TODO: decide how we want to distinguish lend tokens from foreign assets
-        return `lendToken_${currency.lendTokenId.toString()}`;
-    } else if (currency.isTypeOf === "ForeignAsset") {
-        return currency.asset.toString();
-    } else {
-        return currency.token.toString();
+    switch(currency.isTypeOf) {
+        case "LendToken":
+            return `lendToken_${currency.lendTokenId.toString()}`;
+        case "ForeignAsset": 
+            return currency.asset.toString();
+        case "NativeToken": 
+            return currency.token.toString();
+        case "StableLpToken":
+            return `poolId_${currency.poolId.toString()}`;
+        case "LpTokenPair":
+            const token0string = currencyToString(currency.token0);
+            const token1string = currencyToString(currency.token1);
+            return `lpToken__${token0string}__${token1string}`;
+
+        default:
+            // fallback throw if unhandled
+            throw new Error(`Unknown currency type to stringify: ${JSON.stringify(currency)}`);
     }
 }
 

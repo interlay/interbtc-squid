@@ -35,7 +35,18 @@ type LendToken {
     lendTokenId: Int!
 }
 
-union Currency = NativeToken | ForeignAsset | LendToken
+type StableLpToken {
+    poolId: Int!
+}
+
+union LpToken = NativeToken | ForeignAsset | StableLpToken
+
+type LpTokenPair {
+    token0: LpToken!
+    token1: LpToken!
+}
+
+union Currency = NativeToken | ForeignAsset | LendToken | LpTokenPair | StableLpToken
 
 type Vault @entity {
     id: ID!
