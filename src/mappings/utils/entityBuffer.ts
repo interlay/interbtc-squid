@@ -4,7 +4,7 @@ export default class EntityBuffer {
     // type - id - entity
     buffer = new Map<String, Map<String, Entity>>();
 
-    async pushEntity(type: string, entity: Entity) {
+    pushEntity(type: string, entity: Entity) {
         if (!this.buffer.has(type)) {
             this.buffer.set(type, new Map([[entity.id, entity]]));
             return;

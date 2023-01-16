@@ -29,7 +29,7 @@ export async function storeMainChainHeader(
         "StoreMainChainHeader"
     );
 
-    await entityBuffer.pushEntity(
+    entityBuffer.pushEntity(
         RelayedBlock.name,
         new RelayedBlock({
             id: e.blockHeight.toString(),
