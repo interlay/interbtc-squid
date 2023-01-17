@@ -27,5 +27,5 @@ export async function updateActiveBlock(
 
     setCache(block.height, newHeight);
 
-    await entitybuffer.pushEntity(Height.name, newHeight);
+    entitybuffer.pushEntity(Height.name, newHeight);
 }

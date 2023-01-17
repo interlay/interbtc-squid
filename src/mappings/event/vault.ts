@@ -58,7 +58,7 @@ export async function registerVault(
         block.height,
         "RegisterVault"
     );
-    await entityBuffer.pushEntity(
+    entityBuffer.pushEntity(
         Vault.name,
         new Vault({
             id: vaultId,
@@ -102,7 +102,7 @@ export async function increaseLockedCollateral(
         collateralToken = currencyId.encode(e.currencyPair.collateral);
     }
 
-    await entityBuffer.pushEntity(
+    entityBuffer.pushEntity(
         CumulativeVolumePerCurrencyPair.name,
         new CumulativeVolumePerCurrencyPair({
             id: `Collateral-${item.event.id}`,
@@ -146,7 +146,7 @@ export async function decreaseLockedCollateral(
         collateralToken = currencyId.encode(e.currencyPair.collateral);
     }
 
-    await entityBuffer.pushEntity(
+    entityBuffer.pushEntity(
         CumulativeVolumePerCurrencyPair.name,
         new CumulativeVolumePerCurrencyPair({
             id: `Collateral-${item.event.id}`,

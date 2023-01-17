@@ -48,6 +48,6 @@ export async function feedValues(
             keyToString += JSON.stringify(exchangeCurrency);
         }
         update.id = `${oracleAddress}-${item.event.id}-${keyToString}`;
-        await entityBuffer.pushEntity(OracleUpdate.name, update);
+        entityBuffer.pushEntity(OracleUpdate.name, update);
     }
 }

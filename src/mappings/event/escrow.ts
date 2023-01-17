@@ -24,7 +24,7 @@ export async function deposit(
     const timestamp = new Date(block.timestamp);
 
     if (e.amount === 0n) return;
-    await entityBuffer.pushEntity(
+    entityBuffer.pushEntity(
         CumulativeVolume.name,
         await updateCumulativeVolumes(
             ctx.store,
@@ -53,7 +53,7 @@ export async function withdraw(
     const timestamp = new Date(block.timestamp);
 
     if (e.amount === 0n) return;
-    await entityBuffer.pushEntity(
+    entityBuffer.pushEntity(
         CumulativeVolume.name,
         await updateCumulativeVolumes(
             ctx.store,

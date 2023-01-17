@@ -66,7 +66,7 @@ export async function tokensTransfer(
 
     const height = await blockToHeight(ctx, block.height, "TokensTransfer");
 
-    await entityBuffer.pushEntity(
+    entityBuffer.pushEntity(
         Transfer.name,
         new Transfer({
             id: item.event.id,
