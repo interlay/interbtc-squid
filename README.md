@@ -150,11 +150,12 @@ yarn gen:types:testnet
 
 The GraphQL entities are defined in `schema.graphql`. When the schema is changed:
 
-1. Ensure your DB is up to date (e.g. you recently ran `yarn db:migrate`)
-2. Run `yarn db:create-migration`, and enter a name for the migration. This will auto-generate it.
-3. Run `yarn db:migrate` to apply your new migration. (Or `yarn db:reset` if you wish to restart processing on the newly migrated DB, which is often a new idea - `db:reset` automatically applies runs `migrate` as well.)
-4. Run `yarn gen:code` to regenerate Typescript types for the GraphQL entities.
-5. You can now develop the mappings against the new entities. Run `yarn build` as usual to proceed.
+1. Ensure your DB is running and up to date (e.g. you recently ran `yarn db:migrate`)
+2. Run `yarn gen:code` to regenerate TypeScript types for the GraphQL entities.
+3. Run `yarn build` to compile the newly generated code.
+4. Run `yarn db:create-migration`, and enter a name for the migration. This will auto-generate it.
+5. Run `yarn db:migrate` to apply your new migration.
+6. You can now develop the mappings against the new entities.
 
 ### Workflow - connecting to a local chain
 
