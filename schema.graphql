@@ -184,6 +184,7 @@ type OracleUpdate @entity {
     type: OracleUpdateType!
     typeKey: Currency
     updateValue: BigInt!
+    updateValueHuman: BigInt!
 }
 
 enum VolumeType {

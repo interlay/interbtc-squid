@@ -23,16 +23,6 @@ import {
 } from "../types/v6";
 import { CurrencyId_Token as CurrencyId_TokenV10 } from "../types/v10";
 import { encodeBtcAddress, getBtcNetwork } from "./bitcoinUtils";
-import {
-    Bitcoin,
-    Currency as tCurrency,
-    InterBtc,
-    Interlay,
-    KBtc,
-    Kintsugi,
-    Kusama,
-    Polkadot
-} from "@interlay/monetary-js";
 import { CurrencyIdLiteral, WrappedAmount } from "@interlay/interbtc-api";
 
 const bitcoinNetwork: Network = getBtcNetwork(process.env.BITCOIN_NETWORK);
@@ -112,23 +102,4 @@ export function encodeVaultId(vaultId: VaultIdV1020000) {
     return `${addressStr}-${currencyToString(wrapped)}-${currencyToString(
         collateral
     )}`;
-}
-const currencyMap = {
-    [Token.DOT]: Polkadot,
-    [Token.INTR]: InterBtc,
-    [Token.KSM]: Kusama,
-    [Token.KINT]: Kintsugi,
-    [Token.IBTC]: InterBtc,
-    [Token.KBTC]: KBtc
-}
-export function convertAmountToHuman(currency: Currency, amount: BigInt ) : BigInt {
-    if (currency.isTypeOf === "NativeToken") {
-        return amount.valueOf() / (BigInt(10) ** BigInt(currencyMap[currency.token].decimals));
-    } else if (currency.isTypeOf === "ForeignAsset") {
-
-    } else if (currency.isTypeOf === "LendToken") {
-
-    } 
-    
-    throw new Error(`No handling implemented for currency type of ${currency.isTypeOf}`);
 }

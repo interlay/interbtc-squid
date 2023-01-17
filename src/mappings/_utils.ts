@@ -5,6 +5,24 @@ import { VaultId as VaultIdV17 } from "../types/v17";
 import { VaultId as VaultIdV6 } from "../types/v6";
 import { VaultId as VaultIdV1020000 } from "../types/v1020000";
 import { encodeLegacyVaultId, encodeVaultId } from "./encoding";
+import {
+    Token,
+    NativeToken,
+    ForeignAsset,
+    Currency,
+    LendToken,
+} from "../model";
+import {
+    Bitcoin,
+    Currency as tCurrency,
+    InterBtc,
+    Interlay,
+    KBtc,
+    Kintsugi,
+    Kusama,
+    Polkadot
+} from "@interlay/monetary-js";
+import {WrappedAmount  } from "@interlay/interbtc-api";
 
 export type eventArgs = {
     event: { args: true };
@@ -48,4 +66,24 @@ export async function isRequestExpired(
         request.request.backingHeight + btcPeriod < latestBtcBlock &&
         requestHeight.active + period < latestActiveBlock
     );
+}
+
+const currencyMap = {
+    [Token.DOT]: Polkadot,
+    [Token.INTR]: InterBtc,
+    [Token.KSM]: Kusama,
+    [Token.KINT]: Kintsugi,
+    [Token.IBTC]: InterBtc,
+    [Token.KBTC]: KBtc
+}
+export function convertAmountToHuman(currency: Currency, amount: BigInt ) : BigInt {
+    if (currency.isTypeOf === "NativeToken") {
+        return amount.valueOf() / (BigInt(10) ** BigInt(currencyMap[currency.token].decimals));
+    } else if (currency.isTypeOf === "ForeignAsset") {
+        // currency = await InterBtc.assetRegistry.getForeignAsset((exchangeCurrency as ForeignAsset).asset);
+    } else if (currency.isTypeOf === "LendToken") {
+        // lend tokens not implemented on chain yet
+    } 
+    
+    throw new Error(`No handling implemented for currency type of ${currency.isTypeOf}`);
 }
