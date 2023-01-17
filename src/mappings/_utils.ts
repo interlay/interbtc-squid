@@ -22,7 +22,8 @@ import {
     Kusama,
     Polkadot
 } from "@interlay/monetary-js";
-import {WrappedAmount  } from "@interlay/interbtc-api";
+import { BitcoinNetwork, createInterBtcApi, InterBtcApi } from "@interlay/interbtc-api";
+require('dotenv/config')
 
 export type eventArgs = {
     event: { args: true };
@@ -76,13 +77,18 @@ const currencyMap = {
     [Token.IBTC]: InterBtc,
     [Token.KBTC]: KBtc
 }
-export function convertAmountToHuman(currency: Currency, amount: BigInt ) : BigInt {
+export async function convertAmountToHuman(currency: Currency, amount: BigInt ) : BigInt {
     if (currency.isTypeOf === "NativeToken") {
         return amount.valueOf() / (BigInt(10) ** BigInt(currencyMap[currency.token].decimals));
-    } else if (currency.isTypeOf === "ForeignAsset") {
-        // currency = await InterBtc.assetRegistry.getForeignAsset((exchangeCurrency as ForeignAsset).asset);
+    }
+    // need to fetch on-chain data for Foreign Asset and Lend Token
+    const PARACHAIN_ENDPOINT = process.env.CHAIN_ENDPOINT;
+    const BITCOIN_NETWORK = process.env.BITCOIN_NETWORK as BitcoinNetwork;
+    const interBTC = await createInterBtcApi(PARACHAIN_ENDPOINT!, BITCOIN_NETWORK!);
+    if (currency.isTypeOf === "ForeignAsset") {
+        currency = await interBTC.assetRegistry.getForeignAsset(currency.asset);
     } else if (currency.isTypeOf === "LendToken") {
-        // lend tokens not implemented on chain yet
+       
     } 
     
     throw new Error(`No handling implemented for currency type of ${currency.isTypeOf}`);
