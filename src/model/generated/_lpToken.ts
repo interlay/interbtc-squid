@@ -1,14 +1,43 @@
-import {NativeToken} from "./_nativeToken"
-import {ForeignAsset} from "./_foreignAsset"
-import {StableLpToken} from "./_stableLpToken"
+import assert from "assert"
+import * as marshal from "./marshal"
+import {PooledToken, fromJsonPooledToken} from "./_pooledToken"
 
-export type LpToken = NativeToken | ForeignAsset | StableLpToken
+export class LpToken {
+    public readonly isTypeOf = 'LpToken'
+    private _token0!: PooledToken
+    private _token1!: PooledToken
 
-export function fromJsonLpToken(json: any): LpToken {
-    switch(json?.isTypeOf) {
-        case 'NativeToken': return new NativeToken(undefined, json)
-        case 'ForeignAsset': return new ForeignAsset(undefined, json)
-        case 'StableLpToken': return new StableLpToken(undefined, json)
-        default: throw new TypeError('Unknown json object passed as LpToken')
+    constructor(props?: Partial<Omit<LpToken, 'toJSON'>>, json?: any) {
+        Object.assign(this, props)
+        if (json != null) {
+            this._token0 = fromJsonPooledToken(json.token0)
+            this._token1 = fromJsonPooledToken(json.token1)
+        }
+    }
+
+    get token0(): PooledToken {
+        assert(this._token0 != null, 'uninitialized access')
+        return this._token0
+    }
+
+    set token0(value: PooledToken) {
+        this._token0 = value
+    }
+
+    get token1(): PooledToken {
+        assert(this._token1 != null, 'uninitialized access')
+        return this._token1
+    }
+
+    set token1(value: PooledToken) {
+        this._token1 = value
+    }
+
+    toJSON(): object {
+        return {
+            isTypeOf: this.isTypeOf,
+            token0: this.token0.toJSON(),
+            token1: this.token1.toJSON(),
+        }
     }
 }

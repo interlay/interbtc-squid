@@ -6,8 +6,8 @@ import {
     ForeignAsset,
     Currency,
     LendToken,
-    LpTokenPair,
     LpToken,
+    PooledToken,
     StableLpToken,
 } from "../model";
 import {
@@ -65,7 +65,7 @@ export const legacyCurrencyId = {
 };
 
 export const lpTokenId = {
-    encode: (lpToken: LpToken_V1021000): LpToken => {
+    encode: (lpToken: LpToken_V1021000): PooledToken => {
         if (lpToken.__kind === "StableLpToken") {
             return new StableLpToken({
                 poolId: lpToken.value,
@@ -103,7 +103,7 @@ export const currencyId = {
             case "StableLpToken":
                 return lpTokenId.encode(asset);
             case "LpToken":
-                return new LpTokenPair({
+                return new LpToken({
                     token0: lpTokenId.encode(asset.value[0]),
                     token1: lpTokenId.encode(asset.value[1])
                 });
@@ -129,7 +129,7 @@ function currencyToString(currency: Currency): string {
             return currency.token.toString();
         case "StableLpToken":
             return `poolId_${currency.poolId.toString()}`;
-        case "LpTokenPair":
+        case "LpToken":
             const token0string = currencyToString(currency.token0);
             const token1string = currencyToString(currency.token1);
             return `lpToken__${token0string}__${token1string}`;
