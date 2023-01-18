@@ -1,0 +1,35 @@
+{
+    "outDir": "src/types",
+    "specVersions": "indexer/combined.chainVersions.jsonl",
+    "typesBundle": "indexer/typesBundle.json",
+    "events": [
+        "BTCRelay.StoreMainChainHeader",
+        "Escrow.Deposit",
+        "Escrow.Withdraw",
+        "Issue.CancelIssue",
+        "Issue.ExecuteIssue",
+        "Issue.IssuePeriodChange",
+        "Issue.RequestIssue",
+        "Oracle.FeedValues",
+        "Redeem.CancelRedeem",
+        "Redeem.ExecuteRedeem",
+        "Redeem.RequestRedeem",
+        "Redeem.RedeemPeriodChange",
+        "Security.UpdateActiveBlock",
+        "Tokens.Transfer",
+        "VaultRegistry.RegisterVault",
+        "VaultRegistry.IncreaseLockedCollateral",
+        "VaultRegistry.DecreaseLockedCollateral",
+        "ZenlinkProtocol.AssetSwap",
+        "ZenlinkProtocol.LiquidityAdded",
+        "ZenlinkProtocol.LiquidityRemoved"
+    ],
+    "calls": [
+        "BTCRelay.store_block_header",
+        "System.set_storage"
+    ],
+    "storage": [
+        "Issue.IssuePeriod",
+        "Redeem.RedeemPeriod"
+    ]
+}
