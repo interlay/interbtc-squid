@@ -86,10 +86,10 @@ export async function convertAmountToHuman(currency: Currency, amount: BigInt ) 
     const BITCOIN_NETWORK = process.env.BITCOIN_NETWORK as BitcoinNetwork;
     const interBTC = await createInterBtcApi(PARACHAIN_ENDPOINT!, BITCOIN_NETWORK!);
     if (currency.isTypeOf === "ForeignAsset") {
-        currency = await interBTC.assetRegistry.getForeignAsset(currency.asset);
+        return await interBTC.assetRegistry.getForeignAsset(currency.asset);
     } else if (currency.isTypeOf === "LendToken") {
-       
+       return await interBTC.loans.getUnderlyingCurrencyFromLendTokenId(currency.lendTokenId);
     } 
     
-    throw new Error(`No handling implemented for currency type of ${currency.isTypeOf}`);
+    console.error(`No handling implemented for currency type`);
 }
