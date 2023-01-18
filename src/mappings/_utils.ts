@@ -4,7 +4,7 @@ import { VaultId as VaultIdV15 } from "../types/v15";
 import { VaultId as VaultIdV17 } from "../types/v17";
 import { VaultId as VaultIdV6 } from "../types/v6";
 import { VaultId as VaultIdV1020000 } from "../types/v1020000";
-import { encodeLegacyVaultId, encodeVaultId } from "./encoding";
+import { currencyId, encodeLegacyVaultId, encodeVaultId } from "./encoding";
 import {
     Token,
     NativeToken,
@@ -22,7 +22,8 @@ import {
     Kusama,
     Polkadot
 } from "@interlay/monetary-js";
-import { BitcoinNetwork, createInterBtcApi, InterBtcApi } from "@interlay/interbtc-api";
+import { BitcoinNetwork,  CurrencyIdentifier} from "@interlay/interbtc-api/src/types";
+import { appendFile } from "fs";
 require('dotenv/config')
 
 export type eventArgs = {
@@ -69,27 +70,43 @@ export async function isRequestExpired(
     );
 }
 
-const currencyMap = {
-    [Token.DOT]: Polkadot,
-    [Token.INTR]: InterBtc,
-    [Token.KSM]: Kusama,
-    [Token.KINT]: Kintsugi,
-    [Token.IBTC]: InterBtc,
-    [Token.KBTC]: KBtc
-}
-export async function convertAmountToHuman(currency: Currency, amount: BigInt ) : BigInt {
-    if (currency.isTypeOf === "NativeToken") {
-        return amount.valueOf() / (BigInt(10) ** BigInt(currencyMap[currency.token].decimals));
-    }
-    // need to fetch on-chain data for Foreign Asset and Lend Token
-    const PARACHAIN_ENDPOINT = process.env.CHAIN_ENDPOINT;
-    const BITCOIN_NETWORK = process.env.BITCOIN_NETWORK as BitcoinNetwork;
-    const interBTC = await createInterBtcApi(PARACHAIN_ENDPOINT!, BITCOIN_NETWORK!);
-    if (currency.isTypeOf === "ForeignAsset") {
-        return await interBTC.assetRegistry.getForeignAsset(currency.asset);
-    } else if (currency.isTypeOf === "LendToken") {
-       return await interBTC.loans.getUnderlyingCurrencyFromLendTokenId(currency.lendTokenId);
-    } 
+// const currencyMap = {
+//     [Token.DOT]: Polkadot,
+//     [Token.INTR]: InterBtc,
+//     [Token.KSM]: Kusama,
+//     [Token.KINT]: Kintsugi,
+//     [Token.IBTC]: InterBtc,
+//     [Token.KBTC]: KBtc
+// }
+// export async function convertAmountToHuman(currency: Currency, amount: BigInt ) : BigInt {
+//     if (currency.isTypeOf === "NativeToken") {
+//         return amount.valueOf() / (BigInt(10) ** BigInt(currencyMap[currency.token].decimals));
+//     }
+//     // need to fetch on-chain data for Foreign Asset and Lend Token
+//     const PARACHAIN_ENDPOINT = process.env.CHAIN_ENDPOINT;
+//     const BITCOIN_NETWORK = process.env.BITCOIN_NETWORK as BitcoinNetwork;
+//     const interBTC = await createInterBtcApi(PARACHAIN_ENDPOINT!, BITCOIN_NETWORK!);
+//     if (currency.isTypeOf === "ForeignAsset") {
+//         return await interBTC.assetRegistry.getForeignAsset(currency.asset);
+//     } else if (currency.isTypeOf === "LendToken") {
+//        return await interBTC.loans.getUnderlyingCurrencyFromLendTokenId(currency.lendTokenId);
+//     } 
     
-    console.error(`No handling implemented for currency type`);
+//     console.error(`No handling implemented for currency type`);
+// }
+
+export async function convertAmountToHuman(currency: Currency, amount: BigInt ) : BigInt {
+    var id;
+    if (currency.isTypeOf === "NativeToken") {
+        id = currency.token;
+    }
+    else if (currency.isTypeOf === "ForeignAsset") {
+        id = currency.asset;
+    }
+    else if (currency.isTypeOf === "LendToken") {
+        id = currency.lendTokenId;
+    }
+    
 }
+
+
