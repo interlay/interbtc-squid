@@ -1,11 +1,15 @@
 import { Entity, Store } from "@subsquid/typeorm-store";
-import { Height, Issue, Redeem, Vault } from "../model";
+import { ForeignAsset, Height, Issue, Redeem, Vault } from "../model";
 import { VaultId as VaultIdV15 } from "../types/v15";
 import { VaultId as VaultIdV17 } from "../types/v17";
 import { VaultId as VaultIdV6 } from "../types/v6";
 import { VaultId as VaultIdV1020000 } from "../types/v1020000";
 import { VaultId as VaultIdV1021000 } from "../types/v1021000";
 import { encodeLegacyVaultId, encodeVaultId } from "./encoding";
+import { Currency } from "../model";
+import { CurrencyIdentifier, currencyIdToMonetaryCurrency, createInterBtcApi, BitcoinNetwork} from "@interlay/interbtc-api";
+import { ApiPromise, WsProvider} from "@polkadot/api";
+import { Currency as monertayCurrency } from "@interlay/monetary-js"
 
 export type eventArgs = {
     event: { args: true };
@@ -76,18 +80,39 @@ export async function isRequestExpired(
 //     console.error(`No handling implemented for currency type`);
 // }
 
-export async function convertAmountToHuman(currency: Currency, amount: BigInt ) : BigInt {
-    var id;
+export async function convertAmountToHuman(currency: Currency, amount: BigInt ) : Promise<BigInt> {
+    // creating the interBtcApi
+    const PARACHAIN_ENDPOINT = process.env.CHAIN_ENDPOINT;
+    const BITCOIN_NETWORK = process.env.BITCOIN_NETWORK as BitcoinNetwork;
+    const interBtcApi = await createInterBtcApi(PARACHAIN_ENDPOINT!, BITCOIN_NETWORK!);
+    var id: CurrencyIdentifier;
+
+    //creating the polkadotApi
+    const provider = new WsProvider(process.env.CHAIN_ENDPOINT);
+    const polkadotApi = await ApiPromise.create({ provider });
     if (currency.isTypeOf === "NativeToken") {
-        id = currency.token;
+        id = {token: currency.token};
     }
     else if (currency.isTypeOf === "ForeignAsset") {
-        id = currency.asset;
+        id = {foreignAsset: currency.asset};
     }
     else if (currency.isTypeOf === "LendToken") {
-        id = currency.lendTokenId;
+        id = {lendToken: currency.lendTokenId};
     }
-    
+    else {
+       throw new Error("No handling implemented for currency type");
+    }
+    const currencyId = polkadotApi.createType("InterbtcPrimitivesCurrencyId", id);
+
+    //Using the apis to pull currency inforamtion
+    const currencyInfo : monertayCurrency = await currencyIdToMonetaryCurrency(
+        interBtcApi.assetRegistry,
+        interBtcApi.loans,
+        currencyId
+    )
+
+    return amount.valueOf() / (BigInt(10) ** BigInt(currencyInfo.decimals));
 }
+
 
 
