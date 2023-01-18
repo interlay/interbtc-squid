@@ -80,7 +80,7 @@ export async function isRequestExpired(
 //     console.error(`No handling implemented for currency type`);
 // }
 
-export async function convertAmountToHuman(currency: Currency, amount: BigInt ) : Promise<BigInt> {
+export async function convertAmountToHuman(currency: Currency, amount: bigint ) : Promise<bigint> {
     // creating the interBtcApi
     const PARACHAIN_ENDPOINT = process.env.CHAIN_ENDPOINT;
     const BITCOIN_NETWORK = process.env.BITCOIN_NETWORK as BitcoinNetwork;

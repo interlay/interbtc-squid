@@ -8,6 +8,7 @@ import { Equal, LessThanOrEqual } from "typeorm";
 import { Store } from "@subsquid/typeorm-store";
 import { EventItem } from "../../processor";
 import EntityBuffer from "./entityBuffer";
+import { convertAmountToHuman } from "../_utils";
 
 function getLatestCurrencyPairCumulativeVolume(
     cumulativeVolumes: CumulativeVolumePerCurrencyPair[],
@@ -192,6 +193,7 @@ export async function updateCumulativeVolumesForCurrencyPair(
                 type,
                 tillTimestamp: timestamp,
                 amount: existingCumulativeVolumeForCollateral + amount,
+                amountHuman: await convertAmountToHuman(collateralCurrency, amount),
                 collateralCurrency,
                 wrappedCurrency,
             }

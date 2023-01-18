@@ -7,6 +7,7 @@ import { CurrencyId as CurrencyId_V17 } from "../../types/v17";
 import { address, currencyId, legacyCurrencyId } from "../encoding";
 import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
+import { convertAmountToHuman } from "../_utils";
 
 export async function feedValues(
     ctx: Ctx,
@@ -37,7 +38,7 @@ export async function feedValues(
             timestamp: new Date(block.timestamp),
             oracleId: oracleAddress,
             type: OracleUpdateType[key.__kind],
-            updateValue: value,
+            updateValue: value
         });
         let keyToString = key.__kind.toString();
         if (key.__kind === "ExchangeRate") {
