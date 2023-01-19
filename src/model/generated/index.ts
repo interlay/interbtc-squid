@@ -35,7 +35,6 @@ export * from "./_marketState"
 export * from "./loanMarketActivation.model"
 export * from "./loan.model"
 export * from "./deposit.model"
-export * from "./_rateModels";
 export * from "./_rateModel";
 export * from "./_rateModelJump";
 export * from "./_rateModelCurve";
