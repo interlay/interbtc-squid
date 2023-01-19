@@ -7,7 +7,7 @@ import { VaultId as VaultIdV1020000 } from "../types/v1020000";
 import { VaultId as VaultIdV1021000 } from "../types/v1021000";
 import { encodeLegacyVaultId, encodeVaultId } from "./encoding";
 import { Currency } from "../model";
-import { CurrencyIdentifier, currencyIdToMonetaryCurrency, createInterBtcApi, BitcoinNetwork, newMonetaryAmount} from "@interlay/interbtc-api";
+import { CurrencyIdentifier, currencyIdToMonetaryCurrency, createInterBtcApi, BitcoinNetwork, newMonetaryAmount, CurrencyExt} from "@interlay/interbtc-api";
 import { ApiPromise, WsProvider} from "@polkadot/api";
 import { Currency as monertayCurrency } from "@interlay/monetary-js"
 
@@ -55,17 +55,20 @@ export async function isRequestExpired(
     );
 }
 
+
 export async function convertAmountToHuman(currency: Currency, amount: bigint ) : Promise<bigint> {
     // creating the interBtcApi
     const PARACHAIN_ENDPOINT = process.env.CHAIN_ENDPOINT;
     const BITCOIN_NETWORK = process.env.BITCOIN_NETWORK as BitcoinNetwork;
     const interBtcApi = await createInterBtcApi(PARACHAIN_ENDPOINT!, BITCOIN_NETWORK!);
+    const extendCurr: CurrencyExt = currency;
     var id: CurrencyIdentifier;
     if (currency.isTypeOf === "NativeToken") {
-        id = {token: currency.token};
+        console.log(`ticker: ${extendCurr.ticker}`);
+        id = {token: "DOT"};
     }
     else if (currency.isTypeOf === "ForeignAsset") {
-        id = {foreignAsset: currency.asset};
+        id = {foreignAsset: currency.asset };
     }
     else if (currency.isTypeOf === "LendToken") {
         id = {lendToken: currency.lendTokenId};
@@ -73,9 +76,9 @@ export async function convertAmountToHuman(currency: Currency, amount: bigint ) 
     else {
        throw new Error("No handling implemented for currency type");
     }
-    const currencyId = interBtcApi.api.createType("InterbtcPrimitivesCurrencyId", id);
+    const currencyId = await interBtcApi.api.createType("InterbtcPrimitivesCurrencyId", {token: "DOT"});
     console.log(`decamials: ${currencyId.decimals}`);
-    const monetaryAmount = newMonetaryAmount(Number(amount), currencyId.decimals);
+    const monetaryAmount = newMonetaryAmount(Number(amount), currencyId);
     console.log(`monetaryAmount: ${monetaryAmount}`);
     return monetaryAmount.toBig();
 
