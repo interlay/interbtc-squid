@@ -55,31 +55,6 @@ export async function isRequestExpired(
     );
 }
 
-// const currencyMap = {
-//     [Token.DOT]: Polkadot,
-//     [Token.INTR]: InterBtc,
-//     [Token.KSM]: Kusama,
-//     [Token.KINT]: Kintsugi,
-//     [Token.IBTC]: InterBtc,
-//     [Token.KBTC]: KBtc
-// }
-// export async function convertAmountToHuman(currency: Currency, amount: BigInt ) : BigInt {
-//     if (currency.isTypeOf === "NativeToken") {
-//         return amount.valueOf() / (BigInt(10) ** BigInt(currencyMap[currency.token].decimals));
-//     }
-//     // need to fetch on-chain data for Foreign Asset and Lend Token
-//     const PARACHAIN_ENDPOINT = process.env.CHAIN_ENDPOINT;
-//     const BITCOIN_NETWORK = process.env.BITCOIN_NETWORK as BitcoinNetwork;
-//     const interBTC = await createInterBtcApi(PARACHAIN_ENDPOINT!, BITCOIN_NETWORK!);
-//     if (currency.isTypeOf === "ForeignAsset") {
-//         return await interBTC.assetRegistry.getForeignAsset(currency.asset);
-//     } else if (currency.isTypeOf === "LendToken") {
-//        return await interBTC.loans.getUnderlyingCurrencyFromLendTokenId(currency.lendTokenId);
-//     } 
-    
-//     console.error(`No handling implemented for currency type`);
-// }
-
 export async function convertAmountToHuman(currency: Currency, amount: bigint ) : Promise<bigint> {
     // creating the interBtcApi
     const PARACHAIN_ENDPOINT = process.env.CHAIN_ENDPOINT;
@@ -110,7 +85,6 @@ export async function convertAmountToHuman(currency: Currency, amount: bigint ) 
         interBtcApi.loans,
         currencyId
     )
-
     return amount.valueOf() / (BigInt(10) ** BigInt(currencyInfo.decimals));
 }
 

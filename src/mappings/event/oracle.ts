@@ -1,5 +1,6 @@
+import { tokenSymbolToCurrency } from "@interlay/interbtc-api";
 import { SubstrateBlock } from "@subsquid/substrate-processor";
-import { OracleUpdate, OracleUpdateType } from "../../model";
+import { Currency, NativeToken, OracleUpdate, OracleUpdateType, Token } from "../../model";
 import { Ctx, EventItem } from "../../processor";
 import { OracleFeedValuesEvent } from "../../types/events";
 import { CurrencyId as CurrencyId_V15 } from "../../types/v15";
@@ -41,13 +42,27 @@ export async function feedValues(
             updateValue: value
         });
         let keyToString = key.__kind.toString();
+        let updateValueHuman : bigint = 0n;
         if (key.__kind === "ExchangeRate") {
             const exchangeCurrency = useLegacyCurrency
                 ? legacyCurrencyId.encode(key.value as CurrencyId_V15)
                 : currencyId.encode(key.value as CurrencyId_V17);
             update.typeKey = exchangeCurrency;
             keyToString += JSON.stringify(exchangeCurrency);
+            updateValueHuman = await convertAmountToHuman(update.typeKey, value);
         }
+        else { // FeeEstimation
+            if (process.env.SS58_CODEC === "kintsugi") {
+                updateValueHuman = await convertAmountToHuman( new NativeToken({ token: Token.KINT }), value);
+            }
+            else if (process.env.SS58_CODEC === "interlay") {
+                updateValueHuman = await convertAmountToHuman( new NativeToken({ token: Token.INTR }), value);
+            }
+            else {
+                console.error("Undefined SS58_CODEC");
+            }
+        }
+        update.updateValueHuman = updateValueHuman;
         update.id = `${oracleAddress}-${item.event.id}-${keyToString}`;
         entityBuffer.pushEntity(OracleUpdate.name, update);
     }
