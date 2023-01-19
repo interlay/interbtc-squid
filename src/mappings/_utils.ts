@@ -7,7 +7,7 @@ import { VaultId as VaultIdV1020000 } from "../types/v1020000";
 import { VaultId as VaultIdV1021000 } from "../types/v1021000";
 import { encodeLegacyVaultId, encodeVaultId } from "./encoding";
 import { Currency } from "../model";
-import { CurrencyIdentifier, currencyIdToMonetaryCurrency, createInterBtcApi, BitcoinNetwork} from "@interlay/interbtc-api";
+import { CurrencyIdentifier, currencyIdToMonetaryCurrency, createInterBtcApi, BitcoinNetwork, newMonetaryAmount} from "@interlay/interbtc-api";
 import { ApiPromise, WsProvider} from "@polkadot/api";
 import { Currency as monertayCurrency } from "@interlay/monetary-js"
 
@@ -61,10 +61,6 @@ export async function convertAmountToHuman(currency: Currency, amount: bigint ) 
     const BITCOIN_NETWORK = process.env.BITCOIN_NETWORK as BitcoinNetwork;
     const interBtcApi = await createInterBtcApi(PARACHAIN_ENDPOINT!, BITCOIN_NETWORK!);
     var id: CurrencyIdentifier;
-
-    //creating the polkadotApi
-    const provider = new WsProvider(process.env.CHAIN_ENDPOINT);
-    const polkadotApi = await ApiPromise.create({ provider });
     if (currency.isTypeOf === "NativeToken") {
         id = {token: currency.token};
     }
@@ -77,15 +73,19 @@ export async function convertAmountToHuman(currency: Currency, amount: bigint ) 
     else {
        throw new Error("No handling implemented for currency type");
     }
-    const currencyId = polkadotApi.createType("InterbtcPrimitivesCurrencyId", id);
+    const currencyId = interBtcApi.api.createType("InterbtcPrimitivesCurrencyId", id);
+    console.log(`decamials: ${currencyId.decimals}`);
+    const monetaryAmount = newMonetaryAmount(Number(amount), currencyId.decimals);
+    console.log(`monetaryAmount: ${monetaryAmount}`);
+    return monetaryAmount.toBig();
 
     //Using the apis to pull currency inforamtion
-    const currencyInfo : monertayCurrency = await currencyIdToMonetaryCurrency(
-        interBtcApi.assetRegistry,
-        interBtcApi.loans,
-        currencyId
-    )
-    return amount.valueOf() / (BigInt(10) ** BigInt(currencyInfo.decimals));
+    // const currencyInfo : monertayCurrency = await currencyIdToMonetaryCurrency(
+    //     interBtcApi.assetRegistry,
+    //     interBtcApi.loans,
+    //     currencyId
+    // )
+    // return amount.valueOf() / (BigInt(10) ** BigInt(currencyInfo.decimals));
 }
 
 
