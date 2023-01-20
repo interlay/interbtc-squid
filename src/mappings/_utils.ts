@@ -64,7 +64,6 @@ export async function convertAmountToHuman(currency: Currency, amount: bigint ) 
     const extendCurr: CurrencyExt = currency;
     var id: CurrencyIdentifier;
     if (currency.isTypeOf === "NativeToken") {
-        console.log(`ticker: ${extendCurr.ticker}`);
         id = {token: "DOT"};
     }
     else if (currency.isTypeOf === "ForeignAsset") {
@@ -76,19 +75,19 @@ export async function convertAmountToHuman(currency: Currency, amount: bigint ) 
     else {
        throw new Error("No handling implemented for currency type");
     }
-    const currencyId = await interBtcApi.api.createType("InterbtcPrimitivesCurrencyId", {token: "DOT"});
-    console.log(`decamials: ${currencyId.decimals}`);
-    const monetaryAmount = newMonetaryAmount(Number(amount), currencyId);
-    console.log(`monetaryAmount: ${monetaryAmount}`);
-    return monetaryAmount.toBig();
+    const currencyId = interBtcApi.api.createType("InterbtcPrimitivesCurrencyId", {token: "DOT"});
+    
 
     //Using the apis to pull currency inforamtion
-    // const currencyInfo : monertayCurrency = await currencyIdToMonetaryCurrency(
-    //     interBtcApi.assetRegistry,
-    //     interBtcApi.loans,
-    //     currencyId
-    // )
-    // return amount.valueOf() / (BigInt(10) ** BigInt(currencyInfo.decimals));
+    const currencyInfo : CurrencyExt = await currencyIdToMonetaryCurrency(
+        interBtcApi.assetRegistry,
+        interBtcApi.loans,
+        currencyId
+    )
+    console.log(`currency Info: ${currencyInfo.decimals}`);
+    const monetaryAmount = newMonetaryAmount(amount.toString(), currencyInfo);
+    console.log(`monetaryAmount: ${monetaryAmount}`);
+    return monetaryAmount.toBig();
 }
 
 
