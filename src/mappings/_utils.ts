@@ -61,7 +61,6 @@ export async function convertAmountToHuman(currency: Currency, amount: bigint ) 
     const PARACHAIN_ENDPOINT = process.env.CHAIN_ENDPOINT;
     const BITCOIN_NETWORK = process.env.BITCOIN_NETWORK as BitcoinNetwork;
     const interBtcApi = await createInterBtcApi(PARACHAIN_ENDPOINT!, BITCOIN_NETWORK!);
-    const extendCurr: CurrencyExt = currency;
     var id: CurrencyIdentifier;
     if (currency.isTypeOf === "NativeToken") {
         id = {token: "DOT"};
@@ -87,7 +86,7 @@ export async function convertAmountToHuman(currency: Currency, amount: bigint ) 
     console.log(`currency Info: ${currencyInfo.decimals}`);
     const monetaryAmount = newMonetaryAmount(amount.toString(), currencyInfo);
     console.log(`monetaryAmount: ${monetaryAmount}`);
-    return monetaryAmount.toBig();
+    return BigInt(monetaryAmount._rawAmount.toString());
 }
 
 
