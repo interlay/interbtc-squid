@@ -39,7 +39,8 @@ import { CurrencyId_Token as CurrencyId_Token_V10 } from "../../types/v10";
 import { CurrencyId_Token as CurrencyId_Token_V15 } from "../../types/v15";
 import { CurrencyId as CurrencyId_V17 } from "../../types/v17";
 import { CurrencyId as CurrencyId_V1020000, CurrencyId_LendToken } from "../../types/v1020000";
-import { InterestRateModel as InterestRateModel_V1020000 } from "../../types/v1020000";
+//import { InterestRateModel as InterestRateModel_V1020000 } from "../../types/v1020000";
+import { InterestRateModel as InterestRateModel_V1021000 } from "../../types/v1021000";
 import { address, currencyId, currencyToString, legacyCurrencyId, rateModel } from "../encoding";
 import {
     updateCumulativeVolumes,
@@ -61,7 +62,7 @@ export async function newMarket(
     entityBuffer: EntityBuffer
 ): Promise<void> {
     const rawEvent = new LoansNewMarketEvent(ctx, item.event);
-    let [token, e] = rawEvent.asV1020000;
+    let [token, e] = rawEvent.asV1021000;
     const currency = currencyId.encode(token);
     const id = currencyToString(currency);
     const InterestRateModel = rateModel.encode(e.rateModel)
@@ -99,7 +100,7 @@ export async function updatedMarket(
     entityBuffer: EntityBuffer
 ): Promise<void> {
     const rawEvent = new LoansUpdatedMarketEvent(ctx, item.event);
-    let [token, e] = rawEvent.asV1020000;
+    let [token, e] = rawEvent.asV1021000;
     const currency = currencyId.encode(token);
     const id = currencyToString(currency);
     const InterestRateModel = rateModel.encode(e.rateModel)
@@ -143,7 +144,7 @@ export async function activatedMarket(
     entityBuffer: EntityBuffer
 ): Promise<void> {
     const rawEvent = new LoansActivatedMarketEvent(ctx, item.event);
-    let token = rawEvent.asV1020000;
+    let token = rawEvent.asV1021000;
     const currency = currencyId.encode(token);
     const id = currencyToString(currency);
 
@@ -179,7 +180,7 @@ export async function borrow(
     entityBuffer: EntityBuffer
 ): Promise<void> {
     const rawEvent = new LoansBorrowedEvent(ctx, item.event);
-    const [adress, currencyOfLoan, amount] = rawEvent.asV1020000;
+    const [adress, currencyOfLoan, amount] = rawEvent.asV1021000;
     const currency = currencyId.encode(currencyOfLoan);
     const height = await blockToHeight(ctx, block.height, "LoansBorrowed");
     const account = address.interlay.encode(adress);
@@ -205,7 +206,7 @@ export async function depositCollateral(
     entityBuffer: EntityBuffer
 ): Promise<void> {
     const rawEvent = new LoansDepositCollateralEvent(ctx, item.event);
-    const [adress, depositCurr, amount] = rawEvent.asV1020000;
+    const [adress, depositCurr, amount] = rawEvent.asV1021000;
     const currency = currencyId.encode(depositCurr);
     const height = await blockToHeight(ctx, block.height, "Deposit");
     const account = address.interlay.encode(adress);
@@ -240,7 +241,7 @@ export async function withdrawCollateral(
     entityBuffer: EntityBuffer
 ): Promise<void> {
     const rawEvent = new LoansWithdrawCollateralEvent(ctx, item.event);
-    const [adress, depositCurr, amount] = rawEvent.asV1020000;
+    const [adress, depositCurr, amount] = rawEvent.asV1021000;
     const currency = currencyId.encode(depositCurr);
     const height = await blockToHeight(ctx, block.height, "WithdrawDeposit");
     const account = address.interlay.encode(adress);
@@ -275,7 +276,7 @@ export async function depositForLending(
     entityBuffer: EntityBuffer
 ): Promise<void> {
     const rawEvent = new LoansDepositedEvent(ctx, item.event);
-    const [adress, depositCurr, amount] = rawEvent.asV1020000;
+    const [adress, depositCurr, amount] = rawEvent.asV1021000;
     const currency = currencyId.encode(depositCurr);
     const height = await blockToHeight(ctx, block.height, "Deposit");
     const account = address.interlay.encode(adress);
@@ -319,7 +320,7 @@ export async function repay(
     entityBuffer: EntityBuffer
 ): Promise<void> {
     const rawEvent = new LoansRepaidBorrowEvent(ctx, item.event);
-    const [adress, currencyOfLoan, amount] = rawEvent.asV1020000;
+    const [adress, currencyOfLoan, amount] = rawEvent.asV1021000;
     const currency = currencyId.encode(currencyOfLoan);
     const height = await blockToHeight(ctx, block.height, "LoansRepaid");
     const account = address.interlay.encode(adress);
@@ -346,7 +347,7 @@ export async function withdrawDeposit(
     entityBuffer: EntityBuffer
 ): Promise<void> {
     const rawEvent = new LoansRedeemedEvent(ctx, item.event);
-    const [adress, currencyOfLoan, amount] = rawEvent.asV1020000;
+    const [adress, currencyOfLoan, amount] = rawEvent.asV1021000;
     const currency = currencyId.encode(currencyOfLoan);
     const height = await blockToHeight(ctx, block.height, "Redeemed");
     const account = address.interlay.encode(adress);

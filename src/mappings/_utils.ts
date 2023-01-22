@@ -27,7 +27,7 @@ export async function getVaultIdLegacy(
     });
 }
 
-export async function getVaultId(store: Store, vaultId: VaultIdV1020000 | VaultIdV1021000) {
+export async function getVaultId(store: Store, vaultId: VaultIdV1021000) {
     return store.get(Vault, {
         where: { id: encodeVaultId(vaultId) },
     });

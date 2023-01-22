@@ -3,7 +3,6 @@ import {ForeignAsset} from "./_foreignAsset"
 import {LendToken} from "./_lendToken"
 import {LpToken} from "./_lpToken"
 import {StableLpToken} from "./_stableLpToken"
-import { getForeignAsset } from "../../mappings/_utils";
 
 export type Currency = NativeToken | ForeignAsset | LendToken | LpToken | StableLpToken
 
@@ -17,5 +16,3 @@ export function fromJsonCurrency(json: any): Currency {
         default: throw new TypeError('Unknown json object passed as Currency')
     }
 }
-
-

@@ -53,7 +53,7 @@ export async function requestIssue(
         vaultIdString = encodeLegacyVaultId(e.vaultId);
     } else {
         if (rawEvent.isV17) e = rawEvent.asV17;
-        else if (rawEvent.isV1020000) e = rawEvent.asV1020000;
+        //else if (rawEvent.isV1020000) e = rawEvent.asV1020000;
         else if (rawEvent.isV1021000) e = rawEvent.asV1021000;
         else {
             ctx.log.warn(`UNKOWN EVENT VERSION: Issue.requestIssue`);
@@ -135,7 +135,7 @@ export async function executeIssue(
         wrappedCurrency = legacyCurrencyId.encode(e.vaultId.currencies.wrapped);
     } else {
         if (rawEvent.isV17) e = rawEvent.asV17;
-        else if (rawEvent.isV1020000) e = rawEvent.asV1020000;
+        //else if (rawEvent.isV1020000) e = rawEvent.asV1020000;
         else if (rawEvent.isV1021000) e = rawEvent.asV1021000;
         else {
             ctx.log.warn(`UNKOWN EVENT VERSION: Issue.executeIssue`);
@@ -169,7 +169,7 @@ export async function executeIssue(
 
     entityBuffer.pushEntity(IssueExecution.name, execution);
     entityBuffer.pushEntity(Issue.name, issue);
-    
+
     const volumeTypes = [VolumeType.Issued, VolumeType.Locked, VolumeType.BridgeVolume];
     for (const volumeType of volumeTypes) {
         entityBuffer.pushEntity(
@@ -243,7 +243,7 @@ export async function issuePeriodChange(
     if (!rawEvent.isV16) {
         ctx.log.warn(`UNKOWN EVENT VERSION: Issue.issuePeriodChange`);
         return;
-    } 
+    }
     e = rawEvent.asV16;
 
     const height = await blockToHeight(ctx, block.height, "IssuePeriodChange");

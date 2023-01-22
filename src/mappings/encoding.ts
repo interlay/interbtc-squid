@@ -16,9 +16,11 @@ import {
 import {
     VaultId as VaultIdV1020000,
     CurrencyId as CurrencyId_V1020000,
-    InterestRateModel as InterestRateModel_V1020000,
-    MarketState as MarketState_V1020000,
 } from "../types/v1020000";
+import {
+    InterestRateModel as InterestRateModel_V1021000,
+    MarketState as MarketState_V1021000,
+} from "../types/v1021000";
 import {
     Address as AddressV15,
     CurrencyId_Token as CurrencyId_TokenV15,
@@ -125,7 +127,7 @@ export const currencyId = {
 // and mainly done for future proofing.
 // Very much unlike the currencyId.encode and lpTokenId.encode methods.
 export const rateModel = {
-    encode: (model: InterestRateModel_V1020000): RateModel => {
+    encode: (model: InterestRateModel_V1021000): RateModel => {
         if (model.__kind === "Jump") {
             return new RateModelJump({
                 baseRate: model.value.baseRate,
@@ -141,7 +143,7 @@ export const rateModel = {
     },
 };
 
-function currencyToString(currency: Currency): string {
+export function currencyToString(currency: Currency): string {
     switch(currency.isTypeOf) {
         case "LendToken":
             return `lendToken_${currency.lendTokenId.toString()}`;
@@ -171,7 +173,7 @@ export function encodeLegacyVaultId(vaultId: VaultIdV6 | VaultIdV15) {
     )}`;
 }
 
-export function encodeVaultId(vaultId: VaultIdV1020000 | VaultIdV1021000) {
+export function encodeVaultId(vaultId: VaultIdV1021000) {
     const addressStr = address.interlay.encode(vaultId.accountId).toString();
     const wrapped = currencyId.encode(vaultId.currencies.wrapped);
     const collateral = currencyId.encode(vaultId.currencies.collateral);

@@ -336,6 +336,343 @@ export class IssueRequestIssueEvent {
     }
 }
 
+export class LoansActivatedMarketEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'Loans.ActivatedMarket')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * Event emitted when a market is activated
+     * [admin, asset_id]
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Loans.ActivatedMarket') === 'dc65d5557a653aa4c3607d77e220c2fe5d7dc938a215ac1e94412088d670e795'
+    }
+
+    /**
+     * Event emitted when a market is activated
+     * [admin, asset_id]
+     */
+    get asV1021000(): v1021000.CurrencyId {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
+export class LoansBorrowedEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'Loans.Borrowed')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * Event emitted when cash is borrowed
+     * [sender, asset_id, amount]
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Loans.Borrowed') === '975508d9ae69d7dc5de366ed76525ee97d7b740a5506f855b809ca8a11f0baa3'
+    }
+
+    /**
+     * Event emitted when cash is borrowed
+     * [sender, asset_id, amount]
+     */
+    get asV1021000(): [Uint8Array, v1021000.CurrencyId, bigint] {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
+export class LoansDepositCollateralEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'Loans.DepositCollateral')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * Enable collateral for certain asset
+     * [sender, asset_id]
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Loans.DepositCollateral') === '975508d9ae69d7dc5de366ed76525ee97d7b740a5506f855b809ca8a11f0baa3'
+    }
+
+    /**
+     * Enable collateral for certain asset
+     * [sender, asset_id]
+     */
+    get asV1021000(): [Uint8Array, v1021000.CurrencyId, bigint] {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
+export class LoansDepositedEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'Loans.Deposited')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * Event emitted when assets are deposited
+     * [sender, asset_id, amount]
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Loans.Deposited') === '975508d9ae69d7dc5de366ed76525ee97d7b740a5506f855b809ca8a11f0baa3'
+    }
+
+    /**
+     * Event emitted when assets are deposited
+     * [sender, asset_id, amount]
+     */
+    get asV1021000(): [Uint8Array, v1021000.CurrencyId, bigint] {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
+export class LoansDistributedBorrowerRewardEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'Loans.DistributedBorrowerReward')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * Deposited when Reward is distributed to a borrower
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Loans.DistributedBorrowerReward') === '01732256ae39c2950060d685fc3f1a05aadbbef2982776315974a3efe17cc799'
+    }
+
+    /**
+     * Deposited when Reward is distributed to a borrower
+     */
+    get asV1021000(): [v1021000.CurrencyId, Uint8Array, bigint, bigint] {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
+export class LoansDistributedSupplierRewardEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'Loans.DistributedSupplierReward')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * Deposited when Reward is distributed to a supplier
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Loans.DistributedSupplierReward') === '01732256ae39c2950060d685fc3f1a05aadbbef2982776315974a3efe17cc799'
+    }
+
+    /**
+     * Deposited when Reward is distributed to a supplier
+     */
+    get asV1021000(): [v1021000.CurrencyId, Uint8Array, bigint, bigint] {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
+export class LoansNewMarketEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'Loans.NewMarket')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * New market is set
+     * [new_interest_rate_model]
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Loans.NewMarket') === '4d95a60e80ef4f7e83851be804ee630d6e8089b6235973027bf6b277e09ca4d7'
+    }
+
+    /**
+     * New market is set
+     * [new_interest_rate_model]
+     */
+    get asV1021000(): [v1021000.CurrencyId, v1021000.Market] {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
+export class LoansRedeemedEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'Loans.Redeemed')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * Event emitted when assets are redeemed
+     * [sender, asset_id, amount]
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Loans.Redeemed') === '975508d9ae69d7dc5de366ed76525ee97d7b740a5506f855b809ca8a11f0baa3'
+    }
+
+    /**
+     * Event emitted when assets are redeemed
+     * [sender, asset_id, amount]
+     */
+    get asV1021000(): [Uint8Array, v1021000.CurrencyId, bigint] {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
+export class LoansRepaidBorrowEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'Loans.RepaidBorrow')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * Event emitted when a borrow is repaid
+     * [sender, asset_id, amount]
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Loans.RepaidBorrow') === '975508d9ae69d7dc5de366ed76525ee97d7b740a5506f855b809ca8a11f0baa3'
+    }
+
+    /**
+     * Event emitted when a borrow is repaid
+     * [sender, asset_id, amount]
+     */
+    get asV1021000(): [Uint8Array, v1021000.CurrencyId, bigint] {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
+export class LoansUpdatedMarketEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'Loans.UpdatedMarket')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * New market parameters is updated
+     * [admin, asset_id]
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Loans.UpdatedMarket') === '4d95a60e80ef4f7e83851be804ee630d6e8089b6235973027bf6b277e09ca4d7'
+    }
+
+    /**
+     * New market parameters is updated
+     * [admin, asset_id]
+     */
+    get asV1021000(): [v1021000.CurrencyId, v1021000.Market] {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
+export class LoansWithdrawCollateralEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'Loans.WithdrawCollateral')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * Disable collateral for certain asset
+     * [sender, asset_id]
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Loans.WithdrawCollateral') === '975508d9ae69d7dc5de366ed76525ee97d7b740a5506f855b809ca8a11f0baa3'
+    }
+
+    /**
+     * Disable collateral for certain asset
+     * [sender, asset_id]
+     */
+    get asV1021000(): [Uint8Array, v1021000.CurrencyId, bigint] {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
 export class OracleFeedValuesEvent {
     private readonly _chain: Chain
     private readonly event: Event
@@ -1187,342 +1524,3 @@ export class ZenlinkProtocolLiquidityRemovedEvent {
         return this._chain.decodeEvent(this.event)
     }
 }
-
-export class LoansBorrowedEvent {
-    private readonly _chain: Chain
-    private readonly event: Event
-
-    constructor(ctx: EventContext)
-    constructor(ctx: ChainContext, event: Event)
-    constructor(ctx: EventContext, event?: Event) {
-        event = event || ctx.event
-        assert(event.name === 'Loans.Borrowed')
-        this._chain = ctx._chain
-        this.event = event
-    }
-
-    /**
-     * Event emitted when cash is borrowed
-     * [sender, asset_id, amount]
-     */
-    get isV1020000(): boolean {
-        return this._chain.getEventHash('Loans.Borrowed') === '3b17aa6a6744611f20e350ba8ef796f73999bc9edcc3ae0eaf4738374966395d'
-    }
-
-    /**
-     * Event emitted when cash is borrowed
-     * [sender, asset_id, amount]
-     */
-    get asV1020000(): [Uint8Array, v1020000.CurrencyId, bigint] {
-        assert(this.isV1020000)
-        return this._chain.decodeEvent(this.event)
-    }
-}
-
-export class LoansDepositCollateralEvent {
-    private readonly _chain: Chain
-    private readonly event: Event
-
-    constructor(ctx: EventContext)
-    constructor(ctx: ChainContext, event: Event)
-    constructor(ctx: EventContext, event?: Event) {
-        event = event || ctx.event
-        assert(event.name === 'Loans.DepositCollateral')
-        this._chain = ctx._chain
-        this.event = event
-    }
-
-    /**
-     * Enable collateral for certain asset
-     * [sender, asset_id]
-     */
-    get isV1020000(): boolean {
-        return this._chain.getEventHash('Loans.DepositCollateral') === '3b17aa6a6744611f20e350ba8ef796f73999bc9edcc3ae0eaf4738374966395d'
-    }
-
-    /**
-     * Enable collateral for certain asset
-     * [sender, asset_id]
-     */
-    get asV1020000(): [Uint8Array, v1020000.CurrencyId, bigint] {
-        assert(this.isV1020000)
-        return this._chain.decodeEvent(this.event)
-    }
-}
-
-export class LoansDepositedEvent {
-    private readonly _chain: Chain
-    private readonly event: Event
-
-    constructor(ctx: EventContext)
-    constructor(ctx: ChainContext, event: Event)
-    constructor(ctx: EventContext, event?: Event) {
-        event = event || ctx.event
-        assert(event.name === 'Loans.Deposited')
-        this._chain = ctx._chain
-        this.event = event
-    }
-
-    /**
-     * Event emitted when assets are deposited
-     * [sender, asset_id, amount]
-     */
-    get isV1020000(): boolean {
-        return this._chain.getEventHash('Loans.Deposited') === '3b17aa6a6744611f20e350ba8ef796f73999bc9edcc3ae0eaf4738374966395d'
-    }
-
-    /**
-     * Event emitted when assets are deposited
-     * [sender, asset_id, amount]
-     */
-    get asV1020000(): [Uint8Array, v1020000.CurrencyId, bigint] {
-        assert(this.isV1020000)
-        return this._chain.decodeEvent(this.event)
-    }
-}
-
-export class LoansDistributedBorrowerRewardEvent {
-    private readonly _chain: Chain
-    private readonly event: Event
-
-    constructor(ctx: EventContext)
-    constructor(ctx: ChainContext, event: Event)
-    constructor(ctx: EventContext, event?: Event) {
-        event = event || ctx.event
-        assert(event.name === 'Loans.DistributedBorrowerReward')
-        this._chain = ctx._chain
-        this.event = event
-    }
-
-    /**
-     * Deposited when Reward is distributed to a borrower
-     */
-    get isV1020000(): boolean {
-        return this._chain.getEventHash('Loans.DistributedBorrowerReward') === 'fb8fa4cbb0b7d235c849ace29beec8d127bcfe7e83312895bc769f38a29bd24e'
-    }
-
-    /**
-     * Deposited when Reward is distributed to a borrower
-     */
-    get asV1020000(): [v1020000.CurrencyId, Uint8Array, bigint, bigint] {
-        assert(this.isV1020000)
-        return this._chain.decodeEvent(this.event)
-    }
-}
-
-export class LoansDistributedSupplierRewardEvent {
-    private readonly _chain: Chain
-    private readonly event: Event
-
-    constructor(ctx: EventContext)
-    constructor(ctx: ChainContext, event: Event)
-    constructor(ctx: EventContext, event?: Event) {
-        event = event || ctx.event
-        assert(event.name === 'Loans.DistributedSupplierReward')
-        this._chain = ctx._chain
-        this.event = event
-    }
-
-    /**
-     * Deposited when Reward is distributed to a supplier
-     */
-    get isV1020000(): boolean {
-        return this._chain.getEventHash('Loans.DistributedSupplierReward') === 'fb8fa4cbb0b7d235c849ace29beec8d127bcfe7e83312895bc769f38a29bd24e'
-    }
-
-    /**
-     * Deposited when Reward is distributed to a supplier
-     */
-    get asV1020000(): [v1020000.CurrencyId, Uint8Array, bigint, bigint] {
-        assert(this.isV1020000)
-        return this._chain.decodeEvent(this.event)
-    }
-}
-
-export class LoansNewMarketEvent {
-    private readonly _chain: Chain
-    private readonly event: Event
-
-    constructor(ctx: EventContext)
-    constructor(ctx: ChainContext, event: Event)
-    constructor(ctx: EventContext, event?: Event) {
-        event = event || ctx.event
-        assert(event.name === 'Loans.NewMarket')
-        this._chain = ctx._chain
-        this.event = event
-    }
-
-    /**
-     * New market is set
-     * [new_interest_rate_model]
-     */
-    get isV1020000(): boolean {
-        return this._chain.getEventHash('Loans.NewMarket') === 'c64b05a922793c531f383f3949a1cee92c8698f90714cd29a69d2a5ba5879e85'
-    }
-
-    /**
-     * New market is set
-     * [new_interest_rate_model]
-     */
-
-    get asV1020000(): [v1020000.CurrencyId, {state: v1020000.MarketState, borrowCap: bigint, supplyCap: bigint, rateModel: v1020000.InterestRateModel, closeFactor: number, lendTokenId: v1020000.CurrencyId, reserveFactor: number, collateralFactor: number, liquidateIncentive: bigint, liquidationThreshold: number, liquidateIncentiveReservedFactor: number}] {
-      assert(this.isV1020000)
-      return this._chain.decodeEvent(this.event)
-  }
-}
-
-export class LoansUpdatedMarketEvent {
-  private readonly _chain: Chain
-  private readonly event: Event
-
-  constructor(ctx: EventContext)
-  constructor(ctx: ChainContext, event: Event)
-  constructor(ctx: EventContext, event?: Event) {
-      event = event || ctx.event
-      assert(event.name === 'Loans.UpdatedMarket')
-      this._chain = ctx._chain
-      this.event = event
-  }
-
-  /**
-   * New market parameters is updated
-   * [admin, asset_id]
-   */
-  get isV1020000(): boolean {
-      return this._chain.getEventHash('Loans.UpdatedMarket') === 'c64b05a922793c531f383f3949a1cee92c8698f90714cd29a69d2a5ba5879e85'
-  }
-
-  /**
-   * New market parameters is updated
-   * [admin, asset_id]
-   */
-  get asV1020000(): [v1020000.CurrencyId, {state: v1020000.MarketState, borrowCap: bigint, supplyCap: bigint, rateModel: v1020000.InterestRateModel, closeFactor: number, lendTokenId: v1020000.CurrencyId, reserveFactor: number, collateralFactor: number, liquidateIncentive: bigint, liquidationThreshold: number, liquidateIncentiveReservedFactor: number}] {
-      assert(this.isV1020000)
-      return this._chain.decodeEvent(this.event)
-  }
-}
-
-export class LoansActivatedMarketEvent {
-  private readonly _chain: Chain
-  private readonly event: Event
-
-  constructor(ctx: EventContext)
-  constructor(ctx: ChainContext, event: Event)
-  constructor(ctx: EventContext, event?: Event) {
-      event = event || ctx.event
-      assert(event.name === 'Loans.ActivatedMarket')
-      this._chain = ctx._chain
-      this.event = event
-  }
-
-  /**
-   * Event emitted when a market is activated
-   * [admin, asset_id]
-   */
-  get isV1020000(): boolean {
-      return this._chain.getEventHash('Loans.ActivatedMarket') === 'e8332e2aa5578aa9d1faac05d3d85ee01fce3f02d8ca47eac03de67faec3cb37'
-  }
-
-  /**
-   * Event emitted when a market is activated
-   * [admin, asset_id]
-   */
-  get asV1020000(): v1020000.CurrencyId {
-      assert(this.isV1020000)
-      return this._chain.decodeEvent(this.event)
-  }
-}
-
-export class LoansRedeemedEvent {
-    private readonly _chain: Chain
-    private readonly event: Event
-
-    constructor(ctx: EventContext)
-    constructor(ctx: ChainContext, event: Event)
-    constructor(ctx: EventContext, event?: Event) {
-        event = event || ctx.event
-        assert(event.name === 'Loans.Redeemed')
-        this._chain = ctx._chain
-        this.event = event
-    }
-
-    /**
-     * Event emitted when assets are redeemed
-     * [sender, asset_id, amount]
-     */
-    get isV1020000(): boolean {
-        return this._chain.getEventHash('Loans.Redeemed') === '3b17aa6a6744611f20e350ba8ef796f73999bc9edcc3ae0eaf4738374966395d'
-    }
-
-    /**
-     * Event emitted when assets are redeemed
-     * [sender, asset_id, amount]
-     */
-    get asV1020000(): [Uint8Array, v1020000.CurrencyId, bigint] {
-        assert(this.isV1020000)
-        return this._chain.decodeEvent(this.event)
-    }
-}
-
-export class LoansRepaidBorrowEvent {
-    private readonly _chain: Chain
-    private readonly event: Event
-
-    constructor(ctx: EventContext)
-    constructor(ctx: ChainContext, event: Event)
-    constructor(ctx: EventContext, event?: Event) {
-        event = event || ctx.event
-        assert(event.name === 'Loans.RepaidBorrow')
-        this._chain = ctx._chain
-        this.event = event
-    }
-
-    /**
-     * Event emitted when a borrow is repaid
-     * [sender, asset_id, amount]
-     */
-    get isV1020000(): boolean {
-        return this._chain.getEventHash('Loans.RepaidBorrow') === '3b17aa6a6744611f20e350ba8ef796f73999bc9edcc3ae0eaf4738374966395d'
-    }
-
-    /**
-     * Event emitted when a borrow is repaid
-     * [sender, asset_id, amount]
-     */
-    get asV1020000(): [Uint8Array, v1020000.CurrencyId, bigint] {
-        assert(this.isV1020000)
-        return this._chain.decodeEvent(this.event)
-    }
-}
-
-export class LoansWithdrawCollateralEvent {
-    private readonly _chain: Chain
-    private readonly event: Event
-
-    constructor(ctx: EventContext)
-    constructor(ctx: ChainContext, event: Event)
-    constructor(ctx: EventContext, event?: Event) {
-        event = event || ctx.event
-        assert(event.name === 'Loans.WithdrawCollateral')
-        this._chain = ctx._chain
-        this.event = event
-    }
-
-    /**
-     * Disable collateral for certain asset
-     * [sender, asset_id]
-     */
-    get isV1020000(): boolean {
-        return this._chain.getEventHash('Loans.WithdrawCollateral') === '3b17aa6a6744611f20e350ba8ef796f73999bc9edcc3ae0eaf4738374966395d'
-    }
-
-    /**
-     * Disable collateral for certain asset
-     * [sender, asset_id]
-     */
-    get asV1020000(): [Uint8Array, v1020000.CurrencyId, bigint] {
-        assert(this.isV1020000)
-        return this._chain.decodeEvent(this.event)
-    }
-}
-
