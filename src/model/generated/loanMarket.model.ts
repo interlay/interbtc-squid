@@ -31,6 +31,7 @@ export class LoanMarket {
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
     supplyCap!: bigint
 
+<<<<<<< HEAD
     @Column_("jsonb", {transformer: {to: obj => obj.toJSON(), from: obj => obj == null ? undefined : fromJsonRateModel(obj)}, nullable: false})
     rateModel!: RateModel
 
@@ -44,6 +45,11 @@ export class LoanMarket {
     @Column_("varchar", {length: 11, nullable: false})
     state!: MarketState
 
+=======
+    @Column_("int4", {nullable: false})
+    closeFactor!: number
+
+>>>>>>> bf0e0fc (More market aspects added)
     @Column_("int4", {nullable: false})
     reserveFactor!: number
 
@@ -58,7 +64,10 @@ export class LoanMarket {
 
     @Column_("int4", {nullable: false})
     liquidateIncentiveReservedFactor!: number
+<<<<<<< HEAD
 
     @OneToOne_(() => LoanMarketActivation)
     activation!: LoanMarketActivation | undefined | null
+=======
+>>>>>>> bf0e0fc (More market aspects added)
 }

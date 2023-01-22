@@ -271,9 +271,9 @@ type LoanMarket @entity {
     borrowCap: BigInt!
     supplyCap: BigInt!
     rateModel: RateModel!
-    closeFactor: Int!
-    lendTokenId: Int! @unique
     state: MarketState!
+    closeFactor: Int!
+    lendTokenId: Currency!
     reserveFactor: Int!
     collateralFactor: Int!
     liquidateIncentive: BigInt!
