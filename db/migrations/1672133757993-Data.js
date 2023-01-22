@@ -1,5 +1,5 @@
-module.exports = class Data1672133207089 {
-    name = 'Data1672133207089'
+module.exports = class Data1672133757993 {
+    name = 'Data1672133757993'
 
     async up(db) {
         await db.query(`CREATE TABLE "height" ("id" character varying NOT NULL, "absolute" integer NOT NULL, "active" integer NOT NULL, CONSTRAINT "PK_90f1773799ae13708b533416960" PRIMARY KEY ("id"))`)
@@ -50,7 +50,7 @@ module.exports = class Data1672133207089 {
         await db.query(`CREATE INDEX "IDX_be54ea276e0f665ffc38630fc0" ON "transfer" ("from") `)
         await db.query(`CREATE INDEX "IDX_4cbc37e8c3b47ded161f44c24f" ON "transfer" ("to") `)
         await db.query(`CREATE INDEX "IDX_89d515806f93bf55c6dcc03c45" ON "transfer" ("height_id") `)
-        await db.query(`CREATE TABLE "loan_market" ("id" character varying NOT NULL, "token" jsonb NOT NULL, "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "borrow_cap" numeric NOT NULL, "supply_cap" numeric NOT NULL, "close_factor" integer NOT NULL, "reserve_factor" integer NOT NULL, "collateral_factor" integer NOT NULL, "liquidate_incentive" numeric NOT NULL, "liquidation_threshold" integer NOT NULL, "liquidate_incentive_reserved_factor" integer NOT NULL, "height_id" character varying, CONSTRAINT "PK_e015c33030af7b9cabee542c80f" PRIMARY KEY ("id"))`)
+        await db.query(`CREATE TABLE "loan_market" ("id" character varying NOT NULL, "token" jsonb NOT NULL, "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "borrow_cap" numeric NOT NULL, "supply_cap" numeric NOT NULL, "close_factor" integer NOT NULL, "lend_token_id" jsonb NOT NULL, "reserve_factor" integer NOT NULL, "collateral_factor" integer NOT NULL, "liquidate_incentive" numeric NOT NULL, "liquidation_threshold" integer NOT NULL, "liquidate_incentive_reserved_factor" integer NOT NULL, "height_id" character varying, CONSTRAINT "PK_e015c33030af7b9cabee542c80f" PRIMARY KEY ("id"))`)
         await db.query(`CREATE INDEX "IDX_38be14a0f173998ffce0f785b8" ON "loan_market" ("height_id") `)
         await db.query(`ALTER TABLE "vault" ADD CONSTRAINT "FK_8d7190b650d4a59bb459e727062" FOREIGN KEY ("registration_block_id") REFERENCES "height"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`)
         await db.query(`ALTER TABLE "vault" ADD CONSTRAINT "FK_ca61dd10e3a7f0aa434c56525b0" FOREIGN KEY ("last_activity_id") REFERENCES "height"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`)
