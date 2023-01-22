@@ -316,6 +316,7 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
         },
     ]);
 
+<<<<<<< HEAD
     // add LoanMarket updates and Loan processing
     await processConcurrently([
         {
@@ -370,6 +371,8 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
         },
     ]);
 
+=======
+>>>>>>> 2046909 (Added loans dummy. ingestion crashes)
     // finally, check request expiration, once all events have been processed
     await findAndUpdateExpiredRequests(ctx);
 
