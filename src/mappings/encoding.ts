@@ -16,6 +16,8 @@ import {
 import {
     VaultId as VaultIdV1020000,
     CurrencyId as CurrencyId_V1020000,
+    InterestRateModel as InterestRateModel_V1020000,
+    MarketState as MarketState_V1020000,
 } from "../types/v1020000";
 import {
     InterestRateModel as InterestRateModel_V1021000,
@@ -143,6 +145,7 @@ export const rateModel = {
     },
 };
 
+<<<<<<< HEAD
 export function currencyToString(currency: Currency): string {
     switch(currency.isTypeOf) {
         case "LendToken":
@@ -161,6 +164,33 @@ export function currencyToString(currency: Currency): string {
         default:
             // fallback throw if unhandled
             throw new Error(`Unknown currency type to stringify: ${JSON.stringify(currency)}`);
+=======
+export const rateModel = {
+    encode: (model: InterestRateModel_V1020000): RateModel => {
+        if (model.__kind === "Jump") {
+            return new RateModelJump({
+                baseRate: model.value.baseRate,
+                jumpRate: model.value.jumpRate,
+                fullRate: model.value.fullRate,
+                jumpUtilization: model.value.jumpUtilization,
+            });
+        } else {
+            return new RateModelCurve({
+                baseRate: model.value.baseRate,
+            });
+        }
+    },
+};
+
+export function currencyToString(currency: Currency): string {
+    if (currency.isTypeOf === "LendToken") {
+        // TODO: decide how we want to distinguish lend tokens from foreign assets
+        return `lendToken_${currency.lendTokenId.toString()}`;
+    } else if (currency.isTypeOf === "ForeignAsset") {
+        return `foreignAsset_${currency.asset.toString()}`;
+    } else {
+        return `nativeToken_${currency.token.toString()}`;
+>>>>>>> 7ad2a0e81ca8107c91204af4ceb672be9672fe4f
     }
 }
 

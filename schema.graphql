@@ -67,6 +67,19 @@ type RateModelCurve {
 
 union RateModel = RateModelJump | RateModelCurve
 
+type RateModelJump {
+    baseRate: BigInt!
+    jumpRate: BigInt!
+    fullRate: BigInt!
+    jumpUtilization: Int!
+}
+
+type RateModelCurve {
+    baseRate: BigInt!
+}
+
+union RateModel = RateModelJump | RateModelCurve
+
 type Vault @entity {
     id: ID!
     accountId: String! @index
@@ -271,9 +284,9 @@ type LoanMarket @entity {
     borrowCap: BigInt!
     supplyCap: BigInt!
     rateModel: RateModel!
-    state: MarketState!
     closeFactor: Int!
-    lendTokenId: Currency!
+    lendTokenId: Int! @unique
+    state: MarketState!
     reserveFactor: Int!
     collateralFactor: Int!
     liquidateIncentive: BigInt!
@@ -311,3 +324,8 @@ type Deposit @entity {
     timestamp: DateTime!
     comment: String
 }
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 7ad2a0e81ca8107c91204af4ceb672be9672fe4f
