@@ -8,7 +8,6 @@ import { VaultId as VaultIdV1021000 } from "../types/v1021000";
 import { encodeLegacyVaultId, encodeVaultId } from "./encoding";
 import { Currency } from "../model";
 import { CurrencyIdentifier, currencyIdToMonetaryCurrency, createInterBtcApi, BitcoinNetwork, newMonetaryAmount, CurrencyExt} from "@interlay/interbtc-api";
-import { ApiPromise, WsProvider} from "@polkadot/api";
 import { Currency as monertayCurrency } from "@interlay/monetary-js"
 
 export type eventArgs = {
@@ -74,19 +73,15 @@ export async function convertAmountToHuman(currency: Currency, amount: bigint ) 
     else {
        throw new Error("No handling implemented for currency type");
     }
-    const currencyId = interBtcApi.api.createType("InterbtcPrimitivesCurrencyId", {token: "DOT"});
-    
-
+    const currencyId = interBtcApi.api.createType("InterbtcPrimitivesCurrencyId", {token: "DOT"} );
     //Using the apis to pull currency inforamtion
     const currencyInfo : CurrencyExt = await currencyIdToMonetaryCurrency(
         interBtcApi.assetRegistry,
         interBtcApi.loans,
         currencyId
     )
-    console.log(`currency Info: ${currencyInfo.decimals}`);
     const monetaryAmount = newMonetaryAmount(amount.toString(), currencyInfo);
-    console.log(`monetaryAmount: ${monetaryAmount}`);
-    return BigInt(monetaryAmount._rawAmount.toString());
+    return BigInt(monetaryAmount._rawAmount.toFixed());
 }
 
 
