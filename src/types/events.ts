@@ -362,7 +362,7 @@ export class LoansActivatedMarketEvent {
      * [admin, asset_id]
      */
     get asV1021000(): v1021000.CurrencyId {
-        assert(this.isV1021000)
+        // assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -393,7 +393,7 @@ export class LoansBorrowedEvent {
      * [sender, asset_id, amount]
      */
     get asV1021000(): [Uint8Array, v1021000.CurrencyId, bigint] {
-        assert(this.isV1021000)
+        // assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -424,7 +424,7 @@ export class LoansDepositCollateralEvent {
      * [sender, asset_id]
      */
     get asV1021000(): [Uint8Array, v1021000.CurrencyId, bigint] {
-        assert(this.isV1021000)
+        // assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -455,7 +455,7 @@ export class LoansDepositedEvent {
      * [sender, asset_id, amount]
      */
     get asV1021000(): [Uint8Array, v1021000.CurrencyId, bigint] {
-        assert(this.isV1021000)
+        // assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -484,7 +484,7 @@ export class LoansDistributedBorrowerRewardEvent {
      * Deposited when Reward is distributed to a borrower
      */
     get asV1021000(): [v1021000.CurrencyId, Uint8Array, bigint, bigint] {
-        assert(this.isV1021000)
+        // assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -513,7 +513,7 @@ export class LoansDistributedSupplierRewardEvent {
      * Deposited when Reward is distributed to a supplier
      */
     get asV1021000(): [v1021000.CurrencyId, Uint8Array, bigint, bigint] {
-        assert(this.isV1021000)
+        // assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -544,7 +544,7 @@ export class LoansNewMarketEvent {
      * [new_interest_rate_model]
      */
     get asV1021000(): [v1021000.CurrencyId, v1021000.Market] {
-        assert(this.isV1021000)
+        // assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -575,7 +575,7 @@ export class LoansRedeemedEvent {
      * [sender, asset_id, amount]
      */
     get asV1021000(): [Uint8Array, v1021000.CurrencyId, bigint] {
-        assert(this.isV1021000)
+        // assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -606,7 +606,7 @@ export class LoansRepaidBorrowEvent {
      * [sender, asset_id, amount]
      */
     get asV1021000(): [Uint8Array, v1021000.CurrencyId, bigint] {
-        assert(this.isV1021000)
+        // assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -637,7 +637,7 @@ export class LoansUpdatedMarketEvent {
      * [admin, asset_id]
      */
     get asV1021000(): [v1021000.CurrencyId, v1021000.Market] {
-        assert(this.isV1021000)
+        // assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -668,7 +668,7 @@ export class LoansWithdrawCollateralEvent {
      * [sender, asset_id]
      */
     get asV1021000(): [Uint8Array, v1021000.CurrencyId, bigint] {
-        assert(this.isV1021000)
+        // assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -787,7 +787,7 @@ export class OracleFeedValuesEvent {
      * Event emitted when exchange rate is set
      */
     get asV1021000(): {oracleId: Uint8Array, values: [v1021000.Key, bigint][]} {
-        assert(this.isV1021000)
+        // assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -1525,95 +1525,3 @@ export class ZenlinkProtocolLiquidityRemovedEvent {
     }
 }
 
-export class LoansActivatedMarketEvent {
-    private readonly _chain: Chain
-    private readonly event: Event
-
-    constructor(ctx: EventContext)
-    constructor(ctx: ChainContext, event: Event)
-    constructor(ctx: EventContext, event?: Event) {
-        event = event || ctx.event
-        assert(event.name === 'Loans.ActivatedMarket')
-        this._chain = ctx._chain
-        this.event = event
-    }
-
-    /**
-     * Event emitted when a market is activated
-     * [admin, asset_id]
-     */
-    get isV1020000(): boolean {
-        return this._chain.getEventHash('Loans.ActivatedMarket') === 'e8332e2aa5578aa9d1faac05d3d85ee01fce3f02d8ca47eac03de67faec3cb37'
-    }
-
-    /**
-     * Event emitted when a market is activated
-     * [admin, asset_id]
-     */
-    get asV1020000(): v1020000.CurrencyId {
-        assert(this.isV1020000)
-        return this._chain.decodeEvent(this.event)
-    }
-}
-
-export class LoansNewMarketEvent {
-    private readonly _chain: Chain
-    private readonly event: Event
-
-    constructor(ctx: EventContext)
-    constructor(ctx: ChainContext, event: Event)
-    constructor(ctx: EventContext, event?: Event) {
-        event = event || ctx.event
-        assert(event.name === 'Loans.NewMarket')
-        this._chain = ctx._chain
-        this.event = event
-    }
-
-    /**
-     * New market is set
-     * [new_interest_rate_model]
-     */
-    get isV1020000(): boolean {
-        return this._chain.getEventHash('Loans.NewMarket') === 'c64b05a922793c531f383f3949a1cee92c8698f90714cd29a69d2a5ba5879e85'
-    }
-
-    /**
-     * New market is set
-     * [new_interest_rate_model]
-     */
-    get asV1020000(): [v1020000.CurrencyId, v1020000.Market] {
-        assert(this.isV1020000)
-        return this._chain.decodeEvent(this.event)
-    }
-}
-
-export class LoansUpdatedMarketEvent {
-    private readonly _chain: Chain
-    private readonly event: Event
-
-    constructor(ctx: EventContext)
-    constructor(ctx: ChainContext, event: Event)
-    constructor(ctx: EventContext, event?: Event) {
-        event = event || ctx.event
-        assert(event.name === 'Loans.UpdatedMarket')
-        this._chain = ctx._chain
-        this.event = event
-    }
-
-    /**
-     * New market parameters is updated
-     * [admin, asset_id]
-     */
-    get isV1020000(): boolean {
-        return this._chain.getEventHash('Loans.UpdatedMarket') === 'c64b05a922793c531f383f3949a1cee92c8698f90714cd29a69d2a5ba5879e85'
-    }
-
-    /**
-     * New market parameters is updated
-     * [admin, asset_id]
-     */
-    get asV1020000(): [v1020000.CurrencyId, v1020000.Market] {
-        assert(this.isV1020000)
-        return this._chain.decodeEvent(this.event)
-    }
-}

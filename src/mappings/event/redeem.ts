@@ -53,7 +53,7 @@ export async function requestRedeem(
         vaultIdString = encodeLegacyVaultId(e.vaultId);
     } else {
         if (rawEvent.isV17) e = rawEvent.asV17;
-        //else if (rawEvent.isV1020000) e = rawEvent.asV1020000;
+        else if (rawEvent.isV1020000) e = rawEvent.asV1020000;
         else if (rawEvent.isV1021000) e = rawEvent.asV1021000;
         else {
             ctx.log.warn(`UNKOWN EVENT VERSION: Redeem.requestRedeem`);
@@ -135,7 +135,7 @@ export async function executeRedeem(
         wrappedCurrency = legacyCurrencyId.encode(e.vaultId.currencies.wrapped);
     } else {
         if (rawEvent.isV17) e = rawEvent.asV17;
-        //else if (rawEvent.isV1020000) e = rawEvent.asV1020000;
+        else if (rawEvent.isV1020000) e = rawEvent.asV1020000;
         else if (rawEvent.isV1021000) e = rawEvent.asV1021000;
         else {
             ctx.log.warn(`UNKOWN EVENT VERSION: Redeem.executeRedeem`);
@@ -218,7 +218,7 @@ export async function cancelRedeem(
     if (rawEvent.isV6) e = rawEvent.asV6;
     else if (rawEvent.isV15) e = rawEvent.asV15;
     else if (rawEvent.isV17) e = rawEvent.asV17;
-    //else if (rawEvent.isV1020000) e = rawEvent.asV1020000;
+    else if (rawEvent.isV1020000) e = rawEvent.asV1020000;
     else if (rawEvent.isV1021000) e = rawEvent.asV1021000;
     else {
         ctx.log.warn(`UNKOWN EVENT VERSION: Redeem.cancelRedeem`);
