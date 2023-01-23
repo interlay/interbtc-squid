@@ -4,11 +4,11 @@ import * as v1 from './v1'
 import * as v3 from './v3'
 import * as v4 from './v4'
 import * as v6 from './v6'
+import * as v1020000 from './v1020000'
+import * as v1021000 from './v1021000'
 import * as v10 from './v10'
 import * as v15 from './v15'
 import * as v17 from './v17'
-import * as v1020000 from './v1020000'
-import * as v1021000 from './v1021000'
 
 export class BtcRelayStoreMainChainHeaderEvent {
     private readonly _chain: Chain
@@ -353,16 +353,31 @@ export class LoansActivatedMarketEvent {
      * Event emitted when a market is activated
      * [admin, asset_id]
      */
-    get isV1021000(): boolean {
-        return this._chain.getEventHash('Loans.ActivatedMarket') === 'dc65d5557a653aa4c3607d77e220c2fe5d7dc938a215ac1e94412088d670e795'
+    get isV1020000(): boolean {
+        return this._chain.getEventHash('Loans.ActivatedMarket') === 'e8332e2aa5578aa9d1faac05d3d85ee01fce3f02d8ca47eac03de67faec3cb37'
     }
 
     /**
      * Event emitted when a market is activated
      * [admin, asset_id]
      */
-    get asV1021000(): v1021000.CurrencyId {
-        // assert(this.isV1021000)
+    get asV1020000(): v1020000.CurrencyId {
+        assert(this.isV1020000)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Event emitted when a market is activated
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Loans.ActivatedMarket') === '1858bf9b3628aa8a8687f8aae9510db8522c614695943242734a006d019f2b4a'
+    }
+
+    /**
+     * Event emitted when a market is activated
+     */
+    get asV1021000(): {underlyingCurrencyId: v1021000.CurrencyId} {
+        assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -384,16 +399,31 @@ export class LoansBorrowedEvent {
      * Event emitted when cash is borrowed
      * [sender, asset_id, amount]
      */
-    get isV1021000(): boolean {
-        return this._chain.getEventHash('Loans.Borrowed') === '975508d9ae69d7dc5de366ed76525ee97d7b740a5506f855b809ca8a11f0baa3'
+    get isV1020000(): boolean {
+        return this._chain.getEventHash('Loans.Borrowed') === '3b17aa6a6744611f20e350ba8ef796f73999bc9edcc3ae0eaf4738374966395d'
     }
 
     /**
      * Event emitted when cash is borrowed
      * [sender, asset_id, amount]
      */
-    get asV1021000(): [Uint8Array, v1021000.CurrencyId, bigint] {
-        // assert(this.isV1021000)
+    get asV1020000(): [Uint8Array, v1020000.CurrencyId, bigint] {
+        assert(this.isV1020000)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Event emitted when cash is borrowed
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Loans.Borrowed') === '8b5f8c59012e371082ee5cf1c169dd9db23e561ebe6f21ad24df07a6aeb565c6'
+    }
+
+    /**
+     * Event emitted when cash is borrowed
+     */
+    get asV1021000(): {accountId: Uint8Array, currencyId: v1021000.CurrencyId, amount: bigint} {
+        assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -415,16 +445,31 @@ export class LoansDepositCollateralEvent {
      * Enable collateral for certain asset
      * [sender, asset_id]
      */
-    get isV1021000(): boolean {
-        return this._chain.getEventHash('Loans.DepositCollateral') === '975508d9ae69d7dc5de366ed76525ee97d7b740a5506f855b809ca8a11f0baa3'
+    get isV1020000(): boolean {
+        return this._chain.getEventHash('Loans.DepositCollateral') === '3b17aa6a6744611f20e350ba8ef796f73999bc9edcc3ae0eaf4738374966395d'
     }
 
     /**
      * Enable collateral for certain asset
      * [sender, asset_id]
      */
-    get asV1021000(): [Uint8Array, v1021000.CurrencyId, bigint] {
-        // assert(this.isV1021000)
+    get asV1020000(): [Uint8Array, v1020000.CurrencyId, bigint] {
+        assert(this.isV1020000)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Enable collateral for certain asset
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Loans.DepositCollateral') === '8b5f8c59012e371082ee5cf1c169dd9db23e561ebe6f21ad24df07a6aeb565c6'
+    }
+
+    /**
+     * Enable collateral for certain asset
+     */
+    get asV1021000(): {accountId: Uint8Array, currencyId: v1021000.CurrencyId, amount: bigint} {
+        assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -446,16 +491,31 @@ export class LoansDepositedEvent {
      * Event emitted when assets are deposited
      * [sender, asset_id, amount]
      */
-    get isV1021000(): boolean {
-        return this._chain.getEventHash('Loans.Deposited') === '975508d9ae69d7dc5de366ed76525ee97d7b740a5506f855b809ca8a11f0baa3'
+    get isV1020000(): boolean {
+        return this._chain.getEventHash('Loans.Deposited') === '3b17aa6a6744611f20e350ba8ef796f73999bc9edcc3ae0eaf4738374966395d'
     }
 
     /**
      * Event emitted when assets are deposited
      * [sender, asset_id, amount]
      */
-    get asV1021000(): [Uint8Array, v1021000.CurrencyId, bigint] {
-        // assert(this.isV1021000)
+    get asV1020000(): [Uint8Array, v1020000.CurrencyId, bigint] {
+        assert(this.isV1020000)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Event emitted when assets are deposited
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Loans.Deposited') === '8b5f8c59012e371082ee5cf1c169dd9db23e561ebe6f21ad24df07a6aeb565c6'
+    }
+
+    /**
+     * Event emitted when assets are deposited
+     */
+    get asV1021000(): {accountId: Uint8Array, currencyId: v1021000.CurrencyId, amount: bigint} {
+        assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -476,15 +536,30 @@ export class LoansDistributedBorrowerRewardEvent {
     /**
      * Deposited when Reward is distributed to a borrower
      */
-    get isV1021000(): boolean {
-        return this._chain.getEventHash('Loans.DistributedBorrowerReward') === '01732256ae39c2950060d685fc3f1a05aadbbef2982776315974a3efe17cc799'
+    get isV1020000(): boolean {
+        return this._chain.getEventHash('Loans.DistributedBorrowerReward') === 'fb8fa4cbb0b7d235c849ace29beec8d127bcfe7e83312895bc769f38a29bd24e'
     }
 
     /**
      * Deposited when Reward is distributed to a borrower
      */
-    get asV1021000(): [v1021000.CurrencyId, Uint8Array, bigint, bigint] {
-        // assert(this.isV1021000)
+    get asV1020000(): [v1020000.CurrencyId, Uint8Array, bigint, bigint] {
+        assert(this.isV1020000)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Deposited when Reward is distributed to a borrower
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Loans.DistributedBorrowerReward') === '68fa21fcb9442e46b747c3695d8bc646e9b35992467ac2b847c5592a1ba7c113'
+    }
+
+    /**
+     * Deposited when Reward is distributed to a borrower
+     */
+    get asV1021000(): {underlyingCurrencyId: v1021000.CurrencyId, borrower: Uint8Array, rewardDelta: bigint, borrowRewardIndex: bigint} {
+        assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -505,15 +580,30 @@ export class LoansDistributedSupplierRewardEvent {
     /**
      * Deposited when Reward is distributed to a supplier
      */
-    get isV1021000(): boolean {
-        return this._chain.getEventHash('Loans.DistributedSupplierReward') === '01732256ae39c2950060d685fc3f1a05aadbbef2982776315974a3efe17cc799'
+    get isV1020000(): boolean {
+        return this._chain.getEventHash('Loans.DistributedSupplierReward') === 'fb8fa4cbb0b7d235c849ace29beec8d127bcfe7e83312895bc769f38a29bd24e'
     }
 
     /**
      * Deposited when Reward is distributed to a supplier
      */
-    get asV1021000(): [v1021000.CurrencyId, Uint8Array, bigint, bigint] {
-        // assert(this.isV1021000)
+    get asV1020000(): [v1020000.CurrencyId, Uint8Array, bigint, bigint] {
+        assert(this.isV1020000)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Deposited when Reward is distributed to a supplier
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Loans.DistributedSupplierReward') === '04b7b20babbbc895d835a3e014c5f07e29d558296e9308fcad90f4f707a620b8'
+    }
+
+    /**
+     * Deposited when Reward is distributed to a supplier
+     */
+    get asV1021000(): {underlyingCurrencyId: v1021000.CurrencyId, supplier: Uint8Array, rewardDelta: bigint, supplyRewardIndex: bigint} {
+        assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -535,16 +625,31 @@ export class LoansNewMarketEvent {
      * New market is set
      * [new_interest_rate_model]
      */
-    get isV1021000(): boolean {
-        return this._chain.getEventHash('Loans.NewMarket') === '4d95a60e80ef4f7e83851be804ee630d6e8089b6235973027bf6b277e09ca4d7'
+    get isV1020000(): boolean {
+        return this._chain.getEventHash('Loans.NewMarket') === 'c64b05a922793c531f383f3949a1cee92c8698f90714cd29a69d2a5ba5879e85'
     }
 
     /**
      * New market is set
      * [new_interest_rate_model]
      */
-    get asV1021000(): [v1021000.CurrencyId, v1021000.Market] {
-        // assert(this.isV1021000)
+    get asV1020000(): [v1020000.CurrencyId, v1020000.Market] {
+        assert(this.isV1020000)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * New market is set
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Loans.NewMarket') === 'c2948dac1e13b8d635e1ae5b599cbfcbe91e27f1432b4729ae57cd280ddb3a58'
+    }
+
+    /**
+     * New market is set
+     */
+    get asV1021000(): {underlyingCurrencyId: v1021000.CurrencyId, market: v1021000.Market} {
+        assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -566,16 +671,31 @@ export class LoansRedeemedEvent {
      * Event emitted when assets are redeemed
      * [sender, asset_id, amount]
      */
-    get isV1021000(): boolean {
-        return this._chain.getEventHash('Loans.Redeemed') === '975508d9ae69d7dc5de366ed76525ee97d7b740a5506f855b809ca8a11f0baa3'
+    get isV1020000(): boolean {
+        return this._chain.getEventHash('Loans.Redeemed') === '3b17aa6a6744611f20e350ba8ef796f73999bc9edcc3ae0eaf4738374966395d'
     }
 
     /**
      * Event emitted when assets are redeemed
      * [sender, asset_id, amount]
      */
-    get asV1021000(): [Uint8Array, v1021000.CurrencyId, bigint] {
-        // assert(this.isV1021000)
+    get asV1020000(): [Uint8Array, v1020000.CurrencyId, bigint] {
+        assert(this.isV1020000)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Event emitted when assets are redeemed
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Loans.Redeemed') === '8b5f8c59012e371082ee5cf1c169dd9db23e561ebe6f21ad24df07a6aeb565c6'
+    }
+
+    /**
+     * Event emitted when assets are redeemed
+     */
+    get asV1021000(): {accountId: Uint8Array, currencyId: v1021000.CurrencyId, amount: bigint} {
+        assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -597,16 +717,31 @@ export class LoansRepaidBorrowEvent {
      * Event emitted when a borrow is repaid
      * [sender, asset_id, amount]
      */
-    get isV1021000(): boolean {
-        return this._chain.getEventHash('Loans.RepaidBorrow') === '975508d9ae69d7dc5de366ed76525ee97d7b740a5506f855b809ca8a11f0baa3'
+    get isV1020000(): boolean {
+        return this._chain.getEventHash('Loans.RepaidBorrow') === '3b17aa6a6744611f20e350ba8ef796f73999bc9edcc3ae0eaf4738374966395d'
     }
 
     /**
      * Event emitted when a borrow is repaid
      * [sender, asset_id, amount]
      */
-    get asV1021000(): [Uint8Array, v1021000.CurrencyId, bigint] {
-        // assert(this.isV1021000)
+    get asV1020000(): [Uint8Array, v1020000.CurrencyId, bigint] {
+        assert(this.isV1020000)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Event emitted when a borrow is repaid
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Loans.RepaidBorrow') === '8b5f8c59012e371082ee5cf1c169dd9db23e561ebe6f21ad24df07a6aeb565c6'
+    }
+
+    /**
+     * Event emitted when a borrow is repaid
+     */
+    get asV1021000(): {accountId: Uint8Array, currencyId: v1021000.CurrencyId, amount: bigint} {
+        assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -628,16 +763,31 @@ export class LoansUpdatedMarketEvent {
      * New market parameters is updated
      * [admin, asset_id]
      */
-    get isV1021000(): boolean {
-        return this._chain.getEventHash('Loans.UpdatedMarket') === '4d95a60e80ef4f7e83851be804ee630d6e8089b6235973027bf6b277e09ca4d7'
+    get isV1020000(): boolean {
+        return this._chain.getEventHash('Loans.UpdatedMarket') === 'c64b05a922793c531f383f3949a1cee92c8698f90714cd29a69d2a5ba5879e85'
     }
 
     /**
      * New market parameters is updated
      * [admin, asset_id]
      */
-    get asV1021000(): [v1021000.CurrencyId, v1021000.Market] {
-        // assert(this.isV1021000)
+    get asV1020000(): [v1020000.CurrencyId, v1020000.Market] {
+        assert(this.isV1020000)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * New market parameters is updated
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Loans.UpdatedMarket') === 'c2948dac1e13b8d635e1ae5b599cbfcbe91e27f1432b4729ae57cd280ddb3a58'
+    }
+
+    /**
+     * New market parameters is updated
+     */
+    get asV1021000(): {underlyingCurrencyId: v1021000.CurrencyId, market: v1021000.Market} {
+        assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -659,16 +809,31 @@ export class LoansWithdrawCollateralEvent {
      * Disable collateral for certain asset
      * [sender, asset_id]
      */
-    get isV1021000(): boolean {
-        return this._chain.getEventHash('Loans.WithdrawCollateral') === '975508d9ae69d7dc5de366ed76525ee97d7b740a5506f855b809ca8a11f0baa3'
+    get isV1020000(): boolean {
+        return this._chain.getEventHash('Loans.WithdrawCollateral') === '3b17aa6a6744611f20e350ba8ef796f73999bc9edcc3ae0eaf4738374966395d'
     }
 
     /**
      * Disable collateral for certain asset
      * [sender, asset_id]
      */
-    get asV1021000(): [Uint8Array, v1021000.CurrencyId, bigint] {
-        // assert(this.isV1021000)
+    get asV1020000(): [Uint8Array, v1020000.CurrencyId, bigint] {
+        assert(this.isV1020000)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Disable collateral for certain asset
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Loans.WithdrawCollateral') === '8b5f8c59012e371082ee5cf1c169dd9db23e561ebe6f21ad24df07a6aeb565c6'
+    }
+
+    /**
+     * Disable collateral for certain asset
+     */
+    get asV1021000(): {accountId: Uint8Array, currencyId: v1021000.CurrencyId, amount: bigint} {
+        assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -787,7 +952,7 @@ export class OracleFeedValuesEvent {
      * Event emitted when exchange rate is set
      */
     get asV1021000(): {oracleId: Uint8Array, values: [v1021000.Key, bigint][]} {
-        // assert(this.isV1021000)
+        assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -1524,4 +1689,3 @@ export class ZenlinkProtocolLiquidityRemovedEvent {
         return this._chain.decodeEvent(this.event)
     }
 }
-

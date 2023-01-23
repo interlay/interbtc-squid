@@ -27,6 +27,37 @@ export interface Address_P2WSHv0 {
     value: Uint8Array
 }
 
+export type CurrencyId = CurrencyId_Token | CurrencyId_ForeignAsset | CurrencyId_LendToken
+
+export interface CurrencyId_Token {
+    __kind: 'Token'
+    value: TokenSymbol
+}
+
+export interface CurrencyId_ForeignAsset {
+    __kind: 'ForeignAsset'
+    value: number
+}
+
+export interface CurrencyId_LendToken {
+    __kind: 'LendToken'
+    value: number
+}
+
+export interface Market {
+    collateralFactor: number
+    liquidationThreshold: number
+    reserveFactor: number
+    closeFactor: number
+    liquidateIncentive: bigint
+    liquidateIncentiveReservedFactor: number
+    rateModel: InterestRateModel
+    state: MarketState
+    supplyCap: bigint
+    borrowCap: bigint
+    lendTokenId: CurrencyId
+}
+
 export type Key = Key_ExchangeRate | Key_FeeEstimation
 
 export interface Key_ExchangeRate {
@@ -55,23 +86,6 @@ export interface RedeemRequestStatus_Reimbursed {
 
 export interface RedeemRequestStatus_Retried {
     __kind: 'Retried'
-}
-
-export type CurrencyId = CurrencyId_Token | CurrencyId_ForeignAsset | CurrencyId_LendToken
-
-export interface CurrencyId_Token {
-    __kind: 'Token'
-    value: TokenSymbol
-}
-
-export interface CurrencyId_ForeignAsset {
-    __kind: 'ForeignAsset'
-    value: number
-}
-
-export interface CurrencyId_LendToken {
-    __kind: 'LendToken'
-    value: number
 }
 
 export interface VaultCurrencyPair {
@@ -140,18 +154,4 @@ export interface JumpModel {
 
 export interface CurveModel {
     baseRate: bigint
-}
-
-export interface Market {
-    collateralFactor: number
-    liquidationThreshold: number
-    reserveFactor: number
-    closeFactor: number
-    liquidateIncentive: bigint
-    liquidateIncentiveReservedFactor: number
-    rateModel: InterestRateModel
-    state: MarketState
-    supplyCap: bigint
-    borrowCap: bigint
-    lendTokenId: CurrencyId
 }
