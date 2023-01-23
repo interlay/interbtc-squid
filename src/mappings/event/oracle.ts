@@ -39,7 +39,7 @@ export async function feedValues(
             timestamp: new Date(block.timestamp),
             oracleId: oracleAddress,
             type: OracleUpdateType[key.__kind],
-            updateValue: value
+            updateValue: value,
         });
         let keyToString = key.__kind.toString();
         let updateValueHuman : bigint = 0n;

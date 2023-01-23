@@ -8,7 +8,6 @@ import { VaultId as VaultIdV1021000 } from "../types/v1021000";
 import { encodeLegacyVaultId, encodeVaultId } from "./encoding";
 import { Currency } from "../model";
 import { CurrencyIdentifier, currencyIdToMonetaryCurrency, createInterBtcApi, BitcoinNetwork, newMonetaryAmount, CurrencyExt} from "@interlay/interbtc-api";
-import { Currency as monertayCurrency } from "@interlay/monetary-js"
 
 export type eventArgs = {
     event: { args: true };
@@ -60,9 +59,10 @@ export async function convertAmountToHuman(currency: Currency, amount: bigint ) 
     const PARACHAIN_ENDPOINT = process.env.CHAIN_ENDPOINT;
     const BITCOIN_NETWORK = process.env.BITCOIN_NETWORK as BitcoinNetwork;
     const interBtcApi = await createInterBtcApi(PARACHAIN_ENDPOINT!, BITCOIN_NETWORK!);
+
     var id: CurrencyIdentifier;
     if (currency.isTypeOf === "NativeToken") {
-        id = {token: "DOT"};
+        id = {token: currency.token};
     }
     else if (currency.isTypeOf === "ForeignAsset") {
         id = {foreignAsset: currency.asset };
@@ -73,7 +73,7 @@ export async function convertAmountToHuman(currency: Currency, amount: bigint ) 
     else {
        throw new Error("No handling implemented for currency type");
     }
-    const currencyId = interBtcApi.api.createType("InterbtcPrimitivesCurrencyId", {token: "DOT"} );
+    const currencyId = interBtcApi.api.createType("InterbtcPrimitivesCurrencyId", id );
     //Using the apis to pull currency inforamtion
     const currencyInfo : CurrencyExt = await currencyIdToMonetaryCurrency(
         interBtcApi.assetRegistry,
@@ -81,8 +81,5 @@ export async function convertAmountToHuman(currency: Currency, amount: bigint ) 
         currencyId
     )
     const monetaryAmount = newMonetaryAmount(amount.toString(), currencyInfo);
-    return BigInt(monetaryAmount._rawAmount.toFixed());
+    return BigInt(Math.trunc(Number(monetaryAmount.toHuman())));
 }
-
-
-
