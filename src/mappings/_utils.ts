@@ -56,8 +56,7 @@ export async function isRequestExpired(
 
 let currencyMap = new Map<CurrencyIdentifier, CurrencyExt>();
 
-export async function convertAmountToHuman(currency: Currency, amount: bigint ) : Promise<string> {
-// line that is causing the warnings
+export async function currencyToLibCurrencyExt(currency: Currency): Promise<CurrencyExt> {
     const interBtcApi = await getInterBtcApi();
 
     let id: CurrencyIdentifier;
@@ -79,15 +78,19 @@ export async function convertAmountToHuman(currency: Currency, amount: bigint ) 
     }
     else {
         const currencyId = interBtcApi.api.createType("InterbtcPrimitivesCurrencyId", id );
-        //Using the apis to pull currency inforamtion
         currencyInfo  = await currencyIdToMonetaryCurrency(
             interBtcApi.assetRegistry,
             interBtcApi.loans,
             currencyId
         )
+
         currencyMap.set(id , currencyInfo);
     }
-   
+    return currencyMap.get(id) as CurrencyExt;
+}
+
+export async function convertAmountToHuman(currency: Currency, amount: bigint ) : Promise<string> {
+    const currencyInfo: CurrencyExt = await currencyToLibCurrencyExt(currency);
     const monetaryAmount = newMonetaryAmount(amount.toString(), currencyInfo);
     return monetaryAmount.toHuman();
 }
