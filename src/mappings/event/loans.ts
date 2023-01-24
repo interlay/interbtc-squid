@@ -346,7 +346,7 @@ export async function withdrawCollateral(
     const currency = currencyId.encode(myCurrencyId);
     const height = await blockToHeight(ctx, block.height, "WithdrawDeposit");
     const account = address.interlay.encode(accountId);
-    let comment = '';
+    let comment ='';
     if(currency.isTypeOf==='LendToken'){
         const newToken = await lendTokenDetails(ctx, currency.lendTokenId)
         const newAmount = Number(amount) * 0.02
