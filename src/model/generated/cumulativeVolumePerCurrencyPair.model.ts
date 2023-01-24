@@ -21,8 +21,8 @@ export class CumulativeVolumePerCurrencyPair {
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
     amount!: bigint
 
-    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-    amountHuman!: bigint
+    @Column_("text", {nullable: false})
+    amountHuman!: string
 
     @Column_("jsonb", {transformer: {to: obj => obj == null ? undefined : obj.toJSON(), from: obj => obj == null ? undefined : fromJsonCurrency(obj)}, nullable: true})
     wrappedCurrency!: Currency | undefined | null

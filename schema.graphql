@@ -195,7 +195,7 @@ type OracleUpdate @entity {
     type: OracleUpdateType!
     typeKey: Currency
     updateValue: BigInt!
-    updateValueHuman: BigInt!
+    updateValueHuman: String!
 }
 
 enum VolumeType {
@@ -219,7 +219,7 @@ type CumulativeVolumePerCurrencyPair @entity {
     type: VolumeType!
     tillTimestamp: DateTime!
     amount: BigInt!
-    amountHuman: BigInt!
+    amountHuman: String!
     wrappedCurrency: Currency
     collateralCurrency: Currency
 }
@@ -240,7 +240,7 @@ type Transfer @entity {
     id: ID!
     token: Currency!
     amount: BigInt!
-    amountHuman: BigInt!
+    amountHuman: String!
     from: String! @index
     to: String! @index
     height: Height!

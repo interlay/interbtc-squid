@@ -32,6 +32,6 @@ export class OracleUpdate {
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
     updateValue!: bigint
 
-    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-    updateValueHuman!: bigint
+    @Column_("text", {nullable: false})
+    updateValueHuman!: string
 }

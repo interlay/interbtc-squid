@@ -8,6 +8,7 @@ import { VaultId as VaultIdV1021000 } from "../types/v1021000";
 import { encodeLegacyVaultId, encodeVaultId } from "./encoding";
 import { Currency } from "../model";
 import { CurrencyIdentifier, currencyIdToMonetaryCurrency, createInterBtcApi, BitcoinNetwork, newMonetaryAmount, CurrencyExt} from "@interlay/interbtc-api";
+import { getInterBtcApi } from "../processor";
 
 export type eventArgs = {
     event: { args: true };
@@ -53,14 +54,13 @@ export async function isRequestExpired(
     );
 }
 
+let currencyMap = new Map<CurrencyIdentifier, CurrencyExt>();
 
-export async function convertAmountToHuman(currency: Currency, amount: bigint ) : Promise<bigint> {
-    // creating the interBtcApi
-    const PARACHAIN_ENDPOINT = process.env.CHAIN_ENDPOINT;
-    const BITCOIN_NETWORK = process.env.BITCOIN_NETWORK as BitcoinNetwork;
-    const interBtcApi = await createInterBtcApi(PARACHAIN_ENDPOINT!, BITCOIN_NETWORK!);
+export async function convertAmountToHuman(currency: Currency, amount: bigint ) : Promise<string> {
+// line that is causing the warnings
+    const interBtcApi = await getInterBtcApi();
 
-    var id: CurrencyIdentifier;
+    let id: CurrencyIdentifier;
     if (currency.isTypeOf === "NativeToken") {
         id = {token: currency.token};
     }
@@ -73,13 +73,21 @@ export async function convertAmountToHuman(currency: Currency, amount: bigint ) 
     else {
        throw new Error("No handling implemented for currency type");
     }
-    const currencyId = interBtcApi.api.createType("InterbtcPrimitivesCurrencyId", id );
-    //Using the apis to pull currency inforamtion
-    const currencyInfo : CurrencyExt = await currencyIdToMonetaryCurrency(
-        interBtcApi.assetRegistry,
-        interBtcApi.loans,
-        currencyId
-    )
+    let currencyInfo: CurrencyExt;
+    if ( currencyMap.has(id) ) {
+        currencyInfo = currencyMap.get(id) as CurrencyExt;
+    }
+    else {
+        const currencyId = interBtcApi.api.createType("InterbtcPrimitivesCurrencyId", id );
+        //Using the apis to pull currency inforamtion
+        currencyInfo  = await currencyIdToMonetaryCurrency(
+            interBtcApi.assetRegistry,
+            interBtcApi.loans,
+            currencyId
+        )
+        currencyMap.set(id , currencyInfo);
+    }
+   
     const monetaryAmount = newMonetaryAmount(amount.toString(), currencyInfo);
-    return BigInt(Math.trunc(Number(monetaryAmount.toHuman())));
+    return monetaryAmount.toHuman();
 }

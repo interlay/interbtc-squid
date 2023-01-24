@@ -18,8 +18,8 @@ export class Transfer {
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
     amount!: bigint
 
-    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-    amountHuman!: bigint
+    @Column_("text", {nullable: false})
+    amountHuman!: string
 
     @Index_()
     @Column_("text", {nullable: false})

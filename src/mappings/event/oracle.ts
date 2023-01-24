@@ -42,7 +42,7 @@ export async function feedValues(
             updateValue: value,
         });
         let keyToString = key.__kind.toString();
-        let updateValueHuman : bigint = 0n;
+        let updateValueHuman : string = "";
         if (key.__kind === "ExchangeRate") {
             const exchangeCurrency = useLegacyCurrency
                 ? legacyCurrencyId.encode(key.value as CurrencyId_V15)
