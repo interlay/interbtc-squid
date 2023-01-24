@@ -42,7 +42,7 @@ export async function feedValues(
             updateValue: value,
         });
         let keyToString = key.__kind.toString();
-        let updateValueHuman : string = "";
+        let updateValueHuman : string = "empty";
         if (key.__kind === "ExchangeRate") {
             const exchangeCurrency = useLegacyCurrency
                 ? legacyCurrencyId.encode(key.value as CurrencyId_V15)
@@ -59,7 +59,7 @@ export async function feedValues(
                 updateValueHuman = await convertAmountToHuman( new NativeToken({ token: Token.INTR }), value);
             }
             else {
-                console.error("Undefined SS58_CODEC");
+                ctx.log.error("Undefined SS58_CODEC");
             }
         }
         update.updateValueHuman = updateValueHuman;
