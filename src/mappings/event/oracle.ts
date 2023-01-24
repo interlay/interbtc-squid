@@ -36,7 +36,6 @@ export async function feedValues(
             height,
             timestamp: new Date(block.timestamp),
             oracleId: oracleAddress,
-            // @ts-ignore
             type: OracleUpdateType[key.__kind],
             updateValue: value,
         });

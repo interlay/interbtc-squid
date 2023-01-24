@@ -16,5 +16,3 @@ export function fromJsonCurrency(json: any): Currency {
         default: throw new TypeError('Unknown json object passed as Currency')
     }
 }
-
-

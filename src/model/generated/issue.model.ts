@@ -49,9 +49,6 @@ export class Issue {
     status!: IssueStatus | undefined | null
 
     @OneToOne_(() => IssueExecution)
-    banana!: IssueExecution | undefined | null
-
-    @OneToOne_(() => IssueExecution)
     execution!: IssueExecution | undefined | null
 
     @OneToOne_(() => IssueCancellation)
