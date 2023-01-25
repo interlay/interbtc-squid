@@ -9,11 +9,20 @@ import {
     LpToken,
     PooledToken,
     StableLpToken,
+    RateModelJump,
+    RateModelCurve,
+    RateModel,
 } from "../model";
 import {
     VaultId as VaultIdV1020000,
     CurrencyId as CurrencyId_V1020000,
+    InterestRateModel as InterestRateModel_V1020000,
+    MarketState as MarketState_V1020000,
 } from "../types/v1020000";
+import {
+    InterestRateModel as InterestRateModel_V1021000,
+    MarketState as MarketState_V1021000,
+} from "../types/v1021000";
 import {
     Address as AddressV15,
     CurrencyId_Token as CurrencyId_TokenV15,
@@ -107,7 +116,7 @@ export const currencyId = {
                     token0: lpTokenId.encode(asset.value[0]),
                     token1: lpTokenId.encode(asset.value[1])
                 });
-                
+
             default:
                 // throw if not handled
                 throw new Error(`Unknown currency type to encode: ${JSON.stringify(asset)}`);
@@ -119,13 +128,30 @@ export const currencyId = {
 // So adding lend tokens, lp token pairs, etc is kinda overkill
 // and mainly done for future proofing.
 // Very much unlike the currencyId.encode and lpTokenId.encode methods.
-function currencyToString(currency: Currency): string {
-    switch(currency.isTypeOf) {
+export const rateModel = {
+    encode: (model: InterestRateModel_V1021000): RateModel => {
+        if (model.__kind === "Jump") {
+            return new RateModelJump({
+                baseRate: model.value.baseRate,
+                jumpRate: model.value.jumpRate,
+                fullRate: model.value.fullRate,
+                jumpUtilization: model.value.jumpUtilization,
+            });
+        } else {
+            return new RateModelCurve({
+                baseRate: model.value.baseRate,
+            });
+        }
+    },
+};
+
+export function currencyToString(currency: Currency): string {
+    switch (currency.isTypeOf) {
         case "LendToken":
             return `lendToken_${currency.lendTokenId.toString()}`;
-        case "ForeignAsset": 
+        case "ForeignAsset":
             return currency.asset.toString();
-        case "NativeToken": 
+        case "NativeToken":
             return currency.token.toString();
         case "StableLpToken":
             return `poolId_${currency.poolId.toString()}`;
@@ -149,7 +175,7 @@ export function encodeLegacyVaultId(vaultId: VaultIdV6 | VaultIdV15) {
     )}`;
 }
 
-export function encodeVaultId(vaultId: VaultIdV1020000 | VaultIdV1021000) {
+export function encodeVaultId(vaultId: VaultIdV1021000) {
     const addressStr = address.interlay.encode(vaultId.accountId).toString();
     const wrapped = currencyId.encode(vaultId.currencies.wrapped);
     const collateral = currencyId.encode(vaultId.currencies.collateral);
