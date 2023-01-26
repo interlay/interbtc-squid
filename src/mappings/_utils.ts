@@ -6,6 +6,12 @@ import { VaultId as VaultIdV6 } from "../types/v6";
 import { VaultId as VaultIdV1020000 } from "../types/v1020000";
 import { VaultId as VaultIdV1021000 } from "../types/v1021000";
 import { encodeLegacyVaultId, encodeVaultId } from "./encoding";
+import { ApiPromise, WsProvider } from '@polkadot/api';
+import * as process from "process";
+import { CurrencyExt, CurrencyIdentifier, currencyIdToMonetaryCurrency, newMonetaryAmount } from "@interlay/interbtc-api";
+import { BigDecimal } from "@subsquid/big-decimal";
+import { getInterBtcApi } from "../processor";
+
 
 export type eventArgs = {
     event: { args: true };
