@@ -263,7 +263,7 @@ export async function redeemPeriodChange(
     if (!rawEvent.isV16) {
         ctx.log.warn(`UNKOWN EVENT VERSION: redeem.redeemPeriodChange`);
         return;
-    } 
+    }
     e = rawEvent.asV16;
 
     const height = await blockToHeight(ctx, block.height, "RedeemPeriodChange");

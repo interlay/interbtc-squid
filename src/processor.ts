@@ -29,6 +29,7 @@ import {
     setStorage,
     storeMainChainHeader,
     updateActiveBlock,
+    updateVaultActivity,
 } from "./mappings";
 import { deposit, withdraw } from "./mappings/event/escrow";
 import { tokensTransfer } from "./mappings/event/transfer";
@@ -36,6 +37,19 @@ import * as heights from "./mappings/utils/heights";
 import EntityBuffer from "./mappings/utils/entityBuffer";
 import { eventArgsData } from "./mappings/_utils";
 import { BitcoinNetwork, createInterBtcApi, InterBtcApi } from "@interlay/interbtc-api";
+import {    newMarket,
+            updatedMarket,
+            activatedMarket,
+            borrow,
+            depositCollateral,
+            depositForLending,
+            distributeBorrowerReward,
+            distributeSupplierReward,
+            repay,
+            withdrawCollateral,
+            withdrawDeposit,
+} from "./mappings/event/loans";
+import { ApiPromise, WsProvider } from '@polkadot/api';
 
 const archive = process.env.ARCHIVE_ENDPOINT;
 assert(!!archive);
@@ -68,6 +82,17 @@ const processor = new SubstrateBatchProcessor()
     .addEvent("Redeem.RedeemPeriodChange", eventArgsData)
     .addEvent("Security.UpdateActiveBlock", eventArgsData)
     .addEvent("Tokens.Transfer", eventArgsData)
+    .addEvent("Loans.WithdrawCollateral", eventArgsData)
+    .addEvent("Loans.DepositCollateral", eventArgsData)
+    .addEvent("Loans.DistributedSupplierReward", eventArgsData)
+    .addEvent("Loans.Redeemed", eventArgsData)
+    .addEvent("Loans.Deposited", eventArgsData)
+    .addEvent("Loans.DistributedBorrowerReward", eventArgsData)
+    .addEvent("Loans.RepaidBorrow", eventArgsData)
+    .addEvent("Loans.Borrowed", eventArgsData)
+    .addEvent("Loans.ActivatedMarket", eventArgsData)
+    .addEvent("Loans.NewMarket", eventArgsData)
+    .addEvent("Loans.UpdatedMarket", eventArgsData)
     .addEvent("VaultRegistry.RegisterVault", eventArgsData)
     .addEvent("VaultRegistry.IncreaseLockedCollateral", eventArgsData)
     .addEvent("VaultRegistry.DecreaseLockedCollateral", eventArgsData)
@@ -290,6 +315,69 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
         {
             filter: { name: "Redeem.ExecuteRedeem" },
             mapping: executeRedeem,
+            totalTime: 0,
+        },
+    ]);
+
+    // add Loan Market processing
+    await processConcurrently([
+        {
+            filter: { name: "Loans.NewMarket" },
+            mapping: newMarket,
+            totalTime: 0,
+        },
+    ]);
+
+    // add LoanMarket updates and Loan processing
+    await processConcurrently([
+        {
+            filter: { name: "Loans.ActivatedMarket" },
+            mapping: activatedMarket,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Loans.UpdatedMarket" },
+            mapping: updatedMarket,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Loans.Borrowed" },
+            mapping: borrow,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Loans.DepositCollateral" },
+            mapping: depositCollateral,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Loans.Deposited" },
+            mapping: depositForLending,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Loans.DistributedBorrowerReward" },
+            mapping: distributeBorrowerReward,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Loans.DistributedSupplierReward" },
+            mapping: distributeSupplierReward,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Loans.RepaidBorrow" },
+            mapping: repay,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Loans.Redeemed" },
+            mapping: withdrawDeposit,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Loans.WithdrawCollateral" },
+            mapping: withdrawCollateral,
             totalTime: 0,
         },
     ]);

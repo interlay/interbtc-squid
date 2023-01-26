@@ -1,15 +1,11 @@
 import { Entity, Store } from "@subsquid/typeorm-store";
-import { ForeignAsset, Height, Issue, Redeem, Vault } from "../model";
+import { Currency, ForeignAsset, Height, Issue, Redeem, Vault } from "../model";
 import { VaultId as VaultIdV15 } from "../types/v15";
 import { VaultId as VaultIdV17 } from "../types/v17";
 import { VaultId as VaultIdV6 } from "../types/v6";
 import { VaultId as VaultIdV1020000 } from "../types/v1020000";
 import { VaultId as VaultIdV1021000 } from "../types/v1021000";
 import { encodeLegacyVaultId, encodeVaultId } from "./encoding";
-import { Currency } from "../model";
-import { CurrencyIdentifier, currencyIdToMonetaryCurrency,newMonetaryAmount, CurrencyExt} from "@interlay/interbtc-api";
-import { getInterBtcApi } from "../processor";
-import { BigDecimal } from "@subsquid/big-decimal";
 
 export type eventArgs = {
     event: { args: true };
@@ -29,7 +25,7 @@ export async function getVaultIdLegacy(
     });
 }
 
-export async function getVaultId(store: Store, vaultId: VaultIdV1020000 | VaultIdV1021000) {
+export async function getVaultId(store: Store, vaultId: VaultIdV1021000) {
     return store.get(Vault, {
         where: { id: encodeVaultId(vaultId) },
     });
@@ -53,6 +49,79 @@ export async function isRequestExpired(
         request.request.backingHeight + btcPeriod < latestBtcBlock &&
         requestHeight.active + period < latestActiveBlock
     );
+}
+
+export function getFirstAndLastFour(str: string) {
+    // If the string is less than 8 characters, return it as-is
+    if (str.length < 8) {
+        return str;
+    }
+
+    // Otherwise, return the first four characters plus "..." plus the last four characters
+    return str.substring(0, 4) + "..." + str.substring(str.length - 4);
+}
+
+type AssetMetadata = {
+    decimals: number;
+    name: string;
+    symbol: string;
+}
+
+// This function uses the storage API to obtain the details directly from the
+// WSS RPC provider for the correct chain
+const cache: { [id: number]: AssetMetadata } = {};
+
+export async function getForeignAsset(id: number): Promise<AssetMetadata> {
+    if (id in cache) {
+        return cache[id];
+    }
+    try {
+        const wsProvider = new WsProvider(process.env.CHAIN_ENDPOINT);
+        const api = await ApiPromise.create({ provider: wsProvider });
+        const assets = await api.query.assetRegistry.metadata(id);
+        const assetsJSON = assets.toHuman();
+        const metadata = assetsJSON as AssetMetadata;
+        console.debug(`Foreign Asset (${id}): ${JSON.stringify(metadata)}`);
+        cache[id] = metadata;
+        return metadata;
+    } catch (error) {
+        console.error(`Error getting foreign asset metadata: ${error}`);
+        throw error;
+    }
+}
+
+/* This function takes a currency object (could be native, could be foreign) and
+an amount (in the smallest unit, e.g. Planck) and returns a human friendly string
+with a reasonable accuracy (6 digits after the decimal point for BTC and 2 for
+all others)
+*/
+export async function friendlyAmount(currency: Currency, amount: number): Promise<string> {
+    let amountFriendly: number;
+    switch(currency.isTypeOf) {
+        case 'NativeToken':
+            switch (currency.token) {
+                case 'KINT':
+                case 'KSM':
+                    amountFriendly = amount / 10 ** 12;
+                    return `${amountFriendly.toFixed(2)} ${currency.token}`;
+                case 'INTR':
+                case 'DOT':
+                    amountFriendly = amount / 10 ** 10;
+                    return `${amountFriendly.toFixed(2)} ${currency.token}`;
+                case 'KBTC':
+                case 'IBTC':
+                    amountFriendly = amount / 10 ** 8;
+                    return `${amountFriendly.toFixed(6)} ${currency.token}`;
+                default:
+                    return `Unknown token: ${currency}`
+            }
+        case 'ForeignAsset':
+            const details = await getForeignAsset(currency.asset)
+            amountFriendly = amount / 10 ** (details.decimals);
+            return `${amountFriendly.toFixed(2)} ${details.symbol}`;
+        default:
+            return `Unknown asset: ${currency}`
+    }
 }
 
 let currencyMap = new Map<CurrencyIdentifier, CurrencyExt>();

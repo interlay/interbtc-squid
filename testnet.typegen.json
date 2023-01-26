@@ -19,7 +19,18 @@
         "Tokens.Transfer",
         "VaultRegistry.RegisterVault",
         "VaultRegistry.IncreaseLockedCollateral",
-        "VaultRegistry.DecreaseLockedCollateral"
+        "VaultRegistry.DecreaseLockedCollateral",
+        "Loans.Borrowed",
+        "Loans.DistributedBorrowerReward",
+        "Loans.DepositCollateral",
+        "Loans.DistributedSupplierReward",
+        "Loans.Deposited",
+        "Loans.WithdrawCollateral",
+        "Loans.Redeemed",
+        "Loans.RepaidBorrow",
+        "Loans.ActivatedMarket",
+        "Loans.NewMarket",
+        "Loans.UpdatedMarket"
     ],
     "calls": [
         "BTCRelay.store_block_header",
