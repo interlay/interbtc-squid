@@ -1,3 +1,4 @@
+import { BigDecimal } from '@subsquid/big-decimal'
 import assert from 'assert'
 
 
@@ -66,9 +67,9 @@ export const bigint: Marshal<bigint, string> = {
 
 
 export const bigdecimal: Marshal<any, string> = {
-    fromJSON(value: unknown): bigint {
+    fromJSON(value: unknown): BigDecimal {
         assert(typeof value === 'string', 'invalid BigDecimal')
-        return decimal.BigDecimal(value)
+        return BigDecimal(value)
     },
     toJSON(value: any): string {
         return value.toString()

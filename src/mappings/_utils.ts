@@ -7,8 +7,9 @@ import { VaultId as VaultIdV1020000 } from "../types/v1020000";
 import { VaultId as VaultIdV1021000 } from "../types/v1021000";
 import { encodeLegacyVaultId, encodeVaultId } from "./encoding";
 import { Currency } from "../model";
-import { CurrencyIdentifier, currencyIdToMonetaryCurrency, createInterBtcApi, BitcoinNetwork, newMonetaryAmount, CurrencyExt} from "@interlay/interbtc-api";
+import { CurrencyIdentifier, currencyIdToMonetaryCurrency,newMonetaryAmount, CurrencyExt} from "@interlay/interbtc-api";
 import { getInterBtcApi } from "../processor";
+import { BigDecimal } from "@subsquid/big-decimal";
 
 export type eventArgs = {
     event: { args: true };
@@ -89,8 +90,8 @@ export async function currencyToLibCurrencyExt(currency: Currency): Promise<Curr
     return currencyMap.get(id) as CurrencyExt;
 }
 
-export async function convertAmountToHuman(currency: Currency, amount: bigint ) : Promise<string> {
+export async function convertAmountToHuman(currency: Currency, amount: bigint ) : Promise<BigDecimal> {
     const currencyInfo: CurrencyExt = await currencyToLibCurrencyExt(currency);
     const monetaryAmount = newMonetaryAmount(amount.toString(), currencyInfo);
-    return monetaryAmount.toHuman();
+    return BigDecimal(monetaryAmount.toString());
 }

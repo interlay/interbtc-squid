@@ -1,3 +1,4 @@
+import {BigDecimal} from "@subsquid/big-decimal"
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_, ManyToOne as ManyToOne_} from "typeorm"
 import * as marshal from "./marshal"
 import {Currency, fromJsonCurrency} from "./_currency"
@@ -18,8 +19,8 @@ export class Transfer {
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
     amount!: bigint
 
-    @Column_("text", {nullable: false})
-    amountHuman!: string
+    @Column_("numeric", {transformer: marshal.bigdecimalTransformer, nullable: false})
+    amountHuman!: BigDecimal
 
     @Index_()
     @Column_("text", {nullable: false})

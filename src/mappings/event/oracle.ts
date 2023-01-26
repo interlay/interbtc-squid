@@ -1,4 +1,5 @@
 import { tokenSymbolToCurrency } from "@interlay/interbtc-api";
+import { BigDecimal } from "@subsquid/big-decimal";
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { Currency, NativeToken, OracleUpdate, OracleUpdateType, Token } from "../../model";
 import { Ctx, EventItem } from "../../processor";
@@ -42,7 +43,7 @@ export async function feedValues(
             updateValue: value,
         });
         let keyToString = key.__kind.toString();
-        let updateValueHuman : string = "empty";
+        let updateValueHuman : BigDecimal = BigDecimal("0");
         if (key.__kind === "ExchangeRate") {
             const exchangeCurrency = useLegacyCurrency
                 ? legacyCurrencyId.encode(key.value as CurrencyId_V15)
