@@ -8,10 +8,9 @@ import { VaultId as VaultIdV1021000 } from "../types/v1021000";
 import { encodeLegacyVaultId, encodeVaultId } from "./encoding";
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import * as process from "process";
-import { CurrencyExt, CurrencyIdentifier, currencyIdToMonetaryCurrency, newMonetaryAmount } from "@interlay/interbtc-api";
+import { CurrencyExt, CurrencyIdentifier, currencyIdToMonetaryCurrency, getCurrencyIdentifier, newMonetaryAmount } from "@interlay/interbtc-api";
 import { BigDecimal } from "@subsquid/big-decimal";
 import { getInterBtcApi } from "../processor";
-
 
 export type eventArgs = {
     event: { args: true };
@@ -145,6 +144,16 @@ export async function currencyToLibCurrencyExt(currency: Currency): Promise<Curr
     else if (currency.isTypeOf === "LendToken") {
         id = {lendToken: currency.lendTokenId};
     }
+    /* More CurrencyEXT types that will be supported soon
+    else if (currency.isTypeOf === "StableLpToken") {
+        id = {stableLpToken: currency.poolId};
+    }
+    else if (currency.isTypeOf === "LpToken") {
+        const token0 = currencyToLibCurrencyExt(currency.token0) as StandardPooledTokenIdentifier;
+        const token1 = currencyToLibCurrencyExt(currency.token1) as StandardPooledTokenIdentifier;
+        id =  { lpToken: [token0, token1] };
+        
+    */
     else {
        throw new Error("No handling implemented for currency type");
     }
@@ -165,6 +174,10 @@ export async function currencyToLibCurrencyExt(currency: Currency): Promise<Curr
     return currencyMap.get(id) as CurrencyExt;
 }
 
+/* This function takes a currency object (could be native, could be foreign) and
+an atomic amount (in the smallest unit, e.g. Planck) and returns a BigDecimal representing 
+the amount without rounding.
+*/
 export async function convertAmountToHuman(currency: Currency, amount: bigint ) : Promise<BigDecimal> {
     const currencyInfo: CurrencyExt = await currencyToLibCurrencyExt(currency);
     const monetaryAmount = newMonetaryAmount(amount.toString(), currencyInfo);

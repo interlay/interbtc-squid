@@ -193,7 +193,7 @@ export async function updateCumulativeVolumesForCurrencyPair(
                 type,
                 tillTimestamp: timestamp,
                 amount: existingCumulativeVolumeForCollateral + amount,
-                amountHuman: await convertAmountToHuman(collateralCurrency, amount),
+                amountHuman: await convertAmountToHuman(collateralCurrency, existingCumulativeVolumeForCollateral + amount),
                 collateralCurrency,
                 wrappedCurrency,
             }
