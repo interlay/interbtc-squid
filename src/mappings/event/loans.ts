@@ -328,9 +328,7 @@ export async function borrow(
     const account = address.interlay.encode(accountId);
     
     const amounts = await getExchangeRate(ctx, block.timestamp, currency, amount);
-    const amountFriendly = await friendlyAmount(currency, Number(amount));
-
-    const comment = `${getFirstAndLastFour(account)} borrowed ${amountFriendly} at fiat value $${amountFiat}`;
+    const comment = `${getFirstAndLastFour(account)} borrowed ${await friendlyAmount(currency, Number(amount))}`
     
     await entityBuffer.pushEntity(
         Loan.name,
@@ -341,8 +339,8 @@ export async function borrow(
             userParachainAddress: account,
             token: currency,
             amountBorrowed: amount,
-            amountBorrowedUsdt: amounts.usdt,
-            amountBorrowedBtc: amounts.btc,
+            amountBorrowedUsdt: amounts.usdt.toNumber(),
+            amountBorrowedBtc: amounts.btc.toNumber(),
             comment: comment
         })
     );
@@ -549,7 +547,10 @@ export async function repay(
     const currency = currencyId.encode(myCurrencyId);
     const height = await blockToHeight(ctx, block.height, "LoansRepaid");
     const account = address.interlay.encode(accountId);
+
+    const amounts = await getExchangeRate(ctx, block.timestamp, currency, amount);
     const comment = `${getFirstAndLastFour(account)} paid back ${await friendlyAmount(currency, Number(amount))}`
+
     await entityBuffer.pushEntity(
         Loan.name,
         new Loan({
@@ -559,6 +560,8 @@ export async function repay(
             userParachainAddress: account,
             token: currency,
             amountRepaid: amount,
+            amountRepaidUsdt: amounts.usdt,
+            amountRepaidBtc: amounts.btc,
             comment: comment
         })
     );

@@ -174,8 +174,8 @@ function mapCurrencyType(currency: Currency): CurrencyType {
 }
 
 type OracleRate = {
-    btc: number;
-    usdt: number;
+    btc: Big;
+    usdt: Big;
 }
 
 /* This function is used to calculate the exchange rate for a given currency at
@@ -228,8 +228,8 @@ export async function getExchangeRate(
     const monetaryAmount = newMonetaryAmount(Big(Number(amount)), mapCurrencyType(currency));
 
     return {
-        btc: monetaryAmount.toBig().div(baseMonetaryAmount.toBig()).toNumber(), 
-        usdt: monetaryAmount.toBig().mul(exchangeRate).toNumber()
+        btc: monetaryAmount.toBig().div(baseMonetaryAmount.toBig()), 
+        usdt: monetaryAmount.toBig().mul(exchangeRate)
     };
 }
 

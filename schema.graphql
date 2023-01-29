@@ -295,7 +295,11 @@ type Loan @entity {
     token: Currency!
     userParachainAddress: String!
     amountBorrowed: BigInt
+    amountBorrowedUsdt: Float
+    amountBorrowedBtc: Float
     amountRepaid: BigInt
+    amountRepaidUsdt: Float
+    amountRepaidBtc: Float
     height: Height!
     timestamp: DateTime!
     comment: String
