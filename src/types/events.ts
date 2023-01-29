@@ -608,6 +608,81 @@ export class LoansDistributedSupplierRewardEvent {
     }
 }
 
+export class LoansInterestAccruedEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'Loans.InterestAccrued')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * Event emitted when interest has been accrued for a market
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Loans.InterestAccrued') === '5e1e11157770abecf8ddbc4721189df242e4184a3c8d5e05e7c7164d6a0ef8ae'
+    }
+
+    /**
+     * Event emitted when interest has been accrued for a market
+     */
+    get asV1021000(): {underlyingCurrencyId: v1021000.CurrencyId, totalBorrows: bigint, totalReserves: bigint, borrowIndex: bigint, utilizationRatio: number, borrowRate: bigint, supplyRate: bigint, exchangeRate: bigint} {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
+export class LoansLiquidatedBorrowEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'Loans.LiquidatedBorrow')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * Event emitted when a borrow is liquidated
+     * [liquidator, borrower, liquidation_asset_id, collateral_asset_id, repay_amount, collateral_amount]
+     */
+    get isV1020000(): boolean {
+        return this._chain.getEventHash('Loans.LiquidatedBorrow') === '564d3b69f26adc5d718502510404c616f593ab8c57227fb360a2635d20e76b2c'
+    }
+
+    /**
+     * Event emitted when a borrow is liquidated
+     * [liquidator, borrower, liquidation_asset_id, collateral_asset_id, repay_amount, collateral_amount]
+     */
+    get asV1020000(): [Uint8Array, Uint8Array, v1020000.CurrencyId, v1020000.CurrencyId, bigint, bigint] {
+        assert(this.isV1020000)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Event emitted when a borrow is liquidated
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Loans.LiquidatedBorrow') === 'd0f3e3242008bbb680214549c50727b0a70514faa69486b7a3e1a61e83b3df56'
+    }
+
+    /**
+     * Event emitted when a borrow is liquidated
+     */
+    get asV1021000(): {liquidator: Uint8Array, borrower: Uint8Array, liquidationCurrencyId: v1021000.CurrencyId, collateralCurrencyId: v1021000.CurrencyId, repayAmount: bigint, collateralUnderlyingAmount: bigint} {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
 export class LoansNewMarketEvent {
     private readonly _chain: Chain
     private readonly event: Event
@@ -1689,4 +1764,3 @@ export class ZenlinkProtocolLiquidityRemovedEvent {
         return this._chain.decodeEvent(this.event)
     }
 }
-

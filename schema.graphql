@@ -311,3 +311,20 @@ type Deposit @entity {
     timestamp: DateTime!
     comment: String
 }
+
+type InterestAccrual @entity {
+    id: ID!
+    underlyingCurrency: Currency!
+    currencySymbol: String!
+    utilizationRatio: Float!
+    totalBorrows: BigInt!
+    totalReserves: BigInt!
+    borrowIndex: BigInt!
+    borrowRate: BigInt!
+    supplyRate: BigInt!
+    exchangeRate: BigInt!
+    exchangeRateFloat: Float!
+    height: Height!
+    timestamp: DateTime!
+    comment: String
+}

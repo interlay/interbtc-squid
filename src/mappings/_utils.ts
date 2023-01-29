@@ -125,3 +125,16 @@ export async function friendlyAmount(currency: Currency, amount: number): Promis
             return `Unknown asset: ${currency}`
     }
 }
+
+export async function symbolFromCurrency(currency: Currency): Promise<string> {
+    let amountFriendly: number;
+    switch(currency.isTypeOf) {
+        case 'NativeToken':
+            return currency.token;
+        case 'ForeignAsset':
+            const details = await getForeignAsset(currency.asset)
+            return details.symbol;
+        default:
+            return `UNKNOWN`;
+    }
+}

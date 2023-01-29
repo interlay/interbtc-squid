@@ -5,6 +5,7 @@ import {
     CumulativeVolume,
     CumulativeVolumePerCurrencyPair,
     LendToken,
+    InterestAccrual,
     Redeem,
     RedeemCancellation,
     RedeemExecution,
@@ -23,6 +24,8 @@ import {
     LoansDepositedEvent,
     LoansDistributedBorrowerRewardEvent,
     LoansDistributedSupplierRewardEvent,
+    LoansInterestAccruedEvent,
+    LoansLiquidatedBorrowEvent,
     LoansNewMarketEvent,
     LoansRedeemedEvent,
     LoansRepaidBorrowEvent,
@@ -42,7 +45,7 @@ import { CurrencyId as CurrencyId_V1021000,
 
 import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
-import { friendlyAmount, getFirstAndLastFour } from "../_utils";
+import { friendlyAmount, getFirstAndLastFour, symbolFromCurrency } from "../_utils";
 import { lendTokenDetails } from "../utils/markets";
 
 import { CurrencyId_Token as CurrencyId_Token_V6 } from "../../types/v6";
@@ -58,7 +61,79 @@ import {
 import { getCurrentRedeemPeriod } from "../utils/requestPeriods";
 import { getVaultId, getVaultIdLegacy } from "../_utils";
 import {Currency} from "../../model/generated/_currency"
+import { number } from "bitcoinjs-lib/types/script";
+import { storeMainChainHeader } from "./btcRelay";
 
+type Rate = {
+    block: number;
+    symbol: string;
+    rate: number;
+};
+
+class BlockRates {
+    rates: Rate[] = [];
+
+    addRate(block: number, symbol: string, rate: number) {
+        this.rates.push({ block, symbol, rate });
+    }
+
+    getRate(block: number, symbol: string): Rate {
+        for (let i = this.rates.length - 1; i >= 0; i--) {
+            if (this.rates[i].symbol === symbol) {
+                if (this.rates[i].block <= block) {
+                    return this.rates[i];
+                }
+            }
+        }
+        console.log(`Returning default rate for ${symbol}`);
+        return {block: block, symbol: symbol, rate: 0.02};
+    }
+}
+
+class CachedRates {
+    private cache = new Map<number, Map<string, number>>();
+
+    add(entry: Rate) {
+        if (!this.cache.has(entry.block)) {
+            this.cache.set(entry.block, new Map([[entry.symbol, entry.rate]]));
+            return;
+        }
+        this.cache.get(entry.block)!.set(entry.symbol, entry.rate);
+    }
+
+    get(block: number, symbol: string): number | undefined {
+        const blockRates = this.cache.get(block);
+        return blockRates ? blockRates.get(symbol) : undefined;
+    }
+
+    clear() {
+        this.cache.clear();
+    }
+}
+
+const cachedRates = new BlockRates();
+
+// async function latestExchangeRate(
+//     ctx: Ctx,
+//     block: SubstrateBlock,
+// ) : Promise<ExRate> {
+//     const testEntity = {id: 0,
+//         symbol: "ESP"
+//     }
+//     const interestAccrued = rateCache.pushEntity("ExRate", testEntity)
+//     // const interestAccrued = await ctx.store.get(InterestAccrual, {
+//     //     //where: { height : { absolute : LessThanOrEqual(block.height) } },
+//     //     //order: { height : { absolute: "DESC"} },
+//     //     where: { timestamp : LessThanOrEqual(Date.now()) },
+//     //     order: { timestamp : "DESC" },
+//     // })
+//     const exRate: ExRate = Object.assign({}, {
+//         symbol: interestAccrued?.currencySymbol ?? '',
+//         rate: interestAccrued?.exchangeRateFloat ?? 0,
+//         activeBlock: interestAccrued?.height.active ?? 0
+//     });
+//     return exRate;
+// }
 
 export async function newMarket(
     ctx: Ctx,
@@ -295,9 +370,13 @@ export async function depositCollateral(
     const height = await blockToHeight(ctx, block.height, "Deposit");
     const account = address.interlay.encode(accountId);
     let comment;
+    let exRate;
     if(currency.isTypeOf==='LendToken'){
-        const newToken = await lendTokenDetails(ctx, currency.lendTokenId)
-        const newAmount = Number(amount) * 0.02
+        const newToken = await lendTokenDetails(ctx, currency.lendTokenId);
+        const newTokenSymbol = await symbolFromCurrency(newToken!);
+        exRate = cachedRates.getRate(block.height, newTokenSymbol);
+        console.log(`${block.height-exRate.block} blocks difference for ${exRate.symbol}` )
+        const newAmount = Number(amount) * exRate.rate;
         if(newToken){
             comment = `${getFirstAndLastFour(account)} deposited ${await friendlyAmount(newToken, newAmount)} for collateral`
         }
@@ -346,10 +425,14 @@ export async function withdrawCollateral(
     const currency = currencyId.encode(myCurrencyId);
     const height = await blockToHeight(ctx, block.height, "WithdrawDeposit");
     const account = address.interlay.encode(accountId);
+    let exRate: Rate | undefined;
     let comment ='';
     if(currency.isTypeOf==='LendToken'){
         const newToken = await lendTokenDetails(ctx, currency.lendTokenId)
-        const newAmount = Number(amount) * 0.02
+        const newTokenSymbol = await symbolFromCurrency(newToken!);
+        exRate = cachedRates.getRate(block.height, newTokenSymbol);
+        console.log(`${block.height-exRate.block} blocks difference for ${exRate.symbol}` )
+        const newAmount = Number(amount) * exRate!.rate;
         if(newToken){
             comment = `${getFirstAndLastFour(account)} withdrew ${await friendlyAmount(newToken, newAmount)} from collateral`;
         }
@@ -517,3 +600,96 @@ export async function withdrawDeposit(
         })
     );
 }
+
+"Redeem means withdrawing a deposit by redeeming qTokens for Tokens."
+export async function liquidateLoan(
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem,
+    entityBuffer: EntityBuffer
+): Promise<void> {
+    const rawEvent = new LoansLiquidatedBorrowEvent(ctx, item.event);
+    // {liquidator: Uint8Array,
+    // borrower: Uint8Array,
+    // liquidationCurrencyId: v1021000.CurrencyId,
+    // collateralCurrencyId: v1021000.CurrencyId,
+    // repayAmount: bigint,
+    // collateralUnderlyingAmount: bigint}
+    // let accountId: Uint8Array;
+    // let myCurrencyId: CurrencyId_V1020000|CurrencyId_V1021000;
+    // let amount: bigint;
+    // let e;
+    // if (rawEvent.isV1020000) {
+    //     e = rawEvent.asV1020000;
+    //     [ accountId, myCurrencyId, amount ] = e;
+    // }
+    // else if (rawEvent.isV1021000) {
+    //     e = rawEvent.asV1021000;
+    //     accountId = e.accountId;
+    //     myCurrencyId = e.currencyId;
+    //     amount = e.amount;
+    // }
+    // else {
+    //     ctx.log.warn(`UNKOWN EVENT VERSION: LoansRepaidBorrowEvent`);
+    //     return;
+    // }
+    // const currency = currencyId.encode(myCurrencyId);
+    // const height = await blockToHeight(ctx, block.height, "Redeemed");
+    // const account = address.interlay.encode(accountId);
+    // const comment = `${getFirstAndLastFour(account)} withdrew ${await friendlyAmount(currency, Number(amount))} from deposit`;
+    // await entityBuffer.pushEntity(
+    //     Deposit.name,
+    //     new Deposit({
+    //         id: item.event.id,
+    //         height: height,
+    //         timestamp: new Date(block.timestamp),
+    //         userParachainAddress: account,
+    //         token: currency,
+    //         amountWithdrawn: amount,
+    //         comment: comment// expand to 3 tokens: qToken, Token, equivalent in USD(T)
+    //     })
+    // );
+}
+
+"Whenever a loan is taken or repaid, interest is accrued by slightly changing the exchange rate"
+export async function accrueInterest(
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem,
+    entityBuffer: EntityBuffer
+): Promise<void> {
+    const rawEvent = new LoansInterestAccruedEvent(ctx, item.event);
+    const interestAccrued = rawEvent.asV1021000;
+    const { exchangeRate: exchangeRate} = interestAccrued;
+    const ex = Number(exchangeRate) / 10 ** 18;
+
+    const currency = currencyId.encode(interestAccrued.underlyingCurrencyId);
+    const height = await blockToHeight(ctx, block.height, "Interest Accrued");
+    const symbol = await symbolFromCurrency(currency);
+    cachedRates.addRate(
+        block.height,
+        symbol,
+        ex,
+    );
+
+    await entityBuffer.pushEntity(
+        InterestAccrual.name,
+        new InterestAccrual({
+            id: item.event.id,
+            height: height,
+            timestamp: new Date(block.timestamp),
+            underlyingCurrency: currency,
+            currencySymbol: symbol,
+            totalBorrows: interestAccrued.totalBorrows,
+            totalReserves: interestAccrued.totalReserves,
+            borrowIndex: interestAccrued.borrowIndex,
+            utilizationRatio: interestAccrued.utilizationRatio,
+            borrowRate: interestAccrued.borrowRate,
+            supplyRate: interestAccrued.supplyRate,
+            exchangeRate: interestAccrued.exchangeRate,
+            exchangeRateFloat: ex,
+            comment: `Exchange rate for ${symbol} now ${ex}`
+        })
+    );
+}
+

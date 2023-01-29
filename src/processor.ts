@@ -36,17 +36,18 @@ import { tokensTransfer } from "./mappings/event/transfer";
 import * as heights from "./mappings/utils/heights";
 import EntityBuffer from "./mappings/utils/entityBuffer";
 import { eventArgsData } from "./mappings/_utils";
-import {    newMarket,
-            updatedMarket,
-            activatedMarket,
-            borrow,
-            depositCollateral,
-            depositForLending,
-            distributeBorrowerReward,
-            distributeSupplierReward,
-            repay,
-            withdrawCollateral,
-            withdrawDeposit,
+import {
+    newMarket,
+    updatedMarket,
+    activatedMarket,
+    borrow,
+    depositCollateral,
+    depositForLending,
+    distributeBorrowerReward,
+    distributeSupplierReward,
+    repay,
+    withdrawCollateral,
+    withdrawDeposit, accrueInterest, liquidateLoan
 } from "./mappings/event/loans";
 import { ApiPromise, WsProvider } from '@polkadot/api';
 
@@ -92,6 +93,8 @@ const processor = new SubstrateBatchProcessor()
     .addEvent("Loans.ActivatedMarket", eventArgsData)
     .addEvent("Loans.NewMarket", eventArgsData)
     .addEvent("Loans.UpdatedMarket", eventArgsData)
+    .addEvent("Loans.InterestAccrued", eventArgsData)
+    .addEvent("Loans.LiquidatedBorrow", eventArgsData)
     .addEvent("VaultRegistry.RegisterVault", eventArgsData)
     .addEvent("VaultRegistry.IncreaseLockedCollateral", eventArgsData)
     .addEvent("VaultRegistry.DecreaseLockedCollateral", eventArgsData)
@@ -366,6 +369,16 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
         {
             filter: { name: "Loans.WithdrawCollateral" },
             mapping: withdrawCollateral,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Loans.LiquidatedBorrow" },
+            mapping: liquidateLoan,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Loans.InterestAccrued" },
+            mapping: accrueInterest,
             totalTime: 0,
         },
     ]);
