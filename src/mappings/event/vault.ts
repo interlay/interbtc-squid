@@ -61,6 +61,7 @@ export async function registerVault(
     );
 
     const collateralAmount: bigint = e.collateral;
+    
 
     entityBuffer.pushEntity(
         Vault.name,
@@ -69,9 +70,10 @@ export async function registerVault(
             accountId: address.interlay.encode(e.vaultId.accountId),
             wrappedToken,
             collateralToken,
-            collateralAmount,
             registrationBlock: registrationBlock,
             registrationTimestamp: new Date(block.timestamp),
+            collateralAmount,
+            
         })
     );
 }
@@ -93,7 +95,7 @@ export async function increaseLockedCollateral(
     if (rawEvent.isV10 || rawEvent.isV15) {
         if (rawEvent.isV10) e = rawEvent.asV10;
         else e = rawEvent.asV15;
-        vaultId = encodeLegacyVaultId(e.vaultId);
+        // vaultId = encodeLegacyVaultId(e.vaultId);
         wrappedToken = legacyCurrencyId.encode(e.currencyPair.wrapped);
         collateralToken = legacyCurrencyId.encode(e.currencyPair.collateral);
     } else {
@@ -105,7 +107,7 @@ export async function increaseLockedCollateral(
             return;
         }
 
-        vaultId = encodeVaultId(e.vaultId);
+        // vaultId = encodeVaultId(e.vaultId);
         wrappedToken = currencyId.encode(e.currencyPair.wrapped);
         collateralToken = currencyId.encode(e.currencyPair.collateral);
     }
@@ -123,10 +125,15 @@ export async function increaseLockedCollateral(
     );
 
     //updating the vault
-    entityBuffer.pushEntity(
-        Vault.name,
-        await updateVaultLockedCollateral()
-    );
+    // entityBuffer.pushEntity(
+    //     Vault.name,
+    //     await updateVaultLockedCollateral(
+    //         vaultID,
+    //         e.total,
+    //         entityBuffer,
+    //         ctx.store,
+    //     )
+    // );
 }
 
 export async function decreaseLockedCollateral(

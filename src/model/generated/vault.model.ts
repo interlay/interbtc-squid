@@ -19,8 +19,23 @@ export class Vault {
     @Column_("jsonb", {transformer: {to: obj => obj.toJSON(), from: obj => obj == null ? undefined : fromJsonCurrency(obj)}, nullable: false})
     collateralToken!: Currency
 
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    collateralAmount!: bigint
+
     @Column_("jsonb", {transformer: {to: obj => obj.toJSON(), from: obj => obj == null ? undefined : fromJsonCurrency(obj)}, nullable: false})
     wrappedToken!: Currency
+
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    pendingBtcAmount!: bigint
+
+    @Column_("text", {nullable: false})
+    collateralization!: string
+
+    @Column_("bool", {nullable: false})
+    statusIssuing!: boolean
+
+    @Column_("bool", {nullable: false})
+    statusCollateral!: boolean
 
     @Index_()
     @ManyToOne_(() => Height, {nullable: true})
