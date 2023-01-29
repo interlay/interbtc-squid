@@ -1,5 +1,7 @@
+import { Big, BigSource } from "big.js";
+import { BN } from "bn.js";
 import { Entity, Store } from "@subsquid/typeorm-store";
-import { Currency, Height, Issue, Redeem, Vault } from "../model";
+import { Currency, ForeignAsset, Height, Issue, LendToken, OracleUpdate, Redeem, Vault } from "../model";
 import { VaultId as VaultIdV15 } from "../types/v15";
 import { VaultId as VaultIdV17 } from "../types/v17";
 import { VaultId as VaultIdV6 } from "../types/v6";
@@ -8,6 +10,10 @@ import { VaultId as VaultIdV1021000 } from "../types/v1021000";
 import { encodeLegacyVaultId, encodeVaultId } from "./encoding";
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import * as process from "process";
+import { Ctx } from "../processor";
+import { LessThanOrEqual, Like } from "typeorm";
+import { Bitcoin, Kintsugi, Kusama, ExchangeRate } from "@interlay/monetary-js";
+import { newMonetaryAmount } from "@interlay/interbtc-api";
 
 export type eventArgs = {
     event: { args: true };
@@ -138,3 +144,83 @@ export async function symbolFromCurrency(currency: Currency): Promise<string> {
             return `UNKNOWN`;
     }
 }
+
+type OracleRate = {
+    btc: number;
+    usdt: number;
+}
+
+// const isUsdt = (currency: Currency): currency is NativeToken => (currency as any).token !== undefined;
+// // TODO: to be implemented when we know what LendToken looks like
+// const isLendToken = (currency: Currency): currency is LendToken => false; 
+// const isForeignAsset = (currency: Currency): currency is ForeignAsset => (currency as any).asset !== undefined;
+
+/* This function is used to calculate the exchange rate for a given currency at
+a given time.
+*/
+export async function getExchangeRate(
+    ctx: Ctx,
+    timestamp: number,
+    currency: Currency,
+    amount: bigint
+): Promise<OracleRate>  {
+    let searchBlock = currency.toJSON();
+    const lastUpdate = await ctx.store.get(OracleUpdate, {
+        where: { 
+            id: Like(`%${JSON.stringify(searchBlock)}`),
+            timestamp: LessThanOrEqual(new Date(timestamp)),
+        },
+        order: { timestamp: "DESC" },
+    });
+    if (lastUpdate === undefined) {
+        ctx.log.warn(
+            `WARNING: no price registered by Oracle for ${JSON.stringify(searchBlock)} at timestamp ${new Date(timestamp)}`
+        );
+    }
+    const lastPrice = new Big((Number(lastUpdate?.updateValue) || 0) / 10e21);
+    const rate = new ExchangeRate<Bitcoin, Kusama>(
+        Bitcoin,
+        Kusama,
+        lastPrice,
+    );
+    const monetaryAmount = newMonetaryAmount(Big(Number(amount)), Kusama, false) 
+    const convertedBase = rate.toBase(monetaryAmount)
+
+    searchBlock = {
+        isTypeOf: 'ForeignAsset',
+        asset: 1
+    }
+    const btcUpdate = await ctx.store.get(OracleUpdate, {
+        where: { 
+            id: Like(`%${JSON.stringify(searchBlock)}`),
+            timestamp: LessThanOrEqual(new Date(timestamp)),
+        },
+        order: { timestamp: "DESC" },
+    });
+    if (btcUpdate === undefined) {
+        ctx.log.warn(
+            `WARNING: no price registered by Oracle for ${JSON.stringify(searchBlock)} at time ${new Date(timestamp)}`
+        );
+    }
+    const btcPrice = new Big((Number(btcUpdate?.updateValue) || 0) / 10**8);
+
+    const hum = convertedBase.toHuman();
+    // const div = monetaryAmount2 / monetaryAmount;
+
+    // const amount2 = newMonetaryAmount(Big(btcPrice), Kusama) 
+    
+
+
+    const usdt = Number(btcPrice) / Number(lastPrice) * 1e6
+
+    return {
+        btc: 1, 
+        usdt: usdt
+    };
+}
+
+
+// check monetary lib. exchangeRate as a class
+// return price in bitcoin as well
+
+// 1e18 (1e8 sats vs 1e6 usdt)

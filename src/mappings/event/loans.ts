@@ -45,7 +45,7 @@ import { CurrencyId as CurrencyId_V1021000,
 
 import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
-import { friendlyAmount, getFirstAndLastFour, symbolFromCurrency } from "../_utils";
+import { friendlyAmount, getFirstAndLastFour, symbolFromCurrency, getExchangeRate } from "../_utils";
 import { lendTokenDetails } from "../utils/markets";
 
 import { CurrencyId_Token as CurrencyId_Token_V6 } from "../../types/v6";
@@ -326,7 +326,14 @@ export async function borrow(
     const currency = currencyId.encode(myCurrencyId);
     const height = await blockToHeight(ctx, block.height, "LoansBorrowed");
     const account = address.interlay.encode(accountId);
-    const comment = `${getFirstAndLastFour(account)} borrowed ${await friendlyAmount(currency, Number(amount))}`;
+    
+    let rates = await getExchangeRate(ctx, block.timestamp, currency, amount);
+    const amountFriendly = await friendlyAmount(currency, Number(amount));
+    const amountFiat = rates.usdt * Number(amount);
+    const amountBtc = rates.btc * Number(amount);
+
+    const comment = `${getFirstAndLastFour(account)} borrowed ${amountFriendly} at fiat value $${amountFiat}`;
+    
     await entityBuffer.pushEntity(
         Loan.name,
         new Loan({
