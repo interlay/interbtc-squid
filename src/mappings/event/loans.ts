@@ -327,10 +327,8 @@ export async function borrow(
     const height = await blockToHeight(ctx, block.height, "LoansBorrowed");
     const account = address.interlay.encode(accountId);
     
-    let rates = await getExchangeRate(ctx, block.timestamp, currency, amount);
+    const amounts = await getExchangeRate(ctx, block.timestamp, currency, amount);
     const amountFriendly = await friendlyAmount(currency, Number(amount));
-    const amountFiat = rates.usdt * Number(amount);
-    const amountBtc = rates.btc * Number(amount);
 
     const comment = `${getFirstAndLastFour(account)} borrowed ${amountFriendly} at fiat value $${amountFiat}`;
     
@@ -343,6 +341,8 @@ export async function borrow(
             userParachainAddress: account,
             token: currency,
             amountBorrowed: amount,
+            amountBorrowedUsdt: amounts.usdt,
+            amountBorrowedBtc: amounts.btc,
             comment: comment
         })
     );

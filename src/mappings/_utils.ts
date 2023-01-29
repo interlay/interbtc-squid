@@ -12,7 +12,7 @@ import { ApiPromise, WsProvider } from '@polkadot/api';
 import * as process from "process";
 import { Ctx } from "../processor";
 import { LessThanOrEqual, Like } from "typeorm";
-import { Bitcoin, Kintsugi, Kusama, ExchangeRate } from "@interlay/monetary-js";
+import { Bitcoin, Kintsugi, Kusama, Interlay, Polkadot, ExchangeRate } from "@interlay/monetary-js";
 import { newMonetaryAmount } from "@interlay/interbtc-api";
 
 export type eventArgs = {
@@ -145,15 +145,38 @@ export async function symbolFromCurrency(currency: Currency): Promise<string> {
     }
 }
 
+type CurrencyType = Bitcoin | Kintsugi | Kusama | Interlay | Polkadot;
+
+function mapCurrencyType(currency: Currency): CurrencyType {
+    switch(currency.isTypeOf) {
+        case 'NativeToken':
+            switch(currency.token) {
+                case 'KINT':
+                    return Kintsugi;
+            }
+            switch(currency.token) {
+                case 'KSM':
+                    return Kusama;
+            }
+            switch(currency.token) {
+                case 'INTR':
+                    return Interlay;
+            }
+            switch(currency.token) {
+                case 'DOT':
+                    return Polkadot;
+            }
+        case 'ForeignAsset':
+            return Bitcoin;
+        default:
+            throw new Error(`Unsupported currency type: ${currency.isTypeOf}`);
+    }
+}
+
 type OracleRate = {
     btc: number;
     usdt: number;
 }
-
-// const isUsdt = (currency: Currency): currency is NativeToken => (currency as any).token !== undefined;
-// // TODO: to be implemented when we know what LendToken looks like
-// const isLendToken = (currency: Currency): currency is LendToken => false; 
-// const isForeignAsset = (currency: Currency): currency is ForeignAsset => (currency as any).asset !== undefined;
 
 /* This function is used to calculate the exchange rate for a given currency at
 a given time.
@@ -165,6 +188,7 @@ export async function getExchangeRate(
     amount: bigint
 ): Promise<OracleRate>  {
     let searchBlock = currency.toJSON();
+
     const lastUpdate = await ctx.store.get(OracleUpdate, {
         where: { 
             id: Like(`%${JSON.stringify(searchBlock)}`),
@@ -177,14 +201,9 @@ export async function getExchangeRate(
             `WARNING: no price registered by Oracle for ${JSON.stringify(searchBlock)} at timestamp ${new Date(timestamp)}`
         );
     }
-    const lastPrice = new Big((Number(lastUpdate?.updateValue) || 0) / 10e21);
-    const rate = new ExchangeRate<Bitcoin, Kusama>(
-        Bitcoin,
-        Kusama,
-        lastPrice,
-    );
-    const monetaryAmount = newMonetaryAmount(Big(Number(amount)), Kusama, false) 
-    const convertedBase = rate.toBase(monetaryAmount)
+    const lastPrice = new Big((Number(lastUpdate?.updateValue) || 0) / 1e10);
+    const baseMonetaryAmount = newMonetaryAmount(lastPrice, mapCurrencyType(currency));
+     
 
     searchBlock = {
         isTypeOf: 'ForeignAsset',
@@ -202,20 +221,15 @@ export async function getExchangeRate(
             `WARNING: no price registered by Oracle for ${JSON.stringify(searchBlock)} at time ${new Date(timestamp)}`
         );
     }
-    const btcPrice = new Big((Number(btcUpdate?.updateValue) || 0) / 10**8);
+    const btcPrice = new Big((Number(btcUpdate?.updateValue) || 0) / 1e8);
+    const btcMonetaryAmount = newMonetaryAmount(btcPrice, Bitcoin);
 
-    const hum = convertedBase.toHuman();
-    // const div = monetaryAmount2 / monetaryAmount;
-
-    // const amount2 = newMonetaryAmount(Big(btcPrice), Kusama) 
-    
-
-
-    const usdt = Number(btcPrice) / Number(lastPrice) * 1e6
+    const exchangeRate = btcMonetaryAmount.toBig().div(baseMonetaryAmount.toBig());
+    const monetaryAmount = newMonetaryAmount(Big(Number(amount)), mapCurrencyType(currency));
 
     return {
-        btc: 1, 
-        usdt: usdt
+        btc: monetaryAmount.toBig().div(baseMonetaryAmount.toBig()).toNumber(), 
+        usdt: monetaryAmount.toBig().mul(exchangeRate).toNumber()
     };
 }
 
