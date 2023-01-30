@@ -310,7 +310,11 @@ type Deposit @entity {
     token: Currency!
     userParachainAddress: String!
     amountDeposited: BigInt
+    amountDepositedUsdt: Float
+    amountDepositedBtc: Float
     amountWithdrawn: BigInt
+    amountWithdrawnUsdt: Float
+    amountWithdrawnBtc: Float
     height: Height!
     timestamp: DateTime!
     comment: String

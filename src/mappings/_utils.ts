@@ -12,7 +12,7 @@ import { ApiPromise, WsProvider } from '@polkadot/api';
 import * as process from "process";
 import { Ctx } from "../processor";
 import { LessThanOrEqual, Like } from "typeorm";
-import { Bitcoin, Kintsugi, Kusama, Interlay, Polkadot, ExchangeRate } from "@interlay/monetary-js";
+import { Bitcoin, Kintsugi, Kusama, Interlay, Polkadot, InterBtc, KBtc, ExchangeRate } from "@interlay/monetary-js";
 import { newMonetaryAmount } from "@interlay/interbtc-api";
 
 export type eventArgs = {
@@ -153,18 +153,16 @@ function mapCurrencyType(currency: Currency): CurrencyType {
             switch(currency.token) {
                 case 'KINT':
                     return Kintsugi;
-            }
-            switch(currency.token) {
                 case 'KSM':
                     return Kusama;
-            }
-            switch(currency.token) {
                 case 'INTR':
                     return Interlay;
-            }
-            switch(currency.token) {
                 case 'DOT':
                     return Polkadot;
+                case 'KBTC':
+                    return KBtc;
+                case 'INTR':
+                    return InterBtc;
             }
         case 'ForeignAsset':
             return Bitcoin;
@@ -202,7 +200,15 @@ export async function getExchangeRate(
         );
     }
     const lastPrice = new Big((Number(lastUpdate?.updateValue) || 0) / 1e10);
-    const baseMonetaryAmount = newMonetaryAmount(lastPrice, mapCurrencyType(currency));
+    
+    const mappedCurrency = mapCurrencyType(currency);
+    let baseMonetaryAmount
+    if (mappedCurrency === KBtc || mappedCurrency === InterBtc) {
+        baseMonetaryAmount = newMonetaryAmount(Big(1e8), Bitcoin)
+    }
+    else {
+        baseMonetaryAmount = newMonetaryAmount(lastPrice, mappedCurrency);
+    }
      
 
     searchBlock = {

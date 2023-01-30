@@ -560,8 +560,8 @@ export async function repay(
             userParachainAddress: account,
             token: currency,
             amountRepaid: amount,
-            amountRepaidUsdt: amounts.usdt,
-            amountRepaidBtc: amounts.btc,
+            amountRepaidUsdt: amounts.usdt.toNumber(),
+            amountRepaidBtc: amounts.btc.toNumber(),
             comment: comment
         })
     );
