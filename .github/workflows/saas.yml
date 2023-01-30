@@ -25,7 +25,7 @@ jobs:
     needs: check_user
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: 'Project name generation'
         uses: TGPSKI/name-generator-node-action@v2
         id: namegen
