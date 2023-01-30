@@ -185,31 +185,29 @@ export async function getExchangeRate(
     currency: Currency,
     amount: bigint
 ): Promise<OracleRate>  {
-    let searchBlock = currency.toJSON();
-
-    const lastUpdate = await ctx.store.get(OracleUpdate, {
-        where: { 
-            id: Like(`%${JSON.stringify(searchBlock)}`),
-            timestamp: LessThanOrEqual(new Date(timestamp)),
-        },
-        order: { timestamp: "DESC" },
-    });
-    if (lastUpdate === undefined) {
-        ctx.log.warn(
-            `WARNING: no price registered by Oracle for ${JSON.stringify(searchBlock)} at timestamp ${new Date(timestamp)}`
-        );
-    }
-    const lastPrice = new Big((Number(lastUpdate?.updateValue) || 0) / 1e10);
-    
     const mappedCurrency = mapCurrencyType(currency);
     let baseMonetaryAmount
+    let searchBlock = currency.toJSON();
+
     if (mappedCurrency === KBtc || mappedCurrency === InterBtc) {
         baseMonetaryAmount = newMonetaryAmount(Big(1e8), Bitcoin)
     }
     else {
+        const lastUpdate = await ctx.store.get(OracleUpdate, {
+            where: { 
+                id: Like(`%${JSON.stringify(searchBlock)}`),
+                timestamp: LessThanOrEqual(new Date(timestamp)),
+            },
+            order: { timestamp: "DESC" },
+        });
+        if (lastUpdate === undefined) {
+            ctx.log.warn(
+                `WARNING: no price registered by Oracle for ${JSON.stringify(searchBlock)} at timestamp ${new Date(timestamp)}`
+            );
+        }
+        const lastPrice = new Big((Number(lastUpdate?.updateValue) || 0) / 1e10);
         baseMonetaryAmount = newMonetaryAmount(lastPrice, mappedCurrency);
     }
-     
 
     searchBlock = {
         isTypeOf: 'ForeignAsset',

@@ -1,5 +1,5 @@
-module.exports = class Data1675009264587 {
-    name = 'Data1675009264587'
+module.exports = class Data1675082760099 {
+    name = 'Data1675082760099'
 
     async up(db) {
         await db.query(`CREATE TABLE "height" ("id" character varying NOT NULL, "absolute" integer NOT NULL, "active" integer NOT NULL, CONSTRAINT "PK_90f1773799ae13708b533416960" PRIMARY KEY ("id"))`)
@@ -58,7 +58,7 @@ module.exports = class Data1675009264587 {
         await db.query(`CREATE UNIQUE INDEX "IDX_20e4b93fc0a70cd45915b76ea8" ON "loan_market" ("lend_token_id") `)
         await db.query(`CREATE TABLE "loan" ("id" character varying NOT NULL, "token" jsonb NOT NULL, "user_parachain_address" text NOT NULL, "amount_borrowed" numeric, "amount_borrowed_usdt" numeric, "amount_borrowed_btc" numeric, "amount_repaid" numeric, "amount_repaid_usdt" numeric, "amount_repaid_btc" numeric, "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "comment" text, "height_id" character varying, CONSTRAINT "PK_4ceda725a323d254a5fd48bf95f" PRIMARY KEY ("id"))`)
         await db.query(`CREATE INDEX "IDX_9d91bd14c2c870581c9cf6cf5c" ON "loan" ("height_id") `)
-        await db.query(`CREATE TABLE "deposit" ("id" character varying NOT NULL, "token" jsonb NOT NULL, "user_parachain_address" text NOT NULL, "amount_deposited" numeric, "amount_withdrawn" numeric, "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "comment" text, "height_id" character varying, CONSTRAINT "PK_6654b4be449dadfd9d03a324b61" PRIMARY KEY ("id"))`)
+        await db.query(`CREATE TABLE "deposit" ("id" character varying NOT NULL, "token" jsonb NOT NULL, "symbol" text NOT NULL, "user_parachain_address" text NOT NULL, "type" text NOT NULL, "amount_deposited" numeric, "amount_deposited_usdt" numeric, "amount_deposited_btc" numeric, "amount_withdrawn" numeric, "amount_withdrawn_usdt" numeric, "amount_withdrawn_btc" numeric, "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "comment" text, "height_id" character varying, CONSTRAINT "PK_6654b4be449dadfd9d03a324b61" PRIMARY KEY ("id"))`)
         await db.query(`CREATE INDEX "IDX_2737e86cc718982faf56d573df" ON "deposit" ("height_id") `)
         await db.query(`CREATE TABLE "interest_accrual" ("id" character varying NOT NULL, "underlying_currency" jsonb NOT NULL, "currency_symbol" text NOT NULL, "utilization_ratio" numeric NOT NULL, "total_borrows" numeric NOT NULL, "total_reserves" numeric NOT NULL, "borrow_index" numeric NOT NULL, "borrow_rate" numeric NOT NULL, "supply_rate" numeric NOT NULL, "exchange_rate" numeric NOT NULL, "exchange_rate_float" numeric NOT NULL, "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "comment" text, "height_id" character varying, CONSTRAINT "PK_04e314078a0862f6e560cb2f20d" PRIMARY KEY ("id"))`)
         await db.query(`CREATE INDEX "IDX_694b7e3931d4a1aa01f067f0c4" ON "interest_accrual" ("height_id") `)

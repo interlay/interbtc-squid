@@ -308,7 +308,9 @@ type Loan @entity {
 type Deposit @entity {
     id: ID!
     token: Currency!
+    symbol: String!
     userParachainAddress: String!
+    type: String!
     amountDeposited: BigInt
     amountDepositedUsdt: Float
     amountDepositedBtc: Float
