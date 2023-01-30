@@ -11,7 +11,7 @@ export function setCache(block: number, currency: Currency) {
 export async function lendTokenDetails(
     ctx: Ctx,
     id: number,
-): Promise<Currency | void>  {
+): Promise<Currency>  {
     // first check in-memory
     const cacheLookup = inMemoryCache.get(id);
     if (cacheLookup !== undefined) return cacheLookup;
@@ -20,15 +20,16 @@ export async function lendTokenDetails(
     const existingEntity = await ctx.store.get(LoanMarket, {
         where: { lendTokenId: id },
     });
-    if (existingEntity !== undefined) {
-        // was already set for current block, either by UpdateActiveBlock or previous invocation of blockToHeight
-        inMemoryCache.set(id, existingEntity.token)
-        return existingEntity.token;
-    } else {
-            ctx.log.warn(
-                `WARNING: Did not find LoanMarket entity for id ${id}. `
-            );
-           }
+    if (existingEntity === undefined) {
+        ctx.log.warn(
+            `WARNING: Did not find LoanMarket entity for id ${id}. `
+        );
+    }
+    const token = existingEntity!.token;
+
+    // was already set for current block, either by UpdateActiveBlock or previous invocation of blockToHeight
+    inMemoryCache.set(id, token);
+    return token;
 }
 
 export function clearCache() {
