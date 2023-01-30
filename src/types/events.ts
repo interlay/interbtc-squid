@@ -1448,6 +1448,104 @@ export class VaultRegistryDecreaseLockedCollateralEvent {
     }
 }
 
+export class VaultRegistryDepositCollateralEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'VaultRegistry.DepositCollateral')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     *  vault_id, new collateral, total collateral, free collateral
+     */
+    get isV1(): boolean {
+        return this._chain.getEventHash('VaultRegistry.DepositCollateral') === '426271b0ff71255c125e9a4ea897d86d39682c8454bbff4c6c9a8d50e0d966a4'
+    }
+
+    /**
+     *  vault_id, new collateral, total collateral, free collateral
+     */
+    get asV1(): [Uint8Array, bigint, bigint, bigint] {
+        assert(this.isV1)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * vault_id, new collateral, total collateral, free collateral
+     */
+    get isV3(): boolean {
+        return this._chain.getEventHash('VaultRegistry.DepositCollateral') === 'ecb62c372247d98f488337888e1e0d870e7bf4852e6803d734d56bbc4a362fd0'
+    }
+
+    /**
+     * vault_id, new collateral, total collateral, free collateral
+     */
+    get asV3(): [v3.VaultId, bigint, bigint, bigint] {
+        assert(this.isV3)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    get isV4(): boolean {
+        return this._chain.getEventHash('VaultRegistry.DepositCollateral') === '23871e640e142c93025ccd17eaed845ba3c559b10664684dc0b7699ba050b723'
+    }
+
+    get asV4(): {vaultId: v4.VaultId, newCollateral: bigint, totalCollateral: bigint, freeCollateral: bigint} {
+        assert(this.isV4)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    get isV6(): boolean {
+        return this._chain.getEventHash('VaultRegistry.DepositCollateral') === 'ad00fa636306e58e20b52ce6e04fd303ac5437ebdba046348423f0f19d6df1d2'
+    }
+
+    get asV6(): {vaultId: v6.VaultId, newCollateral: bigint, totalCollateral: bigint, freeCollateral: bigint} {
+        assert(this.isV6)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    get isV15(): boolean {
+        return this._chain.getEventHash('VaultRegistry.DepositCollateral') === '7dd3254958906b765bae74b59203e271adbcc7304cfb0d25f70f6de660166abc'
+    }
+
+    get asV15(): {vaultId: v15.VaultId, newCollateral: bigint, totalCollateral: bigint, freeCollateral: bigint} {
+        assert(this.isV15)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    get isV17(): boolean {
+        return this._chain.getEventHash('VaultRegistry.DepositCollateral') === 'ebd5728765088bf6de38afafae1c8c3f14ede019bd97ccb9cc4d841a412af036'
+    }
+
+    get asV17(): {vaultId: v17.VaultId, newCollateral: bigint, totalCollateral: bigint, freeCollateral: bigint} {
+        assert(this.isV17)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    get isV1020000(): boolean {
+        return this._chain.getEventHash('VaultRegistry.DepositCollateral') === '0f8a744305f56b60f28106771e38a4d9af7bf48d1c87ff89a25c83798a4a7fab'
+    }
+
+    get asV1020000(): {vaultId: v1020000.VaultId, newCollateral: bigint, totalCollateral: bigint, freeCollateral: bigint} {
+        assert(this.isV1020000)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('VaultRegistry.DepositCollateral') === 'a3efe870b9177a2a0338a01166819f7ca05582cafa79fc02e0bb2aaae9df9011'
+    }
+
+    get asV1021000(): {vaultId: v1021000.VaultId, newCollateral: bigint, totalCollateral: bigint, freeCollateral: bigint} {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
 export class VaultRegistryIncreaseLockedCollateralEvent {
     private readonly _chain: Chain
     private readonly event: Event
@@ -1599,6 +1697,104 @@ export class VaultRegistryRegisterVaultEvent {
     }
 }
 
+export class VaultRegistryWithdrawCollateralEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'VaultRegistry.WithdrawCollateral')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     *  vault_id, withdrawn collateral, total collateral
+     */
+    get isV1(): boolean {
+        return this._chain.getEventHash('VaultRegistry.WithdrawCollateral') === '0f263bfdefa394edfb38d20d33662423a2e0902235b599f9b2b0292f157f0902'
+    }
+
+    /**
+     *  vault_id, withdrawn collateral, total collateral
+     */
+    get asV1(): [Uint8Array, bigint, bigint] {
+        assert(this.isV1)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * vault_id, withdrawn collateral, total collateral
+     */
+    get isV3(): boolean {
+        return this._chain.getEventHash('VaultRegistry.WithdrawCollateral') === 'bec9a383d2e69b78cd95510de6bad28d73c97d17801188259f62076b6ac67a5f'
+    }
+
+    /**
+     * vault_id, withdrawn collateral, total collateral
+     */
+    get asV3(): [v3.VaultId, bigint, bigint] {
+        assert(this.isV3)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    get isV4(): boolean {
+        return this._chain.getEventHash('VaultRegistry.WithdrawCollateral') === '8b155b1c59a9442a820782cd85073d1c9b0f08a2763ce60239b4e976002c3c50'
+    }
+
+    get asV4(): {vaultId: v4.VaultId, withdrawnAmount: bigint, totalCollateral: bigint} {
+        assert(this.isV4)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    get isV6(): boolean {
+        return this._chain.getEventHash('VaultRegistry.WithdrawCollateral') === '0e786a56fd1d4aabe57cd745d5f7946ee6227193872d19783a125eb910c4aa42'
+    }
+
+    get asV6(): {vaultId: v6.VaultId, withdrawnAmount: bigint, totalCollateral: bigint} {
+        assert(this.isV6)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    get isV15(): boolean {
+        return this._chain.getEventHash('VaultRegistry.WithdrawCollateral') === '94415996b774c191efa3a15a2987aafed99dd392b562d08a947b3a92f1b95d2b'
+    }
+
+    get asV15(): {vaultId: v15.VaultId, withdrawnAmount: bigint, totalCollateral: bigint} {
+        assert(this.isV15)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    get isV17(): boolean {
+        return this._chain.getEventHash('VaultRegistry.WithdrawCollateral') === '4dc631f8d35d3de081d187260e5329ed7173cd1031ab7d463aa0f9865f37f35d'
+    }
+
+    get asV17(): {vaultId: v17.VaultId, withdrawnAmount: bigint, totalCollateral: bigint} {
+        assert(this.isV17)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    get isV1020000(): boolean {
+        return this._chain.getEventHash('VaultRegistry.WithdrawCollateral') === 'a640959bd51d8d1aa97465ddb1a923cc0d445a962a50ed1099db8d28cc91fd84'
+    }
+
+    get asV1020000(): {vaultId: v1020000.VaultId, withdrawnAmount: bigint, totalCollateral: bigint} {
+        assert(this.isV1020000)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('VaultRegistry.WithdrawCollateral') === '5923f38428c448ab21f6faae94ab6dfbd7b456b2fc9f71609c9d396a35577f32'
+    }
+
+    get asV1021000(): {vaultId: v1021000.VaultId, withdrawnAmount: bigint, totalCollateral: bigint} {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
 export class ZenlinkProtocolAssetSwapEvent {
     private readonly _chain: Chain
     private readonly event: Event
@@ -1689,4 +1885,3 @@ export class ZenlinkProtocolLiquidityRemovedEvent {
         return this._chain.decodeEvent(this.event)
     }
 }
-

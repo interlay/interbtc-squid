@@ -31,6 +31,8 @@
         "VaultRegistry.DecreaseLockedCollateral",
         "VaultRegistry.IncreaseLockedCollateral",
         "VaultRegistry.RegisterVault",
+        "VaultRegistry.DepositCollateral",
+        "VaultRegistry.WithdrawCollateral",
         "ZenlinkProtocol.AssetSwap",
         "ZenlinkProtocol.LiquidityAdded",
         "ZenlinkProtocol.LiquidityRemoved"

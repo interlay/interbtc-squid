@@ -73,10 +73,10 @@ type Vault @entity {
     collateralToken: Currency!
     collateralAmount: BigInt!
     wrappedToken: Currency!
-    pendingBtcAmount: BigInt!
-    collateralization: String!
-    statusIssuing: Boolean!
-    statusCollateral: Boolean!
+    pendingBtcAmount: BigInt
+    collateralization: String
+    statusIssuing: Boolean
+    statusCollateral: Boolean
     registrationBlock: Height!
     registrationTimestamp: DateTime!
     lastActivity: Height

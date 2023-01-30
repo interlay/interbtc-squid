@@ -95,6 +95,8 @@ const processor = new SubstrateBatchProcessor()
     .addEvent("VaultRegistry.RegisterVault", eventArgsData)
     .addEvent("VaultRegistry.IncreaseLockedCollateral", eventArgsData)
     .addEvent("VaultRegistry.DecreaseLockedCollateral", eventArgsData)
+    .addEvent("VaultRegistry.DepositCollateral", eventArgsData)
+    .addEvent("VaultRegistry.WithdrawCollateral", eventArgsData)
     .addCall("System.set_storage", {
         data: {
             call: true,

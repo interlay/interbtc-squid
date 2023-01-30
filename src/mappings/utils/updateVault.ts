@@ -15,6 +15,7 @@ export async function  updateVaultLockedCollateral(vaultID: string, amount: bigi
     if (existingVault === undefined) {
         console.error(`couldn't find vault to update vault ID: ${vaultID}`);
     }
-    existingVault.collateralAmount += amount;
+
+    existingVault.collateralAmount = amount;
     return existingVault;
 }

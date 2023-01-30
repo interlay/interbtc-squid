@@ -25,17 +25,17 @@ export class Vault {
     @Column_("jsonb", {transformer: {to: obj => obj.toJSON(), from: obj => obj == null ? undefined : fromJsonCurrency(obj)}, nullable: false})
     wrappedToken!: Currency
 
-    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-    pendingBtcAmount!: bigint
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: true})
+    pendingBtcAmount!: bigint | undefined | null
 
-    @Column_("text", {nullable: false})
-    collateralization!: string
+    @Column_("text", {nullable: true})
+    collateralization!: string | undefined | null
 
-    @Column_("bool", {nullable: false})
-    statusIssuing!: boolean
+    @Column_("bool", {nullable: true})
+    statusIssuing!: boolean | undefined | null
 
-    @Column_("bool", {nullable: false})
-    statusCollateral!: boolean
+    @Column_("bool", {nullable: true})
+    statusCollateral!: boolean | undefined | null
 
     @Index_()
     @ManyToOne_(() => Height, {nullable: true})

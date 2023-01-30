@@ -7,8 +7,10 @@ import {
 import { Ctx, EventItem } from "../../processor";
 import {
     VaultRegistryDecreaseLockedCollateralEvent,
+    VaultRegistryDepositCollateralEvent,
     VaultRegistryIncreaseLockedCollateralEvent,
     VaultRegistryRegisterVaultEvent,
+    VaultRegistryWithdrawCollateralEvent,
 } from "../../types/events";
 import {
     address,
@@ -89,13 +91,11 @@ export async function increaseLockedCollateral(
         item.event
     );
     let e;
-    let vaultId;
     let wrappedToken;
     let collateralToken;
     if (rawEvent.isV10 || rawEvent.isV15) {
         if (rawEvent.isV10) e = rawEvent.asV10;
         else e = rawEvent.asV15;
-        // vaultId = encodeLegacyVaultId(e.vaultId);
         wrappedToken = legacyCurrencyId.encode(e.currencyPair.wrapped);
         collateralToken = legacyCurrencyId.encode(e.currencyPair.collateral);
     } else {
@@ -106,8 +106,6 @@ export async function increaseLockedCollateral(
             ctx.log.warn(`UNKOWN EVENT VERSION: Vault.increaseLockedCollateral`);
             return;
         }
-
-        // vaultId = encodeVaultId(e.vaultId);
         wrappedToken = currencyId.encode(e.currencyPair.wrapped);
         collateralToken = currencyId.encode(e.currencyPair.collateral);
     }
@@ -123,17 +121,6 @@ export async function increaseLockedCollateral(
             wrappedCurrency: wrappedToken,
         })
     );
-
-    //updating the vault
-    // entityBuffer.pushEntity(
-    //     Vault.name,
-    //     await updateVaultLockedCollateral(
-    //         vaultID,
-    //         e.total,
-    //         entityBuffer,
-    //         ctx.store,
-    //     )
-    // );
 }
 
 export async function decreaseLockedCollateral(
@@ -177,5 +164,48 @@ export async function decreaseLockedCollateral(
             collateralCurrency: collateralToken,
             wrappedCurrency: wrappedToken,
         })
+    );
+}
+
+export async function WithdrawCollateral(
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem,
+    entityBuffer: EntityBuffer
+): Promise<void> {
+    const rawEvent = new VaultRegistryWithdrawCollateralEvent(
+        ctx,
+        item.event
+    );
+    let e;
+    let vaultId;
+    if (rawEvent.isV6) {
+        e = rawEvent.asV6;
+        vaultId = encodeLegacyVaultId(e.vaultId);
+    }
+    else if (rawEvent.isV15) {
+        e = rawEvent.asV15;
+        vaultId = encodeLegacyVaultId(e.vaultId);
+    }
+    else if (rawEvent.isV17)  {
+        e = rawEvent.asV17
+        vaultId = encodeVaultId(e.vaultId);
+    }
+    else if (rawEvent.isV1020000) {
+        e = rawEvent.asV1020000;
+        vaultId = encodeVaultId(e.vaultId);
+    }
+    else { 
+        ctx.log.warn(`UNKNOWN EVENT VERSION: Vault.DepositCollateralEvent`);
+        return;
+    }
+    entityBuffer.pushEntity(
+        Vault.name,
+        await updateVaultLockedCollateral(
+            vaultId,
+            e.totalCollateral,
+            entityBuffer,
+            ctx.store,
+        )
     );
 }
