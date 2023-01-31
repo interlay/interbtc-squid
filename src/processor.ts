@@ -29,6 +29,8 @@ import {
     setStorage,
     storeMainChainHeader,
     updateActiveBlock,
+    depositCollateralVault,
+    withdrawCollateralVault,
     updateVaultActivity,
 } from "./mappings";
 import { deposit, withdraw } from "./mappings/event/escrow";
@@ -238,12 +240,12 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
         },
         {
             filter: { name: "VaultRegistry.DepositCollateral" },
-            mapping: depositCollateral,
+            mapping: depositCollateralVault,
             totalTime: 0,
         },
         {
             filter: { name: "VaultRegistry.WithdrawCollateral" },
-            mapping: withdrawCollateral,
+            mapping: withdrawCollateralVault,
             totalTime: 0,
         },
         {

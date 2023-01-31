@@ -167,7 +167,7 @@ export async function decreaseLockedCollateral(
     );
 }
 
-export async function withdrawCollateral(
+export async function withdrawCollateralVault(
     ctx: Ctx,
     block: SubstrateBlock,
     item: EventItem,
@@ -199,7 +199,6 @@ export async function withdrawCollateral(
         ctx.log.warn(`UNKNOWN EVENT VERSION: Vault.WithdrawCollateralEvent`);
         return;
     }
-    console.log(`decrease collat ${vaultId} new colllateral ${e.totalCollateral} `)
     entityBuffer.pushEntity(
         Vault.name,
         await updateVaultLockedCollateral(
@@ -212,13 +211,13 @@ export async function withdrawCollateral(
 }
 
 
-export async function depositCollateral(
+export async function depositCollateralVault(
     ctx: Ctx,
     block: SubstrateBlock,
     item: EventItem,
     entityBuffer: EntityBuffer
 ): Promise<void> {
-    const rawEvent = new VaultRegistryWithdrawCollateralEvent(
+    const rawEvent = new VaultRegistryDepositCollateralEvent(
         ctx,
         item.event
     );
@@ -244,7 +243,6 @@ export async function depositCollateral(
         ctx.log.warn(`UNKNOWN EVENT VERSION: Vault.DepositCollateralEvent`);
         return;
     }
-    console.log(`incresase collat ${vaultId} new colllateral ${e.totalCollateral} `)
     entityBuffer.pushEntity(
         Vault.name,
         await updateVaultLockedCollateral(
