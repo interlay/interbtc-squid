@@ -196,6 +196,50 @@ export async function WithdrawCollateral(
         vaultId = encodeVaultId(e.vaultId);
     }
     else { 
+        ctx.log.warn(`UNKNOWN EVENT VERSION: Vault.WithdrawCollateralEvent`);
+        return;
+    }
+    entityBuffer.pushEntity(
+        Vault.name,
+        await updateVaultLockedCollateral(
+            vaultId,
+            e.totalCollateral,
+            entityBuffer,
+            ctx.store,
+        )
+    );
+}
+
+
+export async function DepositCollateral(
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem,
+    entityBuffer: EntityBuffer
+): Promise<void> {
+    const rawEvent = new VaultRegistryWithdrawCollateralEvent(
+        ctx,
+        item.event
+    );
+    let e;
+    let vaultId;
+    if (rawEvent.isV6) {
+        e = rawEvent.asV6;
+        vaultId = encodeLegacyVaultId(e.vaultId);
+    }
+    else if (rawEvent.isV15) {
+        e = rawEvent.asV15;
+        vaultId = encodeLegacyVaultId(e.vaultId);
+    }
+    else if (rawEvent.isV17)  {
+        e = rawEvent.asV17
+        vaultId = encodeVaultId(e.vaultId);
+    }
+    else if (rawEvent.isV1020000) {
+        e = rawEvent.asV1020000;
+        vaultId = encodeVaultId(e.vaultId);
+    }
+    else { 
         ctx.log.warn(`UNKNOWN EVENT VERSION: Vault.DepositCollateralEvent`);
         return;
     }
