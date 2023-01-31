@@ -199,6 +199,7 @@ export async function WithdrawCollateral(
         ctx.log.warn(`UNKNOWN EVENT VERSION: Vault.WithdrawCollateralEvent`);
         return;
     }
+    console.log(`decrease collat ${vaultId} new colllateral ${e.totalCollateral} `)
     entityBuffer.pushEntity(
         Vault.name,
         await updateVaultLockedCollateral(
@@ -243,6 +244,7 @@ export async function DepositCollateral(
         ctx.log.warn(`UNKNOWN EVENT VERSION: Vault.DepositCollateralEvent`);
         return;
     }
+    console.log(`incresase collat ${vaultId} new colllateral ${e.totalCollateral} `)
     entityBuffer.pushEntity(
         Vault.name,
         await updateVaultLockedCollateral(
