@@ -237,6 +237,16 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
             totalTime: 0,
         },
         {
+            filter: { name: "VaultRegistry.DepositCollateral" },
+            mapping: depositCollateral,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "VaultRegistry.WithdrawCollateral" },
+            mapping: withdrawCollateral,
+            totalTime: 0,
+        },
+        {
             filter: { name: "BTCRelay.StoreMainChainHeader" },
             mapping: storeMainChainHeader,
             totalTime: 0,

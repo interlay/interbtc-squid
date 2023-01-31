@@ -167,7 +167,7 @@ export async function decreaseLockedCollateral(
     );
 }
 
-export async function WithdrawCollateral(
+export async function withdrawCollateral(
     ctx: Ctx,
     block: SubstrateBlock,
     item: EventItem,
@@ -212,7 +212,7 @@ export async function WithdrawCollateral(
 }
 
 
-export async function DepositCollateral(
+export async function depositCollateral(
     ctx: Ctx,
     block: SubstrateBlock,
     item: EventItem,
