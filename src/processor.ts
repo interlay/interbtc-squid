@@ -16,6 +16,8 @@ import {
     cancelIssue,
     cancelRedeem,
     decreaseLockedCollateral,
+    dexGeneralAssetSwap,
+    dexStableCurrencyExchange,
     executeIssue,
     executeRedeem,
     feedValues,
@@ -69,6 +71,8 @@ const processor = new SubstrateBatchProcessor()
     .setTypesBundle("indexer/typesBundle.json")
     .setBlockRange({ from: processFrom })
     .addEvent("BTCRelay.StoreMainChainHeader", eventArgsData)
+    .addEvent("DexGeneral.AssetSwap", eventArgsData)
+    .addEvent("DexStable.CurrencyExchange", eventArgsData)
     .addEvent("Escrow.Deposit", eventArgsData)
     .addEvent("Escrow.Withdraw", eventArgsData)
     .addEvent("Issue.CancelIssue", eventArgsData)
@@ -271,6 +275,16 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
             mapping: withdraw,
             totalTime: 0,
         },
+        {
+            filter: { name: "DexGeneral.AssetSwap" },
+            mapping: dexGeneralAssetSwap,
+            totalTime: 0
+        },
+        {
+            filter: { name: "DexStable.CurrencyExchange" },
+            mapping: dexStableCurrencyExchange,
+            totalTime: 0
+        }
     ]);
 
     // second stage
