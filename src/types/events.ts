@@ -154,6 +154,35 @@ export class DexGeneralLiquidityRemovedEvent {
     }
 }
 
+export class DexStableCurrencyExchangeEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'DexStable.CurrencyExchange')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * Swap a amounts of currency to get other.
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('DexStable.CurrencyExchange') === '0abe856f4fa3b499a28439696d7ae07664a33ec25834861bc9032b5d4950a766'
+    }
+
+    /**
+     * Swap a amounts of currency to get other.
+     */
+    get asV1021000(): {poolId: number, who: Uint8Array, to: Uint8Array, inIndex: number, inAmount: bigint, outIndex: number, outAmount: bigint} {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
 export class EscrowDepositEvent {
     private readonly _chain: Chain
     private readonly event: Event

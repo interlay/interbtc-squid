@@ -33,7 +33,8 @@
         "VaultRegistry.RegisterVault",
         "DexGeneral.AssetSwap",
         "DexGeneral.LiquidityAdded",
-        "DexGeneral.LiquidityRemoved"
+        "DexGeneral.LiquidityRemoved",
+        "DexStable.CurrencyExchange"
     ],
     "calls": [
         "BTCRelay.store_block_header",
