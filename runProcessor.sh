@@ -24,12 +24,6 @@ elif command -v brew; then
   fi
 fi
 
-if command -v nvm ; then
-  nvm use
-else
-  echo "WARN: not able to configure nvm"
-fi
-
 yarn install
 yarn build
 yarn db:migrate
