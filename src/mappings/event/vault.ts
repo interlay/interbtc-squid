@@ -64,7 +64,6 @@ export async function registerVault(
 
     const collateralAmount: bigint = e.collateral;
     
-
     entityBuffer.pushEntity(
         Vault.name,
         new Vault({
@@ -75,7 +74,6 @@ export async function registerVault(
             registrationBlock: registrationBlock,
             registrationTimestamp: new Date(block.timestamp),
             collateralAmount,
-            
         })
     );
 }
@@ -182,20 +180,16 @@ export async function withdrawCollateralVault(
     if (rawEvent.isV6) {
         e = rawEvent.asV6;
         vaultId = encodeLegacyVaultId(e.vaultId);
-    }
-    else if (rawEvent.isV15) {
+    } else if (rawEvent.isV15) {
         e = rawEvent.asV15;
         vaultId = encodeLegacyVaultId(e.vaultId);
-    }
-    else if (rawEvent.isV17)  {
+    } else if (rawEvent.isV17)  {
         e = rawEvent.asV17
         vaultId = encodeVaultId(e.vaultId);
-    }
-    else if (rawEvent.isV1020000) {
+    } else if (rawEvent.isV1020000) {
         e = rawEvent.asV1020000;
         vaultId = encodeVaultId(e.vaultId);
-    }
-    else { 
+    } else { 
         ctx.log.warn(`UNKNOWN EVENT VERSION: Vault.WithdrawCollateralEvent`);
         return;
     }

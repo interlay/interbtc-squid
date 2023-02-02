@@ -26,7 +26,7 @@ export class Vault {
     wrappedToken!: Currency
 
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: true})
-    pendingBtcAmount!: bigint | undefined | null
+    pendingWrappedAmount!: bigint | undefined | null
 
     @Column_("text", {nullable: true})
     collateralization!: string | undefined | null
