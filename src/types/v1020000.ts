@@ -27,37 +27,6 @@ export interface Address_P2WSHv0 {
     value: Uint8Array
 }
 
-export type CurrencyId = CurrencyId_Token | CurrencyId_ForeignAsset | CurrencyId_LendToken
-
-export interface CurrencyId_Token {
-    __kind: 'Token'
-    value: TokenSymbol
-}
-
-export interface CurrencyId_ForeignAsset {
-    __kind: 'ForeignAsset'
-    value: number
-}
-
-export interface CurrencyId_LendToken {
-    __kind: 'LendToken'
-    value: number
-}
-
-export interface Market {
-    collateralFactor: number
-    liquidationThreshold: number
-    reserveFactor: number
-    closeFactor: number
-    liquidateIncentive: bigint
-    liquidateIncentiveReservedFactor: number
-    rateModel: InterestRateModel
-    state: MarketState
-    supplyCap: bigint
-    borrowCap: bigint
-    lendTokenId: CurrencyId
-}
-
 export type Key = Key_ExchangeRate | Key_FeeEstimation
 
 export interface Key_ExchangeRate {
@@ -86,6 +55,23 @@ export interface RedeemRequestStatus_Reimbursed {
 
 export interface RedeemRequestStatus_Retried {
     __kind: 'Retried'
+}
+
+export type CurrencyId = CurrencyId_Token | CurrencyId_ForeignAsset | CurrencyId_LendToken
+
+export interface CurrencyId_Token {
+    __kind: 'Token'
+    value: TokenSymbol
+}
+
+export interface CurrencyId_ForeignAsset {
+    __kind: 'ForeignAsset'
+    value: number
+}
+
+export interface CurrencyId_LendToken {
+    __kind: 'LendToken'
+    value: number
 }
 
 export interface VaultCurrencyPair {
@@ -117,41 +103,4 @@ export interface TokenSymbol_KBTC {
 
 export interface TokenSymbol_KINT {
     __kind: 'KINT'
-}
-
-export type InterestRateModel = InterestRateModel_Jump | InterestRateModel_Curve
-
-export interface InterestRateModel_Jump {
-    __kind: 'Jump'
-    value: JumpModel
-}
-
-export interface InterestRateModel_Curve {
-    __kind: 'Curve'
-    value: CurveModel
-}
-
-export type MarketState = MarketState_Active | MarketState_Pending | MarketState_Supervision
-
-export interface MarketState_Active {
-    __kind: 'Active'
-}
-
-export interface MarketState_Pending {
-    __kind: 'Pending'
-}
-
-export interface MarketState_Supervision {
-    __kind: 'Supervision'
-}
-
-export interface JumpModel {
-    baseRate: bigint
-    jumpRate: bigint
-    fullRate: bigint
-    jumpUtilization: number
-}
-
-export interface CurveModel {
-    baseRate: bigint
 }
