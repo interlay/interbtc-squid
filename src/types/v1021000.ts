@@ -1,32 +1,5 @@
 import type {Result, Option} from './support'
 
-export interface VaultId {
-    accountId: Uint8Array
-    currencies: VaultCurrencyPair
-}
-
-export type Address = Address_P2PKH | Address_P2SH | Address_P2WPKHv0 | Address_P2WSHv0
-
-export interface Address_P2PKH {
-    __kind: 'P2PKH'
-    value: Uint8Array
-}
-
-export interface Address_P2SH {
-    __kind: 'P2SH'
-    value: Uint8Array
-}
-
-export interface Address_P2WPKHv0 {
-    __kind: 'P2WPKHv0'
-    value: Uint8Array
-}
-
-export interface Address_P2WSHv0 {
-    __kind: 'P2WSHv0'
-    value: Uint8Array
-}
-
 export type CurrencyId = CurrencyId_Token | CurrencyId_ForeignAsset | CurrencyId_LendToken | CurrencyId_LpToken | CurrencyId_StableLpToken
 
 export interface CurrencyId_Token {
@@ -52,6 +25,33 @@ export interface CurrencyId_LpToken {
 export interface CurrencyId_StableLpToken {
     __kind: 'StableLpToken'
     value: number
+}
+
+export interface VaultId {
+    accountId: Uint8Array
+    currencies: VaultCurrencyPair
+}
+
+export type Address = Address_P2PKH | Address_P2SH | Address_P2WPKHv0 | Address_P2WSHv0
+
+export interface Address_P2PKH {
+    __kind: 'P2PKH'
+    value: Uint8Array
+}
+
+export interface Address_P2SH {
+    __kind: 'P2SH'
+    value: Uint8Array
+}
+
+export interface Address_P2WPKHv0 {
+    __kind: 'P2WPKHv0'
+    value: Uint8Array
+}
+
+export interface Address_P2WSHv0 {
+    __kind: 'P2WSHv0'
+    value: Uint8Array
 }
 
 export interface Market {

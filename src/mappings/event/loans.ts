@@ -1,20 +1,5 @@
 import { Deposit, Loan, LoanMarket, LoanMarketActivation, MarketState } from "../../model";
-import { SubstrateBlock, toHex } from "@subsquid/substrate-processor";
-import { LessThanOrEqual } from "typeorm";
-import {
-    CumulativeVolume,
-    CumulativeVolumePerCurrencyPair,
-    LendToken,
-    Redeem,
-    RedeemCancellation,
-    RedeemExecution,
-    RedeemPeriod,
-    RedeemRequest,
-    RedeemStatus,
-    RelayedBlock,
-    Transfer,
-    VolumeType,
-} from "../../model";
+import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { Ctx, EventItem } from "../../processor";
 import {
     LoansActivatedMarketEvent,
@@ -32,8 +17,7 @@ import {
 
 import {
     CurrencyId as CurrencyId_V1020000,
-    CurrencyId_LendToken,
-    Market as LoanMarket_V1020000
+    CurrencyId_LendToken
 } from "../../types/v1020000";
 
 import { CurrencyId as CurrencyId_V1021000,
@@ -45,20 +29,7 @@ import { blockToHeight } from "../utils/heights";
 import { friendlyAmount, getFirstAndLastFour } from "../_utils";
 import { lendTokenDetails } from "../utils/markets";
 
-import { CurrencyId_Token as CurrencyId_Token_V6 } from "../../types/v6";
-import { CurrencyId_Token as CurrencyId_Token_V10 } from "../../types/v10";
-import { CurrencyId_Token as CurrencyId_Token_V15 } from "../../types/v15";
-import { CurrencyId as CurrencyId_V17 } from "../../types/v17";
-import { InterestRateModel as InterestRateModel_V1020000 } from "../../types/v1020000";
-import { address, currencyId, currencyToString, legacyCurrencyId, rateModel } from "../encoding";
-import {
-    updateCumulativeVolumes,
-    updateCumulativeVolumesForCurrencyPair,
-} from "../utils/cumulativeVolumes";
-import { getCurrentRedeemPeriod } from "../utils/requestPeriods";
-import { getVaultId, getVaultIdLegacy } from "../_utils";
-import {Currency} from "../../model/generated/_currency"
-
+import { address, currencyId, currencyToString, rateModel } from "../encoding";
 
 export async function newMarket(
     ctx: Ctx,
@@ -69,17 +40,12 @@ export async function newMarket(
     const rawEvent = new LoansNewMarketEvent(ctx, item.event);
     let e;
     let underlyingCurrencyId: CurrencyId_V1020000|CurrencyId_V1021000;
-    let market: LoanMarket_V1020000|LoanMarket_V1021000;
-    if (rawEvent.isV1020000) {
-        e = rawEvent.asV1020000;
-        [ underlyingCurrencyId, market ] = e;
-    }
-    else if (rawEvent.isV1021000) {
+    let market: LoanMarket_V1021000;
+    if (rawEvent.isV1021000) {
         e = rawEvent.asV1021000;
         underlyingCurrencyId = e.underlyingCurrencyId;
         market = e.market;
-    }
-    else {
+    } else {
         ctx.log.warn(`UNKOWN EVENT VERSION: LoansNewMarketEvent`);
         return;
     }
@@ -123,17 +89,12 @@ export async function updatedMarket(
     const rawEvent = new LoansUpdatedMarketEvent(ctx, item.event);
     let e;
     let underlyingCurrencyId: CurrencyId_V1020000|CurrencyId_V1021000;
-    let market: LoanMarket_V1020000|LoanMarket_V1021000;
-    if (rawEvent.isV1020000) {
-        e = rawEvent.asV1020000;
-        [ underlyingCurrencyId, market ] = e;
-    }
-    else if (rawEvent.isV1021000) {
+    let market: LoanMarket_V1021000;
+    if (rawEvent.isV1021000) {
         e = rawEvent.asV1021000;
         underlyingCurrencyId = e.underlyingCurrencyId;
         market = e.market;
-    }
-    else {
+    } else {
         ctx.log.warn(`UNKOWN EVENT VERSION: LoansUpdatedMarketEvent`);
         return;
     }
@@ -182,15 +143,11 @@ export async function activatedMarket(
 ): Promise<void> {
     const rawEvent = new LoansActivatedMarketEvent(ctx, item.event);
     let e;
-    let underlyingCurrencyId: CurrencyId_V1020000|CurrencyId_V1021000;
-    if (rawEvent.isV1020000) {
-        underlyingCurrencyId = rawEvent.asV1020000;
-    }
-    else if (rawEvent.isV1021000) {
+    let underlyingCurrencyId: CurrencyId_V1021000;
+    if (rawEvent.isV1021000) {
         e = rawEvent.asV1021000;
         underlyingCurrencyId = e.underlyingCurrencyId;
-    }
-    else {
+    } else {
         ctx.log.warn(`UNKOWN EVENT VERSION: LoansActivatedMarketEvent`);
         return;
     }
@@ -234,17 +191,12 @@ export async function borrow(
     let myCurrencyId: CurrencyId_V1020000|CurrencyId_V1021000;
     let amount: bigint;
     let e;
-    if (rawEvent.isV1020000) {
-        e = rawEvent.asV1020000;
-        [ accountId, myCurrencyId, amount ] = e;
-    }
-    else if (rawEvent.isV1021000) {
+    if (rawEvent.isV1021000) {
         e = rawEvent.asV1021000;
         accountId = e.accountId;
         myCurrencyId = e.currencyId;
         amount = e.amount;
-    }
-    else {
+    } else {
         ctx.log.warn(`UNKOWN EVENT VERSION: LoansBorrowedEvent`);
         return;
     }
@@ -277,17 +229,12 @@ export async function depositCollateral(
     let myCurrencyId: CurrencyId_V1020000|CurrencyId_V1021000;
     let amount: bigint;
     let e;
-    if (rawEvent.isV1020000) {
-        e = rawEvent.asV1020000;
-        [ accountId, myCurrencyId, amount ] = e;
-    }
-    else if (rawEvent.isV1021000) {
+    if (rawEvent.isV1021000) {
         e = rawEvent.asV1021000;
         accountId = e.accountId;
         myCurrencyId = e.currencyId;
         amount = e.amount;
-    }
-    else {
+    } else {
         ctx.log.warn(`UNKOWN EVENT VERSION: LoansDepositCollateralEvent`);
         return;
     }
@@ -329,17 +276,12 @@ export async function withdrawCollateral(
     let myCurrencyId: CurrencyId_V1020000|CurrencyId_V1021000;
     let amount: bigint;
     let e;
-    if (rawEvent.isV1020000) {
-        e = rawEvent.asV1020000;
-        [ accountId, myCurrencyId, amount ] = e;
-    }
-    else if (rawEvent.isV1021000) {
+    if (rawEvent.isV1021000) {
         e = rawEvent.asV1021000;
         accountId = e.accountId;
         myCurrencyId = e.currencyId;
         amount = e.amount;
-    }
-    else {
+    } else {
         ctx.log.warn(`UNKOWN EVENT VERSION: LoansDepositCollateralEvent`);
         return;
     }
@@ -381,17 +323,12 @@ export async function depositForLending(
     let myCurrencyId: CurrencyId_V1020000|CurrencyId_V1021000;
     let amount: bigint;
     let e;
-    if (rawEvent.isV1020000) {
-        e = rawEvent.asV1020000;
-        [ accountId, myCurrencyId, amount ] = e;
-    }
-    else if (rawEvent.isV1021000) {
+    if (rawEvent.isV1021000) {
         e = rawEvent.asV1021000;
         accountId = e.accountId;
         myCurrencyId = e.currencyId;
         amount = e.amount;
-    }
-    else {
+    } else {
         ctx.log.warn(`UNKOWN EVENT VERSION: LoansDepositedEvent`);
         return;
     }
@@ -442,17 +379,12 @@ export async function repay(
     let myCurrencyId: CurrencyId_V1020000|CurrencyId_V1021000;
     let amount: bigint;
     let e;
-    if (rawEvent.isV1020000) {
-        e = rawEvent.asV1020000;
-        [ accountId, myCurrencyId, amount ] = e;
-    }
-    else if (rawEvent.isV1021000) {
+    if (rawEvent.isV1021000) {
         e = rawEvent.asV1021000;
         accountId = e.accountId;
         myCurrencyId = e.currencyId;
         amount = e.amount;
-    }
-    else {
+    } else {
         ctx.log.warn(`UNKOWN EVENT VERSION: LoansRepaidBorrowEvent`);
         return;
     }
@@ -486,17 +418,12 @@ export async function withdrawDeposit(
     let myCurrencyId: CurrencyId_V1020000|CurrencyId_V1021000;
     let amount: bigint;
     let e;
-    if (rawEvent.isV1020000) {
-        e = rawEvent.asV1020000;
-        [ accountId, myCurrencyId, amount ] = e;
-    }
-    else if (rawEvent.isV1021000) {
+    if (rawEvent.isV1021000) {
         e = rawEvent.asV1021000;
         accountId = e.accountId;
         myCurrencyId = e.currencyId;
         amount = e.amount;
-    }
-    else {
+    } else {
         ctx.log.warn(`UNKOWN EVENT VERSION: LoansRepaidBorrowEvent`);
         return;
     }
