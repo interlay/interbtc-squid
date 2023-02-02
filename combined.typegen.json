@@ -5,8 +5,6 @@
     "events": [
         "BTCRelay.StoreMainChainHeader",
         "DexGeneral.AssetSwap",
-        "DexGeneral.LiquidityAdded",
-        "DexGeneral.LiquidityRemoved",
         "DexStable.CurrencyExchange",
         "Escrow.Deposit",
         "Escrow.Withdraw",

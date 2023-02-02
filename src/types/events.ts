@@ -92,68 +92,6 @@ export class DexGeneralAssetSwapEvent {
     }
 }
 
-export class DexGeneralLiquidityAddedEvent {
-    private readonly _chain: Chain
-    private readonly event: Event
-
-    constructor(ctx: EventContext)
-    constructor(ctx: ChainContext, event: Event)
-    constructor(ctx: EventContext, event?: Event) {
-        event = event || ctx.event
-        assert(event.name === 'DexGeneral.LiquidityAdded')
-        this._chain = ctx._chain
-        this.event = event
-    }
-
-    /**
-     * Add liquidity. \[owner, asset_0, asset_1, add_balance_0, add_balance_1,
-     * mint_balance_lp\]
-     */
-    get isV1021000(): boolean {
-        return this._chain.getEventHash('DexGeneral.LiquidityAdded') === 'd8b087aac9964db76a860392438c8c03122c1821fc97316158cf5177e3078899'
-    }
-
-    /**
-     * Add liquidity. \[owner, asset_0, asset_1, add_balance_0, add_balance_1,
-     * mint_balance_lp\]
-     */
-    get asV1021000(): [Uint8Array, v1021000.CurrencyId, v1021000.CurrencyId, bigint, bigint, bigint] {
-        assert(this.isV1021000)
-        return this._chain.decodeEvent(this.event)
-    }
-}
-
-export class DexGeneralLiquidityRemovedEvent {
-    private readonly _chain: Chain
-    private readonly event: Event
-
-    constructor(ctx: EventContext)
-    constructor(ctx: ChainContext, event: Event)
-    constructor(ctx: EventContext, event?: Event) {
-        event = event || ctx.event
-        assert(event.name === 'DexGeneral.LiquidityRemoved')
-        this._chain = ctx._chain
-        this.event = event
-    }
-
-    /**
-     * Remove liquidity. \[owner, recipient, asset_0, asset_1, rm_balance_0, rm_balance_1,
-     * burn_balance_lp\]
-     */
-    get isV1021000(): boolean {
-        return this._chain.getEventHash('DexGeneral.LiquidityRemoved') === '3b79687d35ae212367d8e45de1258467b263a0005a6840dceaf3184c4aad8999'
-    }
-
-    /**
-     * Remove liquidity. \[owner, recipient, asset_0, asset_1, rm_balance_0, rm_balance_1,
-     * burn_balance_lp\]
-     */
-    get asV1021000(): [Uint8Array, Uint8Array, v1021000.CurrencyId, v1021000.CurrencyId, bigint, bigint, bigint] {
-        assert(this.isV1021000)
-        return this._chain.decodeEvent(this.event)
-    }
-}
-
 export class DexStableCurrencyExchangeEvent {
     private readonly _chain: Chain
     private readonly event: Event
