@@ -2,7 +2,7 @@ import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { Currency } from "../../model";
 import { Ctx } from "../../processor";
 import { DexStablePoolsStorage } from "../../types/storage";
-import { BasePool, Pool, Pool_Base } from "../../types/v1021000";
+import { Pool, Pool_Base, Pool_Meta } from "../../types/v1021000";
 import { currencyId as currencyEncoder } from "../encoding";
 
 // poor man's stable pool id to currencies cache
@@ -16,8 +16,12 @@ export function clearPoolCurrencies() {
     stablePoolCurrenciesCache.clear();
 }
 
-function isBasePool(pool: Pool): pool is Pool_Base {
-    return (pool as any).currencyIds != undefined;
+export function isBasePool(pool: Pool): pool is Pool_Base {
+    return pool.__kind === "Base";
+}
+
+export function isMetaPool(pool: Pool): pool is Pool_Meta {
+    return pool.__kind === "Meta";
 }
 
 export async function getStablePoolCurrencyByIndex(ctx: Ctx, block: SubstrateBlock, poolId: number, index: number): Promise<Currency> {
@@ -35,8 +39,10 @@ export async function getStablePoolCurrencyByIndex(ctx: Ctx, block: SubstrateBlo
     } else if (rawPoolStorage.isV1021000) {
         const pool = await rawPoolStorage.getAsV1021000(poolId);
         // check pool is found and as a BasePool
-        if (pool == undefined || !isBasePool(pool) ) {
+        if (pool == undefined ) {
             throw Error(`getStablePoolCurrencyByIndex: Unable to find stable pool in storage for given poolId [${poolId}]`);
+        } else if (!isBasePool(pool)) {
+            throw Error(`getStablePoolCurrencyByIndex: Found pool for given poolId [${poolId}], but it is an unexpected pool type [${pool.__kind}]`);
         }
 
         const currencyIds = pool.value.currencyIds;
