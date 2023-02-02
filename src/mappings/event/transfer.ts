@@ -11,6 +11,7 @@ import { CurrencyId as CurrencyId_V1021000 } from "../../types/v1021000";
 import { address, currencyId, legacyCurrencyId } from "../encoding";
 import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
+import { convertAmountToHuman } from "../_utils";
 
 export async function tokensTransfer(
     ctx: Ctx,
@@ -65,6 +66,7 @@ export async function tokensTransfer(
     }
 
     const height = await blockToHeight(ctx, block.height, "TokensTransfer");
+    const amountHuman = await convertAmountToHuman(currency, amount);
 
     entityBuffer.pushEntity(
         Transfer.name,
@@ -76,6 +78,7 @@ export async function tokensTransfer(
             to: address.interlay.encode(to),
             token: currency,
             amount,
+            amountHuman,
         })
     );
 }

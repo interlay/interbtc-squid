@@ -16,12 +16,9 @@ import {
 import {
     VaultId as VaultIdV1020000,
     CurrencyId as CurrencyId_V1020000,
-    InterestRateModel as InterestRateModel_V1020000,
-    MarketState as MarketState_V1020000,
 } from "../types/v1020000";
 import {
     InterestRateModel as InterestRateModel_V1021000,
-    MarketState as MarketState_V1021000,
 } from "../types/v1021000";
 import {
     Address as AddressV15,
