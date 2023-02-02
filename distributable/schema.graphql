@@ -14,6 +14,12 @@ enum RedeemStatus {
     Pending
 }
 
+enum MarketState {
+    Active
+    Pending
+    Supervision
+}
+
 enum Token {
     DOT
     INTR
@@ -35,7 +41,31 @@ type LendToken {
     lendTokenId: Int!
 }
 
-union Currency = NativeToken | ForeignAsset | LendToken
+type StableLpToken {
+    poolId: Int!
+}
+
+union PooledToken = NativeToken | ForeignAsset | StableLpToken
+
+type LpToken {
+    token0: PooledToken!
+    token1: PooledToken!
+}
+
+union Currency = NativeToken | ForeignAsset | LendToken | LpToken | StableLpToken
+
+type RateModelJump {
+    baseRate: BigInt!
+    jumpRate: BigInt!
+    fullRate: BigInt!
+    jumpUtilization: Int!
+}
+
+type RateModelCurve {
+    baseRate: BigInt!
+}
+
+union RateModel = RateModelJump | RateModelCurve
 
 type Vault @entity {
     id: ID!
@@ -75,7 +105,7 @@ type Issue @entity {
     vault: Vault!
     period: IssuePeriod!
     backingPayment: IssuePayment @derivedFrom(field: "issue")
-    status: IssueStatus @index # TODO: find a way to optimise queries by status
+    status: IssueStatus @index
     execution: IssueExecution @derivedFrom(field: "issue")
     cancellation: IssueCancellation @derivedFrom(field: "issue")
     refund: Refund @derivedFrom(field: "issue")
@@ -184,6 +214,7 @@ type OracleUpdate @entity {
     type: OracleUpdateType!
     typeKey: Currency
     updateValue: BigInt!
+    updateValueHuman: BigDecimal!
 }
 
 enum VolumeType {
@@ -191,6 +222,8 @@ enum VolumeType {
     Redeemed
     Collateral
     Staked
+    Locked
+    BridgeVolume
 }
 
 type CumulativeVolume @entity {
@@ -205,6 +238,7 @@ type CumulativeVolumePerCurrencyPair @entity {
     type: VolumeType!
     tillTimestamp: DateTime!
     amount: BigInt!
+    amountHuman: BigDecimal!
     wrappedCurrency: Currency
     collateralCurrency: Currency
 }
@@ -225,6 +259,7 @@ type Transfer @entity {
     id: ID!
     token: Currency!
     amount: BigInt!
+    amountHuman: BigDecimal!
     from: String! @index
     to: String! @index
     height: Height!
@@ -236,5 +271,46 @@ type LoanMarket @entity {
     token: Currency!
     height: Height!
     timestamp: DateTime!
+    borrowCap: BigInt!
+    supplyCap: BigInt!
+    rateModel: RateModel!
+    closeFactor: Int!
+    lendTokenId: Int! @unique
+    state: MarketState!
+    reserveFactor: Int!
+    collateralFactor: Int!
+    liquidateIncentive: BigInt!
+    liquidationThreshold: Int!
+    liquidateIncentiveReservedFactor: Int!
+    activation: LoanMarketActivation @derivedFrom(field: "market")
 }
 
+type LoanMarketActivation @entity {
+    id: ID!
+    market: LoanMarket! @unique
+    token: Currency!
+    height: Height!
+    timestamp: DateTime!
+}
+
+type Loan @entity {
+    id: ID!
+    token: Currency!
+    userParachainAddress: String!
+    amountBorrowed: BigInt
+    amountRepaid: BigInt
+    height: Height!
+    timestamp: DateTime!
+    comment: String
+}
+
+type Deposit @entity {
+    id: ID!
+    token: Currency!
+    userParachainAddress: String!
+    amountDeposited: BigInt
+    amountWithdrawn: BigInt
+    height: Height!
+    timestamp: DateTime!
+    comment: String
+}
