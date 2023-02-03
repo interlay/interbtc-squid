@@ -1,14 +1,12 @@
-import { Entity, Store } from "@subsquid/typeorm-store";
-import { Currency, ForeignAsset, Height, Issue, Redeem, Vault } from "../model";
+import { Store } from "@subsquid/typeorm-store";
+import { Currency, Height, Issue, Redeem, Vault } from "../model";
 import { VaultId as VaultIdV15 } from "../types/v15";
-import { VaultId as VaultIdV17 } from "../types/v17";
 import { VaultId as VaultIdV6 } from "../types/v6";
-import { VaultId as VaultIdV1020000 } from "../types/v1020000";
 import { VaultId as VaultIdV1021000 } from "../types/v1021000";
 import { encodeLegacyVaultId, encodeVaultId } from "./encoding";
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import * as process from "process";
-import { CurrencyExt, CurrencyIdentifier, currencyIdToMonetaryCurrency, getCurrencyIdentifier, newMonetaryAmount } from "@interlay/interbtc-api";
+import { CurrencyExt, CurrencyIdentifier, currencyIdToMonetaryCurrency, getCurrencyIdentifier, newMonetaryAmount, StandardPooledTokenIdentifier } from "@interlay/interbtc-api";
 import { BigDecimal } from "@subsquid/big-decimal";
 import { getInterBtcApi } from "../processor";
 
@@ -137,37 +135,27 @@ export async function currencyToLibCurrencyExt(currency: Currency): Promise<Curr
     let id: CurrencyIdentifier;
     if (currency.isTypeOf === "NativeToken") {
         id = {token: currency.token};
-    }
-    else if (currency.isTypeOf === "ForeignAsset") {
+    } else if (currency.isTypeOf === "ForeignAsset") {
         id = {foreignAsset: currency.asset };
-    }
-    else if (currency.isTypeOf === "LendToken") {
+    } else if (currency.isTypeOf === "LendToken") {
         id = {lendToken: currency.lendTokenId};
-    }
-    /* More CurrencyEXT types that will be supported soon
-    else if (currency.isTypeOf === "StableLpToken") {
+    } else if (currency.isTypeOf === "StableLpToken") {
         id = {stableLpToken: currency.poolId};
-    }
-    else if (currency.isTypeOf === "LpToken") {
-        const token0 = currencyToLibCurrencyExt(currency.token0) as StandardPooledTokenIdentifier;
-        const token1 = currencyToLibCurrencyExt(currency.token1) as StandardPooledTokenIdentifier;
-        id =  { lpToken: [token0, token1] };
-        
-    */
-    else {
-       throw new Error("No handling implemented for currency type");
+    } else if (currency.isTypeOf === "LpToken") {
+        const token0 = (await currencyToLibCurrencyExt(currency.token0)) as unknown as StandardPooledTokenIdentifier;
+        const token1 = (await currencyToLibCurrencyExt(currency.token1)) as unknown as StandardPooledTokenIdentifier;
+        id =  {lpToken: [token0, token1]};
+    } else {
+        // using any for future proofing, TS thinks this is never which is correct until it isn't anymore
+        // and we've extended the types
+        throw new Error(`No handling implemented for given currency type [${(currency as any).isTypeOf}]`);
     }
     let currencyInfo: CurrencyExt;
     if ( currencyMap.has(id) ) {
         currencyInfo = currencyMap.get(id) as CurrencyExt;
-    }
-    else {
+    } else {
         const currencyId = interBtcApi.api.createType("InterbtcPrimitivesCurrencyId", id );
-        currencyInfo  = await currencyIdToMonetaryCurrency(
-            interBtcApi.assetRegistry,
-            interBtcApi.loans,
-            currencyId
-        )
+        currencyInfo  = await currencyIdToMonetaryCurrency(interBtcApi.api, currencyId);
 
         currencyMap.set(id , currencyInfo);
     }
