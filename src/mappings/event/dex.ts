@@ -1,11 +1,12 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { CumulativeDexTradingVolumePerPool, Currency, fromJsonPooledToken, PooledToken, PoolType } from "../../model";
 import { Ctx, EventItem } from "../../processor";
-import { DexGeneralAssetSwapEvent } from "../../types/events";
+import { DexGeneralAssetSwapEvent, DexStableCurrencyExchangeEvent } from "../../types/events";
+import { DexStablePoolsStorage } from "../../types/storage";
 import { currencyId } from "../encoding";
-import { GeneralSwapDetails, updateCumulativeDexVolumesForStandardPool } from "../utils/cumulativeVolumes";
+import { SwapDetails, updateCumulativeDexVolumesForStablePool, updateCumulativeDexVolumesForStandardPool } from "../utils/cumulativeVolumes";
 import EntityBuffer from "../utils/entityBuffer";
-import { inferGeneralPoolId } from "../utils/pools";
+import { getStablePoolCurrencyByIndex } from "../utils/pools";
 
 function isPooledToken(currency: Currency): currency is PooledToken {
     try {
@@ -24,10 +25,7 @@ export async function dexGeneralAssetSwap(
 ): Promise<void> {
     const rawEvent = new DexGeneralAssetSwapEvent(ctx, item.event);
 
-    let poolId: string;
-
-    const poolType: PoolType = PoolType.Standard;
-    let swapDetails: GeneralSwapDetails;
+    let swapDetails: SwapDetails;
 
     if (rawEvent.isV1021000) {
         const [, , swapPath, balances] = rawEvent.asV1021000;
@@ -52,7 +50,6 @@ export async function dexGeneralAssetSwap(
 
         const amountIn = balances[0];
         const amountOut = balances[1];
-        poolId = inferGeneralPoolId(currencyIn, currencyOut);
         swapDetails = {
             from: {
                 currency: currencyIn,
@@ -88,6 +85,58 @@ export async function dexStableCurrencyExchange(
     item: EventItem,
     entityBuffer: EntityBuffer
 ): Promise<void> {
-    throw Error("Not implemented yet");
-    return;
+    const rawEvent = new DexStableCurrencyExchangeEvent(ctx, item.event);
+    let poolId: number;
+    let inIndex: number;
+    let outIndex: number;
+    let inAmount: bigint;
+    let outAmount: bigint;
+
+    if (rawEvent.isV1021000) {
+        const event = rawEvent.asV1021000;
+        poolId = event.poolId;
+        inIndex = event.inIndex;
+        outIndex = event.outIndex;
+        inAmount = event.inAmount;
+        outAmount = event.outAmount;
+    } else {
+        ctx.log.warn("UNKOWN EVENT VERSION: DexStable.CurrencyExchange");
+        return;
+    }
+
+    const outCurrency = await getStablePoolCurrencyByIndex(ctx, block, poolId, outIndex);
+    const inCurrency = await getStablePoolCurrencyByIndex(ctx, block, poolId, inIndex);
+    
+    if (!isPooledToken(inCurrency)) {
+        ctx.log.error(`Unexpected currencyIn type ${inCurrency.isTypeOf}, skip processing of DexGeneralAssetSwapEvent`);
+        return;
+    }
+    if (!isPooledToken(outCurrency)) {
+        ctx.log.error(`Unexpected currencyOut type ${outCurrency.isTypeOf}, skip processing of DexGeneralAssetSwapEvent`);
+        return;
+    }
+
+    const swapDetails: SwapDetails = {
+        from: {
+            currency: inCurrency,
+            atomicAmount: inAmount
+        },
+        to: {
+            currency: outCurrency,
+            atomicAmount: outAmount
+        }
+    };
+
+    const entityPromise = updateCumulativeDexVolumesForStablePool(
+        ctx.store,
+        new Date(block.timestamp),
+        poolId,
+        swapDetails,
+        entityBuffer
+    );
+
+    entityBuffer.pushEntity(
+        CumulativeDexTradingVolumePerPool.name,
+        await entityPromise
+    );
 }
