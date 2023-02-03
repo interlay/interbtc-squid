@@ -1,14 +1,18 @@
 import {
+    CumulativeDexTradingVolumePerPool,
     CumulativeVolume,
     CumulativeVolumePerCurrencyPair,
     Currency,
+    PooledAmount,
+    PooledToken,
+    PoolType,
     VolumeType,
 } from "../../model";
 import { Equal, LessThanOrEqual } from "typeorm";
 import { Store } from "@subsquid/typeorm-store";
-import { EventItem } from "../../processor";
 import EntityBuffer from "./entityBuffer";
 import { convertAmountToHuman } from "../_utils";
+import { inferGeneralPoolId } from "./pools";
 
 function getLatestCurrencyPairCumulativeVolume(
     cumulativeVolumes: CumulativeVolumePerCurrencyPair[],
@@ -200,4 +204,96 @@ export async function updateCumulativeVolumesForCurrencyPair(
         );
         return cumulativeVolumeForCollateral;
     }
+}
+
+type SwapDetailsAmount = {
+    currency: PooledToken,
+    atomicAmount: bigint
+};
+
+export type GeneralSwapDetails = {
+    from: SwapDetailsAmount,
+    to: SwapDetailsAmount
+}
+
+async function createPooledAmount(swapAmount: SwapDetailsAmount): Promise<PooledAmount> {
+    const amountHuman = await convertAmountToHuman(swapAmount.currency, swapAmount.atomicAmount);
+    return new PooledAmount({
+        token: swapAmount.currency,
+        amount: swapAmount.atomicAmount,
+        amountHuman
+    });
+}
+
+export async function updateCumulativeDexVolumesForStandardPool(
+    store: Store,
+    timestamp: Date,
+    swapDetails: GeneralSwapDetails,
+    entityBuffer: EntityBuffer
+): Promise<CumulativeDexTradingVolumePerPool> {
+    const poolType = PoolType.Standard;
+
+    const poolId = inferGeneralPoolId(swapDetails.from.currency, swapDetails.to.currency);
+
+    const entityId = `${poolId}-${poolType}-${timestamp
+        .getTime()
+        .toString()}`;
+
+    const eventCurrencies = new Set([swapDetails.to.currency, swapDetails.from.currency]);
+
+    const entity =
+        // fetch from buffer if it exists
+        (entityBuffer.getBufferedEntityBy(
+            CumulativeDexTradingVolumePerPool.name,
+            entityId
+        ) as CumulativeDexTradingVolumePerPool | undefined) ||
+        // if not found, try to fetch from store
+        (await store.get(CumulativeDexTradingVolumePerPool, entityId)) ||
+        // still not found, create a new entity
+        new CumulativeDexTradingVolumePerPool({
+            id: entityId,
+            poolId: poolId,
+            poolType: poolType,
+            tillTimestamp: timestamp,
+            amounts: []
+        });
+    
+    // we need to find & update existing amounts, or add new ones
+    let foundFrom = false;
+    let foundTo = false;
+    
+    for (const pooledAmount of entity.amounts) {
+        if (foundFrom && foundTo) {
+            // done: exit loop
+            break;
+        }
+
+        let amountToAdd: bigint | undefined = undefined;
+        if (pooledAmount.token === swapDetails.from.currency) {
+            amountToAdd = swapDetails.from.atomicAmount;
+            foundFrom = true;
+        } else if (pooledAmount.token === swapDetails.to.currency) {
+            amountToAdd = swapDetails.to.atomicAmount;
+            foundTo = true;
+        }
+
+        // update volume in place (ie. modify the entity directly)
+        if (amountToAdd) {
+            const newAmount = pooledAmount.amount + swapDetails.to.atomicAmount;
+            pooledAmount.amount = newAmount;
+            pooledAmount.amountHuman = await convertAmountToHuman(pooledAmount.token, newAmount);
+        }
+    }
+
+    // if we get here, there is at least one new pooled amount to add to the entity
+    if (!foundFrom) {
+        const pooledAmount = await createPooledAmount(swapDetails.from);
+        entity.amounts.push(pooledAmount);
+    }
+    if (!foundTo) {
+        const pooledAmount = await createPooledAmount(swapDetails.to);
+        entity.amounts.push(pooledAmount);
+    }
+
+    return entity;
 }

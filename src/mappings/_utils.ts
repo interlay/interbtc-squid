@@ -183,3 +183,8 @@ export async function convertAmountToHuman(currency: Currency, amount: bigint ) 
     const monetaryAmount = newMonetaryAmount(amount.toString(), currencyInfo);
     return BigDecimal(monetaryAmount.toString());
 }
+
+// helper method to switch around key/value pairs for a given map
+export function invertMap<K extends Object, V extends Object>(map: Map<K, V>): Map<V, K> {
+    return new Map(Array.from(map, ([key, value]) => [value, key]));
+}

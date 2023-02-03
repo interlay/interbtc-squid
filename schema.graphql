@@ -255,7 +255,7 @@ enum PoolType {
     Stable
 }
 
-type CumulativeAmmTradingVolumePerPool @entity {
+type CumulativeDexTradingVolumePerPool @entity {
     id: ID!
     poolId: String! @index
     poolType: PoolType!

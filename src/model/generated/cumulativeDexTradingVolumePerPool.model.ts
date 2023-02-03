@@ -4,8 +4,8 @@ import {PoolType} from "./_poolType"
 import {PooledAmount} from "./_pooledAmount"
 
 @Entity_()
-export class CumulativeAmmTradingVolumePerPool {
-    constructor(props?: Partial<CumulativeAmmTradingVolumePerPool>) {
+export class CumulativeDexTradingVolumePerPool {
+    constructor(props?: Partial<CumulativeDexTradingVolumePerPool>) {
         Object.assign(this, props)
     }
 
