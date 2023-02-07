@@ -2,7 +2,7 @@ import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { Currency, Token } from "../../model";
 import { Ctx } from "../../processor";
 import { DexStablePoolsStorage } from "../../types/storage";
-import { Pool, Pool_Base, Pool_Meta } from "../../types/v1021000";
+import { CurrencyId, Pool, Pool_Base, Pool_Meta } from "../../types/v1021000";
 import { currencyToString, currencyId as currencyEncoder } from "../encoding";
 import { invertMap } from "../_utils";
 
@@ -15,7 +15,7 @@ const indexToCurrencyTypeMap: Map<number, string> = new Map([
 ]);
 const currencyTypeToIndexMap = invertMap(indexToCurrencyTypeMap);
 
-// Replicated from parachain code. 
+// Replicated order from parachain code. 
 // See also https://github.com/interlay/interbtc/blob/d48fee47e153291edb92525221545c2f4fa58501/primitives/src/lib.rs#L469-L476
 const indexToNativeTokenMap: Map<number, Token> = new Map([
     [0, Token.DOT],
@@ -61,15 +61,21 @@ export async function getStablePoolCurrencyByIndex(ctx: Ctx, block: SubstrateBlo
         throw Error("getStablePoolCurrencyByIndex: DexStable.Pools storage is not defined for this spec version");
     } else if (rawPoolStorage.isV1021000) {
         const pool = await rawPoolStorage.getAsV1021000(poolId);
+        let currencies: Currency[] = [];
         // check pool is found and as a BasePool
         if (pool == undefined ) {
             throw Error(`getStablePoolCurrencyByIndex: Unable to find stable pool in storage for given poolId [${poolId}]`);
-        } else if (!isBasePool(pool)) {
-            throw Error(`getStablePoolCurrencyByIndex: Found pool for given poolId [${poolId}], but it is an unexpected pool type [${pool.__kind}]`);
+        } else if (isBasePool(pool)) {
+            const basePoolCurrencyIds = pool.value.currencyIds;
+            currencies = basePoolCurrencyIds.map(currencyId => currencyEncoder.encode(currencyId));
+        } else if (isMetaPool(pool)) {
+            const metaPoolCurrencyIds = pool.value.info.currencyIds;
+            currencies = metaPoolCurrencyIds.map(currencyId => currencyEncoder.encode(currencyId));
+        } else {
+            // use of any to future-proof for if/when pool types are expanded.
+            throw Error(`getStablePoolCurrencyByIndex: Found pool for given poolId [${poolId}], but it is an unexpected pool type [${(pool as any).__kind}]`);
         }
 
-        const currencyIds = pool.value.currencyIds;
-        const currencies = currencyIds.map((currencyId) => currencyEncoder.encode(currencyId));
         setPoolCurrencies(poolId, currencies);
 
         if (currencies.length > index) {
@@ -146,16 +152,17 @@ function compareCurrencies(currency0: Currency, currency1: Currency): number {
  * @param currency1 The other currency
  */
 export function inferGeneralPoolId(currency0: Currency, currency1: Currency): string {
-    const order = compareCurrencies(currency0, currency1);
-    const prefix = "poolId";
-    const currency0String = currencyToString(currency0);
-    const currency1String = currencyToString(currency1);
-
+    let firstCurrencyString: string = currencyToString(currency0);
+    let secondCurrencyString: string = currencyToString(currency1);
+    
+    const order: number = compareCurrencies(currency0, currency1);
+    // swap strings around if needed
     if (order > 0) {
-        // swap around
-        return `${prefix}_${currency1String}_${currency0String}`
-
+        // works because strings (ie. not the capitalized String) are passed by value
+        const hold = firstCurrencyString;
+        firstCurrencyString = secondCurrencyString;
+        secondCurrencyString = hold;
     }
 
-    return `${prefix}_${currency0String}_${currency1String}`
+    return `(${firstCurrencyString},${secondCurrencyString})`;
 }
