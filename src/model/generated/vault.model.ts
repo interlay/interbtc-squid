@@ -25,8 +25,8 @@ export class Vault {
     @Column_("jsonb", {transformer: {to: obj => obj.toJSON(), from: obj => obj == null ? undefined : fromJsonCurrency(obj)}, nullable: false})
     wrappedToken!: Currency
 
-    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: true})
-    pendingWrappedAmount!: bigint | undefined | null
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    pendingWrappedAmount!: bigint
 
     @Column_("text", {nullable: true})
     collateralization!: string | undefined | null

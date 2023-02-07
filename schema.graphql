@@ -73,7 +73,7 @@ type Vault @entity {
     collateralToken: Currency!
     collateralAmount: BigInt!
     wrappedToken: Currency!
-    pendingWrappedAmount: BigInt
+    pendingWrappedAmount: BigInt!
     collateralization: String
     statusIssuing: Boolean
     statusCollateral: Boolean

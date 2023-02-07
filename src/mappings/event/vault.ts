@@ -21,7 +21,7 @@ import {
 } from "../encoding";
 import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
-import { updateVaultLockedCollateral } from "../utils/updateVault";
+import { updateVault, updateType } from "../utils/updateVault";
 
 export async function registerVault(
     ctx: Ctx,
@@ -74,6 +74,7 @@ export async function registerVault(
             registrationBlock: registrationBlock,
             registrationTimestamp: new Date(block.timestamp),
             collateralAmount,
+            pendingWrappedAmount: 0n,
         })
     );
 }
@@ -195,11 +196,12 @@ export async function withdrawCollateralVault(
     }
     entityBuffer.pushEntity(
         Vault.name,
-        await updateVaultLockedCollateral(
+        await updateVault(
             vaultId,
             e.totalCollateral,
             entityBuffer,
             ctx.store,
+            updateType.collateralAmount,
         )
     );
 }
@@ -239,11 +241,12 @@ export async function depositCollateralVault(
     }
     entityBuffer.pushEntity(
         Vault.name,
-        await updateVaultLockedCollateral(
+        await updateVault(
             vaultId,
             e.totalCollateral,
             entityBuffer,
             ctx.store,
+            updateType.collateralAmount,
         )
     );
 }

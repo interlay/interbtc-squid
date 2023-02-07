@@ -11,6 +11,7 @@ import {
     IssueStatus,
     RelayedBlock,
     VolumeType,
+    Vault,
 } from "../../model";
 import { Ctx, EventItem } from "../../processor";
 import {
@@ -34,6 +35,7 @@ import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
 import { getCurrentIssuePeriod } from "../utils/requestPeriods";
 import { getVaultId, getVaultIdLegacy } from "../_utils";
+import { updateVault, updateType } from "../utils/updateVault";
 
 export async function requestIssue(
     ctx: Ctx,
@@ -73,6 +75,18 @@ export async function requestIssue(
         );
         return;
     }
+
+    // adding Pending BTC for this specific vault
+    entityBuffer.pushEntity(
+        Vault.name,
+        await updateVault(
+            vaultIdString,
+            e.amount,
+            entityBuffer,
+            ctx.store,
+            updateType.pendingWrappedAmount,
+        )
+    );
 
     const period = await getCurrentIssuePeriod(ctx, block);
 
@@ -126,6 +140,7 @@ export async function executeIssue(
     let e;
     let collateralCurrency;
     let wrappedCurrency;
+    let vaultIdString;
     if (rawEvent.isV6 || rawEvent.isV15) {
         if (rawEvent.isV6) e = rawEvent.asV6;
         else e = rawEvent.asV15;
@@ -133,6 +148,7 @@ export async function executeIssue(
             e.vaultId.currencies.collateral
         );
         wrappedCurrency = legacyCurrencyId.encode(e.vaultId.currencies.wrapped);
+        vaultIdString = encodeLegacyVaultId(e.vaultId);
     } else {
         if (rawEvent.isV17) e = rawEvent.asV17;
         else if (rawEvent.isV1020000) e = rawEvent.asV1020000;
@@ -143,6 +159,7 @@ export async function executeIssue(
         }
         collateralCurrency = currencyId.encode(e.vaultId.currencies.collateral);
         wrappedCurrency = currencyId.encode(e.vaultId.currencies.wrapped);
+        vaultIdString = encodeVaultId(e.vaultId);
     }
     const amountWrapped = e.amount - e.fee; // potentially clean up event on parachain side?
 
@@ -195,6 +212,18 @@ export async function executeIssue(
             entityBuffer
         )
     );
+
+    // removing Pending BTC for this specific vault
+    entityBuffer.pushEntity(
+        Vault.name,
+        await updateVault(
+            vaultIdString,
+            - e.amount,
+            entityBuffer,
+            ctx.store,
+            updateType.pendingWrappedAmount,
+        )
+    );
 }
 
 export async function cancelIssue(
@@ -230,6 +259,20 @@ export async function cancelIssue(
     issue.cancellation = cancellation;
     entityBuffer.pushEntity(IssueCancellation.name, cancellation);
     entityBuffer.pushEntity(Issue.name, issue);
+
+    // removing Pending BTC for this specific vault
+    const vaultIdString = issue.vault.id;
+    const amountRemove = - issue.request.amountWrapped
+    entityBuffer.pushEntity(
+        Vault.name,
+        await updateVault(
+            vaultIdString,
+            amountRemove,
+            entityBuffer,
+            ctx.store,
+            updateType.pendingWrappedAmount,
+        )
+    );
 }
 
 export async function issuePeriodChange(

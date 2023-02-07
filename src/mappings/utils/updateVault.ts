@@ -2,8 +2,12 @@ import { Store } from "@subsquid/typeorm-store";
 import { CumulativeVolumePerCurrencyPair, Vault } from "../../model";
 import EntityBuffer from "./entityBuffer";
 
+export enum updateType {
+    collateralAmount = "collateralAmount",
+    pendingWrappedAmount = "pendingWrappedAmount",
+}
 
-export async function  updateVaultLockedCollateral(vaultID: string, amount: bigint, entityBuffer: EntityBuffer, store: Store): Promise<Vault> {
+export async function  updateVault(vaultID: string, amount: bigint, entityBuffer: EntityBuffer, store: Store, updateTypeValue: updateType): Promise<Vault> {
     // find by vaultid if it exists in either entity buffer or database
     const existingVault =
     (entityBuffer.getBufferedEntityBy(
@@ -15,7 +19,13 @@ export async function  updateVaultLockedCollateral(vaultID: string, amount: bigi
     if (existingVault === undefined) {
         console.error(`couldn't find vault to update vault ID: ${vaultID}`);
     }
-
-    existingVault.collateralAmount = amount;
+    
+    if (updateTypeValue === updateType.collateralAmount) {
+        existingVault.collateralAmount = amount;
+    }
+    else if (updateTypeValue === updateType.pendingWrappedAmount) {
+        existingVault.pendingWrappedAmount += amount;
+    }
+    
     return existingVault;
 }
