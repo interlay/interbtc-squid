@@ -46,6 +46,12 @@ export async function feedValues(
                 : currencyId.encode(key.value as CurrencyId_V17);
             update.typeKey = exchangeCurrency;
             keyToString += JSON.stringify(exchangeCurrency);
+
+            // Updating Vault Exchange Rates if needed
+            const vaultTokens = ['KSM', 'DOT', 'KBTC', 'IBTC'];
+            if (exchangeCurrency.isTypeOf === 'NativeToken' && vaultTokens.includes(exchangeCurrency.token)) {
+                // update all the vault with the new exchange rate
+            }   
         }
         update.id = `${oracleAddress}-${item.event.id}-${keyToString}`;
         entityBuffer.pushEntity(OracleUpdate.name, update);
