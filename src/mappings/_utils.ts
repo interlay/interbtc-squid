@@ -80,7 +80,7 @@ export async function getForeignAsset(id: number): Promise<AssetMetadata> {
     }
     try {
         const wsProvider = new WsProvider(process.env.CHAIN_ENDPOINT);
-        const api = await ApiPromise.create({ provider: wsProvider });
+        const api = await ApiPromise.create({ provider: wsProvider, noInitWarn: true });
         const assets = await api.query.assetRegistry.metadata(id);
         const assetsJSON = assets.toHuman();
         const metadata = assetsJSON as AssetMetadata;
