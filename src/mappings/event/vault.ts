@@ -22,6 +22,7 @@ import {
 import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
 import { updateVault, updateType } from "../utils/updateVault";
+import { convertAmountToHuman } from "../_utils";
 
 export async function registerVault(
     ctx: Ctx,
@@ -115,6 +116,7 @@ export async function increaseLockedCollateral(
             id: `Collateral-${item.event.id}`,
             type: VolumeType.Collateral,
             amount: e.total,
+            amountHuman: await convertAmountToHuman(collateralToken, e.total),
             tillTimestamp: new Date(block.timestamp),
             collateralCurrency: collateralToken,
             wrappedCurrency: wrappedToken,
@@ -159,6 +161,7 @@ export async function decreaseLockedCollateral(
             id: `Collateral-${item.event.id}`,
             type: VolumeType.Collateral,
             amount: e.total,
+            amountHuman: await convertAmountToHuman(collateralToken, e.total),
             tillTimestamp: new Date(block.timestamp),
             collateralCurrency: collateralToken,
             wrappedCurrency: wrappedToken,

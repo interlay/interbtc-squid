@@ -1,5 +1,7 @@
+import { tokenSymbolToCurrency } from "@interlay/interbtc-api";
+import { BigDecimal } from "@subsquid/big-decimal";
 import { SubstrateBlock } from "@subsquid/substrate-processor";
-import { OracleUpdate, OracleUpdateType } from "../../model";
+import { Currency, NativeToken, OracleUpdate, OracleUpdateType, Token } from "../../model";
 import { Ctx, EventItem } from "../../processor";
 import { OracleFeedValuesEvent } from "../../types/events";
 import { CurrencyId as CurrencyId_V15 } from "../../types/v15";
@@ -7,6 +9,7 @@ import { CurrencyId as CurrencyId_V17 } from "../../types/v17";
 import { address, currencyId, legacyCurrencyId } from "../encoding";
 import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
+import { convertAmountToHuman } from "../_utils";
 
 export async function feedValues(
     ctx: Ctx,
@@ -40,19 +43,33 @@ export async function feedValues(
             updateValue: value,
         });
         let keyToString = key.__kind.toString();
+        let updateValueHuman : BigDecimal = BigDecimal("0");
         if (key.__kind === "ExchangeRate") {
             const exchangeCurrency = useLegacyCurrency
                 ? legacyCurrencyId.encode(key.value as CurrencyId_V15)
                 : currencyId.encode(key.value as CurrencyId_V17);
             update.typeKey = exchangeCurrency;
             keyToString += JSON.stringify(exchangeCurrency);
-
+            
             // Updating Vault Exchange Rates if needed
             const vaultTokens = ['KSM', 'DOT', 'KBTC', 'IBTC'];
             if (exchangeCurrency.isTypeOf === 'NativeToken' && vaultTokens.includes(exchangeCurrency.token)) {
                 // update all the vault with the new exchange rate
             }   
+            updateValueHuman = await convertAmountToHuman(update.typeKey, value);
         }
+        else { // FeeEstimation
+            if (process.env.SS58_CODEC === "kintsugi") {
+                updateValueHuman = await convertAmountToHuman( new NativeToken({ token: Token.KINT }), value);
+            }
+            else if (process.env.SS58_CODEC === "interlay") {
+                updateValueHuman = await convertAmountToHuman( new NativeToken({ token: Token.INTR }), value);
+            }
+            else {
+                ctx.log.error("Undefined SS58_CODEC");
+            }
+        }
+        update.updateValueHuman = updateValueHuman;
         update.id = `${oracleAddress}-${item.event.id}-${keyToString}`;
         entityBuffer.pushEntity(OracleUpdate.name, update);
     }

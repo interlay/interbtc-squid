@@ -35,7 +35,10 @@
         "VaultRegistry.WithdrawCollateral",
         "ZenlinkProtocol.AssetSwap",
         "ZenlinkProtocol.LiquidityAdded",
-        "ZenlinkProtocol.LiquidityRemoved"
+        "ZenlinkProtocol.LiquidityRemoved",
+        "DexGeneral.AssetSwap",
+        "DexGeneral.LiquidityAdded",
+        "DexGeneral.LiquidityRemoved"
     ],
     "calls": [
         "BTCRelay.store_block_header",

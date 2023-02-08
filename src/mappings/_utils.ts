@@ -1,13 +1,14 @@
-import { Entity, Store } from "@subsquid/typeorm-store";
+import { Store } from "@subsquid/typeorm-store";
 import { Currency, Height, Issue, Redeem, Vault } from "../model";
 import { VaultId as VaultIdV15 } from "../types/v15";
-import { VaultId as VaultIdV17 } from "../types/v17";
 import { VaultId as VaultIdV6 } from "../types/v6";
-import { VaultId as VaultIdV1020000 } from "../types/v1020000";
 import { VaultId as VaultIdV1021000 } from "../types/v1021000";
 import { encodeLegacyVaultId, encodeVaultId } from "./encoding";
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import * as process from "process";
+import { CurrencyExt, CurrencyIdentifier, currencyIdToMonetaryCurrency, getCurrencyIdentifier, newMonetaryAmount, StandardPooledTokenIdentifier } from "@interlay/interbtc-api";
+import { BigDecimal } from "@subsquid/big-decimal";
+import { getInterBtcApi } from "../processor";
 
 export type eventArgs = {
     event: { args: true };
@@ -124,4 +125,49 @@ export async function friendlyAmount(currency: Currency, amount: number): Promis
         default:
             return `Unknown asset: ${currency}`
     }
+}
+
+let currencyMap = new Map<CurrencyIdentifier, CurrencyExt>();
+
+export async function currencyToLibCurrencyExt(currency: Currency): Promise<CurrencyExt> {
+    const interBtcApi = await getInterBtcApi();
+
+    let id: CurrencyIdentifier;
+    if (currency.isTypeOf === "NativeToken") {
+        id = {token: currency.token};
+    } else if (currency.isTypeOf === "ForeignAsset") {
+        id = {foreignAsset: currency.asset };
+    } else if (currency.isTypeOf === "LendToken") {
+        id = {lendToken: currency.lendTokenId};
+    } else if (currency.isTypeOf === "StableLpToken") {
+        id = {stableLpToken: currency.poolId};
+    } else if (currency.isTypeOf === "LpToken") {
+        const token0 = (await currencyToLibCurrencyExt(currency.token0)) as unknown as StandardPooledTokenIdentifier;
+        const token1 = (await currencyToLibCurrencyExt(currency.token1)) as unknown as StandardPooledTokenIdentifier;
+        id =  {lpToken: [token0, token1]};
+    } else {
+        // using any for future proofing, TS thinks this is never which is correct until it isn't anymore
+        // and we've extended the types
+        throw new Error(`No handling implemented for given currency type [${(currency as any).isTypeOf}]`);
+    }
+    let currencyInfo: CurrencyExt;
+    if ( currencyMap.has(id) ) {
+        currencyInfo = currencyMap.get(id) as CurrencyExt;
+    } else {
+        const currencyId = interBtcApi.api.createType("InterbtcPrimitivesCurrencyId", id );
+        currencyInfo  = await currencyIdToMonetaryCurrency(interBtcApi.api, currencyId);
+
+        currencyMap.set(id , currencyInfo);
+    }
+    return currencyMap.get(id) as CurrencyExt;
+}
+
+/* This function takes a currency object (could be native, could be foreign) and
+an atomic amount (in the smallest unit, e.g. Planck) and returns a BigDecimal representing 
+the amount without rounding.
+*/
+export async function convertAmountToHuman(currency: Currency, amount: bigint ) : Promise<BigDecimal> {
+    const currencyInfo: CurrencyExt = await currencyToLibCurrencyExt(currency);
+    const monetaryAmount = newMonetaryAmount(amount.toString(), currencyInfo);
+    return BigDecimal(monetaryAmount.toString());
 }
