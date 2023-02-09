@@ -3,6 +3,7 @@ import {
     CumulativeVolumePerCurrencyPair,
     Vault,
     VolumeType,
+    Currency
 } from "../../model";
 import { Ctx, EventItem } from "../../processor";
 import {
@@ -23,6 +24,9 @@ import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
 import { updateVault, updateType } from "../utils/updateVault";
 import { convertAmountToHuman } from "../_utils";
+// I used a set as I was worried about a vault having the same collateral being registered to it twice
+// not sure if this is possible though
+export let vaultCollateralMap = new Map<Currency, Set<string>>();
 
 export async function registerVault(
     ctx: Ctx,
@@ -55,6 +59,18 @@ export async function registerVault(
         vaultId = encodeVaultId(e.vaultId);
         wrappedToken = currencyId.encode(e.vaultId.currencies.wrapped);
         collateralToken = currencyId.encode(e.vaultId.currencies.collateral);
+    }
+    /* 
+    Note here: Do I need to convert collateralToken to a string instead of 
+    using currency as a key. 
+    */
+    if ( vaultCollateralMap.has(collateralToken) ) {
+        if ( !vaultCollateralMap.get(collateralToken)?.has(vaultId) ) {
+            vaultCollateralMap.get(collateralToken)?.add(vaultId);
+        }
+    }
+    else {
+        vaultCollateralMap.set(collateralToken, new Set([vaultId]));
     }
 
     const registrationBlock = await blockToHeight(

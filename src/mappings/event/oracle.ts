@@ -1,7 +1,7 @@
 import { tokenSymbolToCurrency } from "@interlay/interbtc-api";
 import { BigDecimal } from "@subsquid/big-decimal";
 import { SubstrateBlock } from "@subsquid/substrate-processor";
-import { Currency, NativeToken, OracleUpdate, OracleUpdateType, Token } from "../../model";
+import { Currency, NativeToken, OracleUpdate, OracleUpdateType, Token, Vault } from "../../model";
 import { Ctx, EventItem } from "../../processor";
 import { OracleFeedValuesEvent } from "../../types/events";
 import { CurrencyId as CurrencyId_V15 } from "../../types/v15";
@@ -10,6 +10,7 @@ import { address, currencyId, legacyCurrencyId } from "../encoding";
 import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
 import { convertAmountToHuman } from "../_utils";
+import { vaultCollateralMap } from "./vault";
 
 export async function feedValues(
     ctx: Ctx,
@@ -52,10 +53,21 @@ export async function feedValues(
             keyToString += JSON.stringify(exchangeCurrency);
             
             // Updating Vault Exchange Rates if needed
-            const vaultTokens = ['KSM', 'DOT', 'KBTC', 'IBTC'];
-            if (exchangeCurrency.isTypeOf === 'NativeToken' && vaultTokens.includes(exchangeCurrency.token)) {
-                // update all the vault with the new exchange rate
-            }   
+            if ( vaultCollateralMap.has(exchangeCurrency)) {
+                let vaultsToUpdate = vaultCollateralMap.get(exchangeCurrency);
+                if ( vaultsToUpdate !== undefined) { // Is there a way to remove this 
+                    for (let vaultID of vaultsToUpdate) {
+                        const vault =
+                        (entityBuffer.getBufferedEntityBy(
+                            Vault.name,
+                            vaultID,
+                        ) as Vault) ||
+                        (await ctx.store.get(Vault, vaultID));
+
+                            
+                    }
+                }
+            }
             updateValueHuman = await convertAmountToHuman(update.typeKey, value);
         }
         else { // FeeEstimation
