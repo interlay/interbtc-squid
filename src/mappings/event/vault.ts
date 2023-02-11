@@ -92,6 +92,7 @@ export async function registerVault(
             registrationTimestamp: new Date(block.timestamp),
             collateralAmount,
             pendingWrappedAmount: 0n,
+            wrappedAmount: 0n,
         })
     );
 }

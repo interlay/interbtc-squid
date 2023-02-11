@@ -5,6 +5,7 @@ import EntityBuffer from "./entityBuffer";
 export enum updateType {
     collateralAmount = "collateralAmount",
     pendingWrappedAmount = "pendingWrappedAmount",
+    issueWrappedAmount = "issueWrappedAmount",
 }
 
 export async function  updateVault(vaultID: string, amount: bigint, entityBuffer: EntityBuffer, store: Store, updateTypeValue: updateType): Promise<Vault> {
@@ -25,6 +26,10 @@ export async function  updateVault(vaultID: string, amount: bigint, entityBuffer
     }
     else if (updateTypeValue === updateType.pendingWrappedAmount) {
         existingVault.pendingWrappedAmount += amount;
+    }
+    else if (updateTypeValue === updateType.issueWrappedAmount) {
+        existingVault.pendingWrappedAmount -= amount;
+        existingVault.wrappedAmount += amount;
     }
     
     return existingVault;

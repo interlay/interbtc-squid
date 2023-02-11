@@ -63,8 +63,16 @@ export async function feedValues(
                             vaultID,
                         ) as Vault) ||
                         (await ctx.store.get(Vault, vaultID));
-
-                            
+                        
+                        const collateralToBtc = vault.collateralAmount * value;
+                        let collateralDec = BigDecimal(collateralToBtc.toString());
+                        let lockedBTCDec = BigDecimal(vault.wrappedAmount.toString());
+                        const collateralization : BigDecimal = collateralDec.div(lockedBTCDec);
+                        vault.collateralization = collateralization;
+                        entityBuffer.pushEntity(
+                            Vault.name,
+                            vault,
+                        );
                     }
                 }
             }

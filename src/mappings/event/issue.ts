@@ -213,15 +213,15 @@ export async function executeIssue(
         )
     );
 
-    // removing Pending BTC for this specific vault
+    // update pending amd issued BTC
     entityBuffer.pushEntity(
         Vault.name,
         await updateVault(
             vaultIdString,
-            - e.amount,
+            e.amount,
             entityBuffer,
             ctx.store,
-            updateType.pendingWrappedAmount,
+            updateType.issueWrappedAmount,
         )
     );
 }
@@ -261,18 +261,26 @@ export async function cancelIssue(
     entityBuffer.pushEntity(Issue.name, issue);
 
     // removing Pending BTC for this specific vault
-    const vaultIdString = issue.vault.id;
-    const amountRemove = - issue.request.amountWrapped
-    entityBuffer.pushEntity(
-        Vault.name,
-        await updateVault(
-            vaultIdString,
-            amountRemove,
-            entityBuffer,
-            ctx.store,
-            updateType.pendingWrappedAmount,
-        )
-    );
+    console.log(issue);
+    const values = Object.values(issue);
+
+    for (const value of values) {
+        console.log(value);
+    }
+
+    // const vaultIdString = issue.vault.id;
+
+    // const amountRemove = - issue.request.amountWrapped
+    // entityBuffer.pushEntity(
+    //     Vault.name,
+    //     await updateVault(
+    //         vaultIdString,
+    //         amountRemove,
+    //         entityBuffer,
+    //         ctx.store,
+    //         updateType.pendingWrappedAmount,
+    //     )
+    // );
 }
 
 export async function issuePeriodChange(

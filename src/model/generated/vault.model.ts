@@ -1,3 +1,4 @@
+import {BigDecimal} from "@subsquid/big-decimal"
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_, ManyToOne as ManyToOne_} from "typeorm"
 import * as marshal from "./marshal"
 import {Currency, fromJsonCurrency} from "./_currency"
@@ -28,8 +29,11 @@ export class Vault {
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
     pendingWrappedAmount!: bigint
 
-    @Column_("text", {nullable: true})
-    collateralization!: string | undefined | null
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    wrappedAmount!: bigint
+
+    @Column_("numeric", {transformer: marshal.bigdecimalTransformer, nullable: true})
+    collateralization!: BigDecimal | undefined | null
 
     @Column_("bool", {nullable: true})
     statusIssuing!: boolean | undefined | null
