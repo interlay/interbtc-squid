@@ -261,12 +261,7 @@ export async function cancelIssue(
     entityBuffer.pushEntity(Issue.name, issue);
 
     // removing Pending BTC for this specific vault
-    console.log(issue);
-    const values = Object.values(issue);
 
-    for (const value of values) {
-        console.log(value);
-    }
 
     // const vaultIdString = issue.vault.id;
 
