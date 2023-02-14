@@ -297,6 +297,12 @@ async function fetchOrCreateEntity(
         });
 }
 
+function buildPoolEntityId(poolId: string, poolType: PoolType, timestamp: Date): string {
+    return `${poolId}-${poolType}-${timestamp
+        .getTime()
+        .toString()}`;
+}
+
 export async function updateCumulativeDexVolumesForStandardPool(
     store: Store,
     timestamp: Date,
@@ -307,9 +313,7 @@ export async function updateCumulativeDexVolumesForStandardPool(
 
     const poolId = inferGeneralPoolId(swapDetails.from.currency, swapDetails.to.currency);
 
-    const entityId = `${poolId}-${poolType}-${timestamp
-        .getTime()
-        .toString()}`;
+    const entityId = buildPoolEntityId(poolId, poolType, timestamp);
 
     const entity = await fetchOrCreateEntity(entityId, poolId, poolType, timestamp, store, entityBuffer);
     return await updateOrAddPooledAmounts(entity, swapDetails);
@@ -324,12 +328,8 @@ export async function updateCumulativeDexVolumesForStablePool(
 ): Promise<CumulativeDexTradingVolumePerPool> {
     const poolType = PoolType.Stable;
 
-    const poolIdString = `poolId_${poolId}`;
+    const entityId = buildPoolEntityId(poolId.toString(), poolType, timestamp);
 
-    const entityId = `${poolIdString}-${poolType}-${timestamp
-        .getTime()
-        .toString()}`;
-
-    const entity = await fetchOrCreateEntity(entityId, poolIdString, poolType, timestamp, store, entityBuffer);
+    const entity = await fetchOrCreateEntity(entityId, poolId.toString(), poolType, timestamp, store, entityBuffer);
     return await updateOrAddPooledAmounts(entity, swapDetails);
 }
