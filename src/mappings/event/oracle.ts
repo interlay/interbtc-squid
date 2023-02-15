@@ -6,7 +6,7 @@ import { Ctx, EventItem } from "../../processor";
 import { OracleFeedValuesEvent } from "../../types/events";
 import { CurrencyId as CurrencyId_V15 } from "../../types/v15";
 import { CurrencyId as CurrencyId_V17 } from "../../types/v17";
-import { address, currencyId, legacyCurrencyId } from "../encoding";
+import { address, currencyId, legacyCurrencyId, currencyToString } from "../encoding";
 import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
 import { convertAmountToHuman } from "../_utils";
@@ -51,10 +51,10 @@ export async function feedValues(
                 : currencyId.encode(key.value as CurrencyId_V17);
             update.typeKey = exchangeCurrency;
             keyToString += JSON.stringify(exchangeCurrency);
-            
             // Updating Vault Exchange Rates if needed
-            if ( vaultCollateralMap.has(exchangeCurrency)) {
-                let vaultsToUpdate = vaultCollateralMap.get(exchangeCurrency);
+            const exchangeString = currencyToString(exchangeCurrency);
+            if ( vaultCollateralMap.has(exchangeString)) {
+                let vaultsToUpdate = vaultCollateralMap.get(exchangeString);
                 if ( vaultsToUpdate !== undefined) { // Is there a way to remove this 
                     for (let vaultID of vaultsToUpdate) {
                         const vault =
@@ -63,12 +63,28 @@ export async function feedValues(
                             vaultID,
                         ) as Vault) ||
                         (await ctx.store.get(Vault, vaultID));
+                        //using oracle exchage rate to convert collateral value to satoshis
+                        const exchangeRateDec = BigDecimal(value.toString()).div(10 ** 16);
+                        console.log(`collateral to Sat ${exchangeRateDec}`);
+                        const collateralToSat = BigDecimal(vault.collateralAmount.toString()).mul(exchangeRateDec);
+
+                        console.log(`collateral to Sat ${collateralToSat}`);
                         
-                        const collateralToBtc = vault.collateralAmount * value;
-                        let collateralDec = BigDecimal(collateralToBtc.toString());
-                        let lockedBTCDec = BigDecimal(vault.wrappedAmount.toString());
-                        const collateralization : BigDecimal = collateralDec.div(lockedBTCDec);
+                        const lockedBTCDec = BigDecimal(vault.wrappedAmount.toString());
+                        console.log(`locked btc bigdecimal ${lockedBTCDec}`);
+                        console.log(`collateral to btc decimal ${collateralToSat}`);
+
+
+                        let collateralization : BigDecimal = BigDecimal("-1");
+                        if ( lockedBTCDec.toString() !== "0" ) {
+                            collateralization = collateralToSat.div(lockedBTCDec);
+                            console.log(`result ${collateralization}`);
+                        }
                         vault.collateralization = collateralization;
+
+                        //updating status collateral
+                        
+
                         entityBuffer.pushEntity(
                             Vault.name,
                             vault,

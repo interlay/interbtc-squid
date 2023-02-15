@@ -2,6 +2,7 @@ import {BigDecimal} from "@subsquid/big-decimal"
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_, ManyToOne as ManyToOne_} from "typeorm"
 import * as marshal from "./marshal"
 import {Currency, fromJsonCurrency} from "./_currency"
+import {CollateralThreshold} from "./_collateralThreshold"
 import {Height} from "./height.model"
 
 @Entity_()
@@ -38,8 +39,8 @@ export class Vault {
     @Column_("bool", {nullable: true})
     statusIssuing!: boolean | undefined | null
 
-    @Column_("bool", {nullable: true})
-    statusCollateral!: boolean | undefined | null
+    @Column_("varchar", {length: 16, nullable: false})
+    statusCollateral!: CollateralThreshold
 
     @Index_()
     @ManyToOne_(() => Height, {nullable: true})

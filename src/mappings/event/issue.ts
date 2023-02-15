@@ -90,6 +90,7 @@ export async function requestIssue(
 
     const period = await getCurrentIssuePeriod(ctx, block);
 
+
     const issue = new Issue({
         id: toHex(e.issueId),
         griefingCollateral: e.griefingCollateral,
@@ -100,6 +101,9 @@ export async function requestIssue(
         status: IssueStatus.Pending,
         period,
     });
+    if (issue.vault === undefined) {
+        console.log("vault corresponding to an issue is undefined after adding it to issue instance");
+    }
 
     const height = await blockToHeight(ctx, block.height, "RequestIssue");
 
@@ -247,6 +251,9 @@ export async function cancelIssue(
             "WARNING: CancelIssue event did not match any existing issue requests! Skipping."
         );
         return;
+    }
+    if (issue.vault === undefined) {
+        console.log("vault corresponding to an issue is undefined after pulling from database by id");
     }
     const height = await blockToHeight(ctx, block.height, "CancelIssue");
     const cancellation = new IssueCancellation({

@@ -29,6 +29,12 @@ enum Token {
     KBTC
 }
 
+enum CollateralThreshold {
+    SecureCollateral
+    PremiumRedeem
+    VaultLiquidation
+}
+
 type NativeToken {
     token: Token!
 }
@@ -77,7 +83,7 @@ type Vault @entity {
     wrappedAmount: BigInt!
     collateralization: BigDecimal
     statusIssuing: Boolean
-    statusCollateral: Boolean
+    statusCollateral: CollateralThreshold!
     registrationBlock: Height!
     registrationTimestamp: DateTime!
     lastActivity: Height

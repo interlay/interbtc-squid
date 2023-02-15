@@ -11,6 +11,7 @@ import {
     RedeemStatus,
     RelayedBlock,
     VolumeType,
+    Vault,
 } from "../../model";
 import { Ctx, EventItem } from "../../processor";
 import {
@@ -33,6 +34,7 @@ import {
 import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
 import { getCurrentRedeemPeriod } from "../utils/requestPeriods";
+import { updateVault, updateType } from "../utils/updateVault";
 import { getVaultId, getVaultIdLegacy } from "../_utils";
 
 export async function requestRedeem(
@@ -107,7 +109,7 @@ export async function requestRedeem(
     }
 
     redeem.request = new RedeemRequest({
-        requestedAmountBacking: e.amount,
+        requestedAmountBacking: e.amount, // I think this name is confusing shouldn't this be amountBTC to align with the spec?
         height: height.id,
         timestamp: new Date(block.timestamp),
         backingHeight: backingBlock?.backingHeight || 0,
@@ -126,6 +128,7 @@ export async function executeRedeem(
     let e;
     let collateralCurrency;
     let wrappedCurrency;
+    let vaultIdString;
     if (rawEvent.isV6 || rawEvent.isV15) {
         if (rawEvent.isV6) e = rawEvent.asV6;
         else e = rawEvent.asV15;
@@ -133,6 +136,7 @@ export async function executeRedeem(
             e.vaultId.currencies.collateral
         );
         wrappedCurrency = legacyCurrencyId.encode(e.vaultId.currencies.wrapped);
+        vaultIdString = encodeLegacyVaultId(e.vaultId);
     } else {
         if (rawEvent.isV17) e = rawEvent.asV17;
         else if (rawEvent.isV1020000) e = rawEvent.asV1020000;
@@ -144,6 +148,7 @@ export async function executeRedeem(
 
         collateralCurrency = currencyId.encode(e.vaultId.currencies.collateral);
         wrappedCurrency = currencyId.encode(e.vaultId.currencies.wrapped);
+        vaultIdString = encodeVaultId(e.vaultId);
     }
 
     const redeem = await ctx.store.get(Redeem, {
@@ -183,7 +188,6 @@ export async function executeRedeem(
     }
     // amount is negated as locked value is decreasing
     entityBuffer.pushEntity(
-
         CumulativeVolume.name,
         await updateCumulativeVolumes(
             ctx.store,
@@ -203,6 +207,18 @@ export async function executeRedeem(
             collateralCurrency,
             wrappedCurrency,
             entityBuffer
+        )
+    );
+    // vault's issued tokens decreases by redeem.amountBTC + redeem.trasferFeeBTC via spec
+    const wrappedAmountDecrease = redeem.request.requestedAmountBacking + redeem.btcTransferFee;
+    entityBuffer.pushEntity(
+        Vault.name,
+        await updateVault(
+            vaultIdString,
+            wrappedAmountDecrease,
+            entityBuffer,
+            ctx.store,
+            updateType.redeemWrapped,
         )
     );
 }

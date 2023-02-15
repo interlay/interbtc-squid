@@ -3,7 +3,8 @@ import {
     CumulativeVolumePerCurrencyPair,
     Vault,
     VolumeType,
-    Currency
+    Currency,
+    CollateralThreshold
 } from "../../model";
 import { Ctx, EventItem } from "../../processor";
 import {
@@ -24,9 +25,9 @@ import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
 import { updateVault, updateType } from "../utils/updateVault";
 import { convertAmountToHuman } from "../_utils";
-// I used a set as I was worried about a vault having the same collateral being registered to it twice
-// not sure if this is possible though
-export let vaultCollateralMap = new Map<Currency, Set<string>>();
+import { currencyToString } from "../encoding";
+
+export let vaultCollateralMap = new Map<string, Set<string>>();
 
 export async function registerVault(
     ctx: Ctx,
@@ -64,13 +65,14 @@ export async function registerVault(
     Note here: Do I need to convert collateralToken to a string instead of 
     using currency as a key. 
     */
-    if ( vaultCollateralMap.has(collateralToken) ) {
-        if ( !vaultCollateralMap.get(collateralToken)?.has(vaultId) ) {
-            vaultCollateralMap.get(collateralToken)?.add(vaultId);
+    const collateralString = currencyToString(collateralToken);
+    if ( vaultCollateralMap.has(collateralString) ) {
+        if ( !vaultCollateralMap.get(collateralString)?.has(vaultId) ) {
+            vaultCollateralMap.get(collateralString)?.add(vaultId);
         }
     }
     else {
-        vaultCollateralMap.set(collateralToken, new Set([vaultId]));
+        vaultCollateralMap.set(collateralString, new Set([vaultId]));
     }
 
     const registrationBlock = await blockToHeight(
@@ -93,6 +95,7 @@ export async function registerVault(
             collateralAmount,
             pendingWrappedAmount: 0n,
             wrappedAmount: 0n,
+            statusCollateral: CollateralThreshold.SecureCollateral,
         })
     );
 }
