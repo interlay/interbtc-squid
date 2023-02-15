@@ -36,6 +36,7 @@ import { blockToHeight } from "../utils/heights";
 import { getCurrentIssuePeriod } from "../utils/requestPeriods";
 import { getVaultId, getVaultIdLegacy } from "../_utils";
 import { updateVault, updateType } from "../utils/updateVault";
+import { FindOptionsRelations } from 'typeorm';
 
 export async function requestIssue(
     ctx: Ctx,
@@ -243,8 +244,11 @@ export async function cancelIssue(
         return;
     }
     e = rawEvent.asV4;
+    
+
     const issue = await ctx.store.get(Issue, {
         where: { id: toHex(e.issueId) },
+        relations: ['vault'] as FindOptionsRelations<Issue>,
     });
     if (issue === undefined) {
         ctx.log.warn(
@@ -270,19 +274,19 @@ export async function cancelIssue(
     // removing Pending BTC for this specific vault
 
 
-    // const vaultIdString = issue.vault.id;
+    const vaultIdString = issue.vault.id;
 
-    // const amountRemove = - issue.request.amountWrapped
-    // entityBuffer.pushEntity(
-    //     Vault.name,
-    //     await updateVault(
-    //         vaultIdString,
-    //         amountRemove,
-    //         entityBuffer,
-    //         ctx.store,
-    //         updateType.pendingWrappedAmount,
-    //     )
-    // );
+    const amountRemove = - issue.request.amountWrapped
+    entityBuffer.pushEntity(
+        Vault.name,
+        await updateVault(
+            vaultIdString,
+            amountRemove,
+            entityBuffer,
+            ctx.store,
+            updateType.pendingWrappedAmount,
+        )
+    );
 }
 
 export async function issuePeriodChange(

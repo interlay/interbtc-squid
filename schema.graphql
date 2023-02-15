@@ -87,6 +87,7 @@ type Vault @entity {
     registrationBlock: Height!
     registrationTimestamp: DateTime!
     lastActivity: Height
+    issues: [Issue!]! @derivedFrom(field: "vault")
 }
 
 "Mapping of parachain raw/absolute blocks to parachain active blocks"
@@ -114,7 +115,7 @@ type Issue @entity {
     userParachainAddress: String!
     vaultWalletPubkey: String!
     vaultBackingAddress: String!
-    vault: Vault!
+    vault: Vault! @index
     period: IssuePeriod!
     backingPayment: IssuePayment @derivedFrom(field: "issue")
     status: IssueStatus @index

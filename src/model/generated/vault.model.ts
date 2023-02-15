@@ -1,9 +1,10 @@
 import {BigDecimal} from "@subsquid/big-decimal"
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_, ManyToOne as ManyToOne_} from "typeorm"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_, ManyToOne as ManyToOne_, OneToMany as OneToMany_} from "typeorm"
 import * as marshal from "./marshal"
 import {Currency, fromJsonCurrency} from "./_currency"
 import {CollateralThreshold} from "./_collateralThreshold"
 import {Height} from "./height.model"
+import {Issue} from "./issue.model"
 
 @Entity_()
 export class Vault {
@@ -52,4 +53,7 @@ export class Vault {
     @Index_()
     @ManyToOne_(() => Height, {nullable: true})
     lastActivity!: Height | undefined | null
+
+    @OneToMany_(() => Issue, e => e.vault)
+    issues!: Issue[]
 }
