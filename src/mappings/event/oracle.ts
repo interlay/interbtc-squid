@@ -63,28 +63,19 @@ export async function feedValues(
                             vaultID,
                         ) as Vault) ||
                         (await ctx.store.get(Vault, vaultID));
-                        //using oracle exchage rate to convert collateral value to satoshis
+
+                        //Calculating Collateralization
                         const exchangeRateDec = BigDecimal(value.toString()).div(10 ** 16);
-                        // console.log(`collateral to Sat ${exchangeRateDec}`);
                         const collateralToSat = BigDecimal(vault.collateralAmount.toString()).mul(exchangeRateDec);
-
-                        // console.log(`collateral to Sat ${collateralToSat}`);
-                        
                         const lockedBTCDec = BigDecimal(vault.wrappedAmount.toString());
-                        // console.log(`locked btc bigdecimal ${lockedBTCDec}`);
-                        // console.log(`collateral to btc decimal ${collateralToSat}`);
-
-
                         let collateralization : BigDecimal = BigDecimal("-1");
                         if ( lockedBTCDec.toString() !== "0" ) {
                             collateralization = collateralToSat.div(lockedBTCDec);
-                            console.log(`result ${collateralization}`);
                         }
                         vault.collateralization = collateralization;
-
-                        //updating status collateral
                         
-
+                        // calculating threshold status
+                        
                         entityBuffer.pushEntity(
                             Vault.name,
                             vault,

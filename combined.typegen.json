@@ -33,9 +33,6 @@
         "VaultRegistry.RegisterVault",
         "VaultRegistry.DepositCollateral",
         "VaultRegistry.WithdrawCollateral",
-        "ZenlinkProtocol.AssetSwap",
-        "ZenlinkProtocol.LiquidityAdded",
-        "ZenlinkProtocol.LiquidityRemoved",
         "DexGeneral.AssetSwap",
         "DexGeneral.LiquidityAdded",
         "DexGeneral.LiquidityRemoved"
@@ -46,6 +43,7 @@
     ],
     "storage": [
         "Issue.IssuePeriod",
-        "Redeem.RedeemPeriod"
+        "Redeem.RedeemPeriod",
+        "VaultRegistry.LiquidationVault"
     ]
 }

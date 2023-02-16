@@ -103,6 +103,14 @@ export interface VaultCurrencyPair {
     wrapped: CurrencyId
 }
 
+export interface SystemVault {
+    toBeIssuedTokens: bigint
+    issuedTokens: bigint
+    toBeRedeemedTokens: bigint
+    collateral: bigint
+    currencyPair: VaultCurrencyPair
+}
+
 export type TokenSymbol = TokenSymbol_DOT | TokenSymbol_IBTC | TokenSymbol_INTR | TokenSymbol_KSM | TokenSymbol_KBTC | TokenSymbol_KINT
 
 export interface TokenSymbol_DOT {
