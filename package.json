@@ -1,6 +1,5 @@
 {
     "name": "interbtc-indexer",
-    "private": "true",
     "version": "0.12.0",
     "description": "GraphQL server and Substrate indexer for the interBTC parachain",
     "author": "",
@@ -24,9 +23,9 @@
     },
     "dependencies": {
         "@interlay/interbtc-api": "1.20.0",
-        "@polkadot/util-crypto": "^10.2.3",
         "@interlay/interbtc-types": "1.1.1",
         "@interlay/monetary-js": "0.7.0",
+        "@polkadot/util-crypto": "^10.2.3",
         "@subsquid/archive-registry": "^1.0.12",
         "@subsquid/graphql-server": "^2.1.0",
         "@subsquid/ss58": "^0.1.0",
