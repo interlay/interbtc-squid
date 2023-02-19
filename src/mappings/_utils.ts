@@ -183,7 +183,7 @@ export async function getExchangeRate(
     ctx: Ctx,
     timestamp: number,
     currency: Currency,
-    amount: bigint
+    amount: number
 ): Promise<OracleRate>  {
     const mappedCurrency = mapCurrencyType(currency);
     let baseMonetaryAmount
@@ -205,7 +205,7 @@ export async function getExchangeRate(
                 `WARNING: no price registered by Oracle for ${JSON.stringify(searchBlock)} at timestamp ${new Date(timestamp)}`
             );
         }
-        const lastPrice = new Big((Number(lastUpdate?.updateValue) || 0) / 1e10);
+        const lastPrice = new Big((Number(lastUpdate?.updateValue) || 1e10) / 1e10);
         baseMonetaryAmount = newMonetaryAmount(lastPrice, mappedCurrency);
     }
 
@@ -225,11 +225,11 @@ export async function getExchangeRate(
             `WARNING: no price registered by Oracle for ${JSON.stringify(searchBlock)} at time ${new Date(timestamp)}`
         );
     }
-    const btcPrice = new Big((Number(btcUpdate?.updateValue) || 0) / 1e8);
+    const btcPrice = new Big((Number(btcUpdate?.updateValue) || 1e10) / 1e8);
     const btcMonetaryAmount = newMonetaryAmount(btcPrice, Bitcoin);
 
     const exchangeRate = btcMonetaryAmount.toBig().div(baseMonetaryAmount.toBig());
-    const monetaryAmount = newMonetaryAmount(Big(Number(amount)), mapCurrencyType(currency));
+    const monetaryAmount = newMonetaryAmount(Big(amount), mapCurrencyType(currency));
 
     return {
         btc: monetaryAmount.toBig().div(baseMonetaryAmount.toBig()), 
