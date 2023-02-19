@@ -453,12 +453,12 @@ export async function withdrawCollateral(
         amounts = await getExchangeRate(ctx, block.timestamp, newCurrency, newAmount);
         symbol = `q`.concat(symbol);
         if(newCurrency){
-            comment = `${getFirstAndLastFour(account)} deposited ${await friendlyAmount(newCurrency, newAmount)} for collateral`
+            comment = `${getFirstAndLastFour(account)} withdrew ${await friendlyAmount(newCurrency, newAmount)} from collateral`
         }
     } else {
         symbol = await symbolFromCurrency(currency);
         amounts = await getExchangeRate(ctx, block.timestamp, currency, Number(amount));
-        comment = `${getFirstAndLastFour(account)} deposited ${await friendlyAmount(currency, Number(amount))} for collateral`
+        comment = `${getFirstAndLastFour(account)} withdrew ${await friendlyAmount(currency, Number(amount))} from collateral`
     }
     await entityBuffer.pushEntity(
         Deposit.name,
