@@ -449,7 +449,7 @@ export async function withdrawCollateral(
         symbol = await symbolFromCurrency(newCurrency);
         const qRate = cachedRates.getRate(block.height, symbol);
         console.log(`${block.height-qRate.block} blocks difference for ${qRate.symbol}` )
-        const newAmount = Number(amount) * qRate.rate * 1e2;
+        const newAmount = Number(amount) * qRate.rate;
         amounts = await getExchangeRate(ctx, block.timestamp, newCurrency, newAmount);
         symbol = `q`.concat(symbol);
         if(newCurrency){
@@ -471,8 +471,8 @@ export async function withdrawCollateral(
             symbol: symbol,
             type: `collateral`,
             amountWithdrawn: amount,
-            amountWithdrawnUsdt: amounts.usdt.toNumber() / 1e2,
-            amountWithdrawnBtc: amounts.btc.toNumber() / 1e2,
+            amountWithdrawnUsdt: amounts.usdt.toNumber(),
+            amountWithdrawnBtc: amounts.btc.toNumber(),
             comment: comment
         })
     );
