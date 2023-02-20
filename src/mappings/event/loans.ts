@@ -51,7 +51,7 @@ import { CurrencyId_Token as CurrencyId_Token_V6 } from "../../types/v6";
 import { CurrencyId_Token as CurrencyId_Token_V10 } from "../../types/v10";
 import { CurrencyId_Token as CurrencyId_Token_V15 } from "../../types/v15";
 import { CurrencyId as CurrencyId_V17 } from "../../types/v17";
-import { InterestRateModel as InterestRateModel_V1020000 } from "../../types/v1020000";
+import { InterestRateModel as InterestRateModel_V1021000 } from "../../types/v1021000";
 import { address, currencyId, currencyToString, legacyCurrencyId, rateModel } from "../encoding";
 import {
     updateCumulativeVolumes,

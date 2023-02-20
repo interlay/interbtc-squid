@@ -50,6 +50,7 @@ import {
     withdrawDeposit, accrueInterest, liquidateLoan
 } from "./mappings/event/loans";
 import { ApiPromise, WsProvider } from '@polkadot/api';
+import { BitcoinNetwork, createInterBtcApi, InterBtcApi } from "@interlay/interbtc-api";
 
 const archive = process.env.ARCHIVE_ENDPOINT;
 assert(!!archive);

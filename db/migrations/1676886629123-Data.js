@@ -1,5 +1,5 @@
-module.exports = class Data1676822762791 {
-    name = 'Data1676822762791'
+module.exports = class Data1676886629123 {
+    name = 'Data1676886629123'
 
     async up(db) {
         await db.query(`CREATE TABLE "height" ("id" character varying NOT NULL, "absolute" integer NOT NULL, "active" integer NOT NULL, CONSTRAINT "PK_90f1773799ae13708b533416960" PRIMARY KEY ("id"))`)
@@ -42,11 +42,11 @@ module.exports = class Data1676822762791 {
         await db.query(`CREATE TABLE "redeem" ("id" character varying NOT NULL, "request" jsonb NOT NULL, "bridge_fee" numeric NOT NULL, "collateral_premium" numeric NOT NULL, "btc_transfer_fee" numeric NOT NULL, "user_parachain_address" text NOT NULL, "user_backing_address" text NOT NULL, "status" character varying(10), "vault_id" character varying, "period_id" character varying, CONSTRAINT "PK_49cd0f39502eb73258b6c51eeb4" PRIMARY KEY ("id"))`)
         await db.query(`CREATE INDEX "IDX_21e0e6dce8bedbb39f5d38ff39" ON "redeem" ("vault_id") `)
         await db.query(`CREATE INDEX "IDX_19baa2bc29c8e15a4f62d20ba0" ON "redeem" ("period_id") `)
-        await db.query(`CREATE TABLE "oracle_update" ("id" character varying NOT NULL, "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "oracle_id" text NOT NULL, "type" character varying(13) NOT NULL, "type_key" jsonb, "update_value" numeric NOT NULL, "height_id" character varying, CONSTRAINT "PK_198859007c7a88cb0b1e6f9234f" PRIMARY KEY ("id"))`)
+        await db.query(`CREATE TABLE "oracle_update" ("id" character varying NOT NULL, "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "oracle_id" text NOT NULL, "type" character varying(13) NOT NULL, "type_key" jsonb, "update_value" numeric NOT NULL, "update_value_human" numeric NOT NULL, "height_id" character varying, CONSTRAINT "PK_198859007c7a88cb0b1e6f9234f" PRIMARY KEY ("id"))`)
         await db.query(`CREATE INDEX "IDX_b98c119d788456a5f133024aa5" ON "oracle_update" ("height_id") `)
         await db.query(`CREATE TABLE "cumulative_volume" ("id" character varying NOT NULL, "type" character varying(12) NOT NULL, "till_timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "amount" numeric NOT NULL, CONSTRAINT "PK_4cddeb1db9f5652b7f55e88e8d6" PRIMARY KEY ("id"))`)
-        await db.query(`CREATE TABLE "cumulative_volume_per_currency_pair" ("id" character varying NOT NULL, "type" character varying(12) NOT NULL, "till_timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "amount" numeric NOT NULL, "wrapped_currency" jsonb, "collateral_currency" jsonb, CONSTRAINT "PK_b55d48297b58de0876411bb8f82" PRIMARY KEY ("id"))`)
-        await db.query(`CREATE TABLE "transfer" ("id" character varying NOT NULL, "token" jsonb NOT NULL, "amount" numeric NOT NULL, "from" text NOT NULL, "to" text NOT NULL, "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "height_id" character varying, CONSTRAINT "PK_fd9ddbdd49a17afcbe014401295" PRIMARY KEY ("id"))`)
+        await db.query(`CREATE TABLE "cumulative_volume_per_currency_pair" ("id" character varying NOT NULL, "type" character varying(12) NOT NULL, "till_timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "amount" numeric NOT NULL, "amount_human" numeric NOT NULL, "wrapped_currency" jsonb, "collateral_currency" jsonb, CONSTRAINT "PK_b55d48297b58de0876411bb8f82" PRIMARY KEY ("id"))`)
+        await db.query(`CREATE TABLE "transfer" ("id" character varying NOT NULL, "token" jsonb NOT NULL, "amount" numeric NOT NULL, "amount_human" numeric NOT NULL, "from" text NOT NULL, "to" text NOT NULL, "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "height_id" character varying, CONSTRAINT "PK_fd9ddbdd49a17afcbe014401295" PRIMARY KEY ("id"))`)
         await db.query(`CREATE INDEX "IDX_be54ea276e0f665ffc38630fc0" ON "transfer" ("from") `)
         await db.query(`CREATE INDEX "IDX_4cbc37e8c3b47ded161f44c24f" ON "transfer" ("to") `)
         await db.query(`CREATE INDEX "IDX_89d515806f93bf55c6dcc03c45" ON "transfer" ("height_id") `)
