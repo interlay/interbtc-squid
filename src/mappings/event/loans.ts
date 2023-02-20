@@ -113,28 +113,6 @@ class CachedRates {
 
 const cachedRates = new BlockRates();
 
-// async function latestExchangeRate(
-//     ctx: Ctx,
-//     block: SubstrateBlock,
-// ) : Promise<ExRate> {
-//     const testEntity = {id: 0,
-//         symbol: "ESP"
-//     }
-//     const interestAccrued = rateCache.pushEntity("ExRate", testEntity)
-//     // const interestAccrued = await ctx.store.get(InterestAccrual, {
-//     //     //where: { height : { absolute : LessThanOrEqual(block.height) } },
-//     //     //order: { height : { absolute: "DESC"} },
-//     //     where: { timestamp : LessThanOrEqual(Date.now()) },
-//     //     order: { timestamp : "DESC" },
-//     // })
-//     const exRate: ExRate = Object.assign({}, {
-//         symbol: interestAccrued?.currencySymbol ?? '',
-//         rate: interestAccrued?.exchangeRateFloat ?? 0,
-//         activeBlock: interestAccrued?.height.active ?? 0
-//     });
-//     return exRate;
-// }
-
 export async function newMarket(
     ctx: Ctx,
     block: SubstrateBlock,
@@ -182,7 +160,8 @@ export async function newMarket(
         collateralFactor: market.collateralFactor,
         liquidateIncentive: market.liquidateIncentive,
         liquidationThreshold: market.liquidationThreshold,
-        liquidateIncentiveReservedFactor: market.liquidateIncentiveReservedFactor
+        liquidateIncentiveReservedFactor: market.liquidateIncentiveReservedFactor,
+        currencySymbol: await symbolFromCurrency(currency)
     });
     // console.log(JSON.stringify(my_market));
     await entityBuffer.pushEntity(LoanMarket.name, my_market);
@@ -235,7 +214,8 @@ export async function updatedMarket(
         collateralFactor: market.collateralFactor,
         liquidateIncentive: market.liquidateIncentive,
         liquidationThreshold: market.liquidationThreshold,
-        liquidateIncentiveReservedFactor: market.liquidateIncentiveReservedFactor
+        liquidateIncentiveReservedFactor: market.liquidateIncentiveReservedFactor,
+        currencySymbol: await symbolFromCurrency(currency)
     });
 
     my_market.state =
@@ -341,7 +321,9 @@ export async function borrow(
             amountBorrowed: amount,
             amountBorrowedUsdt: amounts.usdt.toNumber(),
             amountBorrowedBtc: amounts.btc.toNumber(),
-            comment: comment
+            comment: comment,
+            currencySymbol: await symbolFromCurrency(currency)
+
         })
     );
 }
@@ -382,7 +364,8 @@ export async function depositCollateral(
         const newCurrency = await lendTokenDetails(ctx, currency.lendTokenId);
         symbol = await symbolFromCurrency(newCurrency);
         const qRate = cachedRates.getRate(block.height, symbol);
-        console.log(`${block.height-qRate.block} blocks difference for ${qRate.symbol}` )
+        const blockDifferences = block.height-qRate.block
+        if(blockDifferences>0) console.log(`${blockDifferences} blocks difference for ${qRate.symbol}` )
         const newAmount = Number(amount) * qRate.rate;
         amounts = await getExchangeRate(ctx, block.timestamp, newCurrency, newAmount);
         symbol = `q`.concat(symbol);
@@ -407,7 +390,8 @@ export async function depositCollateral(
             amountDeposited: amount,
             amountDepositedUsdt: amounts.usdt.toNumber(),
             amountDepositedBtc: amounts.btc.toNumber(),
-            comment: comment
+            comment: comment,
+            currencySymbol: symbol
         })
     );
 }
@@ -448,7 +432,8 @@ export async function withdrawCollateral(
         const newCurrency = await lendTokenDetails(ctx, currency.lendTokenId)
         symbol = await symbolFromCurrency(newCurrency);
         const qRate = cachedRates.getRate(block.height, symbol);
-        console.log(`${block.height-qRate.block} blocks difference for ${qRate.symbol}` )
+        const blockDifferences = block.height-qRate.block
+        if(blockDifferences>0) console.log(`${blockDifferences} blocks difference for ${qRate.symbol}` )
         const newAmount = Number(amount) * qRate.rate;
         amounts = await getExchangeRate(ctx, block.timestamp, newCurrency, newAmount);
         symbol = `q`.concat(symbol);
@@ -473,7 +458,8 @@ export async function withdrawCollateral(
             amountWithdrawn: amount,
             amountWithdrawnUsdt: amounts.usdt.toNumber(),
             amountWithdrawnBtc: amounts.btc.toNumber(),
-            comment: comment
+            comment: comment,
+            currencySymbol: symbol
         })
     );
 }
@@ -522,7 +508,8 @@ export async function depositForLending(
             amountDeposited: amount,
             amountDepositedUsdt: amounts.usdt.toNumber(),
             amountDepositedBtc: amounts.btc.toNumber(),
-            comment: comment
+            comment: comment,
+            currencySymbol: symbol
         })
     );
 }
@@ -588,7 +575,8 @@ export async function repay(
             amountRepaid: amount,
             amountRepaidUsdt: amounts.usdt.toNumber(),
             amountRepaidBtc: amounts.btc.toNumber(),
-            comment: comment
+            comment: comment,
+            currencySymbol: await symbolFromCurrency(currency)
         })
     );
 }
@@ -638,7 +626,8 @@ export async function withdrawDeposit(
             amountWithdrawn: amount,
             amountWithdrawnUsdt: amounts.usdt.toNumber(),
             amountWithdrawnBtc: amounts.btc.toNumber(),
-            comment: comment// expand to 3 tokens: qToken, Token, equivalent in USD(T)
+            comment: comment,
+            currencySymbol: await symbolFromCurrency(currency)
         })
     );
 }

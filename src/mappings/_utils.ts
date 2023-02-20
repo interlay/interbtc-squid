@@ -236,9 +236,3 @@ export async function getExchangeRate(
         usdt: monetaryAmount.toBig().mul(exchangeRate)
     };
 }
-
-
-// check monetary lib. exchangeRate as a class
-// return price in bitcoin as well
-
-// 1e18 (1e8 sats vs 1e6 usdt)

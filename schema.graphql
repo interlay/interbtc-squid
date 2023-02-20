@@ -280,6 +280,8 @@ type LoanMarket @entity {
     liquidationThreshold: Int!
     liquidateIncentiveReservedFactor: Int!
     activation: LoanMarketActivation @derivedFrom(field: "market")
+    currencySymbol: String!
+
 }
 
 type LoanMarketActivation @entity {
@@ -303,6 +305,7 @@ type Loan @entity {
     height: Height!
     timestamp: DateTime!
     comment: String
+    currencySymbol: String!
 }
 
 type Deposit @entity {
@@ -320,6 +323,7 @@ type Deposit @entity {
     height: Height!
     timestamp: DateTime!
     comment: String
+    currencySymbol: String!
 }
 
 type InterestAccrual @entity {

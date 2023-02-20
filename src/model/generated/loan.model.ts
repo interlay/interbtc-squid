@@ -45,4 +45,7 @@ export class Loan {
 
     @Column_("text", {nullable: true})
     comment!: string | undefined | null
+
+    @Column_("text", {nullable: false})
+    currencySymbol!: string
 }
