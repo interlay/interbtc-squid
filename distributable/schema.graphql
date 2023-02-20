@@ -20,6 +20,12 @@ enum MarketState {
     Supervision
 }
 
+enum MarketState {
+    Active
+    Pending
+    Supervision
+}
+
 enum Token {
     DOT
     INTR
@@ -41,6 +47,31 @@ type LendToken {
     lendTokenId: Int!
 }
 
+type StableLpToken {
+    poolId: Int!
+}
+
+union PooledToken = NativeToken | ForeignAsset | StableLpToken
+
+type LpToken {
+    token0: PooledToken!
+    token1: PooledToken!
+}
+
+union Currency = NativeToken | ForeignAsset | LendToken | LpToken | StableLpToken
+
+type RateModelJump {
+    baseRate: BigInt!
+    jumpRate: BigInt!
+    fullRate: BigInt!
+    jumpUtilization: Int!
+}
+
+type RateModelCurve {
+    baseRate: BigInt!
+}
+
+union RateModel = RateModelJump | RateModelCurve
 type StableLpToken {
     poolId: Int!
 }
@@ -105,6 +136,7 @@ type Issue @entity {
     vault: Vault!
     period: IssuePeriod!
     backingPayment: IssuePayment @derivedFrom(field: "issue")
+    status: IssueStatus @index
     status: IssueStatus @index
     execution: IssueExecution @derivedFrom(field: "issue")
     cancellation: IssueCancellation @derivedFrom(field: "issue")
@@ -214,6 +246,7 @@ type OracleUpdate @entity {
     type: OracleUpdateType!
     typeKey: Currency
     updateValue: BigInt!
+    updateValueHuman: BigDecimal!
 }
 
 enum VolumeType {
@@ -221,6 +254,8 @@ enum VolumeType {
     Redeemed
     Collateral
     Staked
+    Locked
+    BridgeVolume
     Locked
     BridgeVolume
 }
@@ -237,6 +272,7 @@ type CumulativeVolumePerCurrencyPair @entity {
     type: VolumeType!
     tillTimestamp: DateTime!
     amount: BigInt!
+    amountHuman: BigDecimal!
     wrappedCurrency: Currency
     collateralCurrency: Currency
 }
@@ -257,6 +293,7 @@ type Transfer @entity {
     id: ID!
     token: Currency!
     amount: BigInt!
+    amountHuman: BigDecimal!
     from: String! @index
     to: String! @index
     height: Height!

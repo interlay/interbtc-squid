@@ -1,3 +1,4 @@
+import {BigDecimal} from "@subsquid/big-decimal"
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_} from "typeorm"
 import * as marshal from "./marshal"
 import {VolumeType} from "./_volumeType"
@@ -20,6 +21,9 @@ export class CumulativeVolumePerCurrencyPair {
 
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
     amount!: bigint
+
+    @Column_("numeric", {transformer: marshal.bigdecimalTransformer, nullable: false})
+    amountHuman!: BigDecimal
 
     @Column_("jsonb", {transformer: {to: obj => obj == null ? undefined : obj.toJSON(), from: obj => obj == null ? undefined : fromJsonCurrency(obj)}, nullable: true})
     wrappedCurrency!: Currency | undefined | null

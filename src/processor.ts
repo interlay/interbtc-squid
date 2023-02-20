@@ -127,6 +127,17 @@ export type CallItem = Exclude<
 >;
 export type Ctx = BatchContext<Store, Item>;
 
+let interBtcApi: InterBtcApi | undefined = undefined;
+
+export const getInterBtcApi = async () => {
+    if (interBtcApi === undefined) {
+        const PARACHAIN_ENDPOINT = process.env.CHAIN_ENDPOINT;
+        const BITCOIN_NETWORK = process.env.BITCOIN_NETWORK as BitcoinNetwork;
+    
+        interBtcApi = await createInterBtcApi(PARACHAIN_ENDPOINT!, BITCOIN_NETWORK!); 
+    }
+    return interBtcApi;
+}
 processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
     type MappingsList = Array<{
         filter: { name: string };

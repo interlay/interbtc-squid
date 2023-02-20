@@ -64,6 +64,9 @@ yarn processor:start
 yarn query-node:start
 ```
 
+#### Save time and effort by using the following script instead of doing the above steps manually:
+`./runProcessor`
+
 Access the GraphQL IDE here: http://localhost:4000/graphql
 
 ### Workflow - developing the processor
@@ -78,7 +81,7 @@ docker-compose down -v
 Then you can
 
 ```bash
-docker-compose up db -d
+docker-compose up -d db
 yarn build
 yarn processor:start
 ```

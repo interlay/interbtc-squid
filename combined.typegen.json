@@ -33,9 +33,9 @@
         "VaultRegistry.DecreaseLockedCollateral",
         "VaultRegistry.IncreaseLockedCollateral",
         "VaultRegistry.RegisterVault",
-        "ZenlinkProtocol.AssetSwap",
-        "ZenlinkProtocol.LiquidityAdded",
-        "ZenlinkProtocol.LiquidityRemoved"
+        "DexGeneral.AssetSwap",
+        "DexGeneral.LiquidityAdded",
+        "DexGeneral.LiquidityRemoved"
     ],
     "calls": [
         "BTCRelay.store_block_header",

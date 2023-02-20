@@ -2,10 +2,10 @@ import { Big, BigSource } from "big.js";
 import { BN } from "bn.js";
 import { Entity, Store } from "@subsquid/typeorm-store";
 import { Currency, ForeignAsset, Height, Issue, LendToken, OracleUpdate, Redeem, Vault } from "../model";
+import { Store } from "@subsquid/typeorm-store";
+import { Currency, Height, Issue, Redeem, Vault } from "../model";
 import { VaultId as VaultIdV15 } from "../types/v15";
-import { VaultId as VaultIdV17 } from "../types/v17";
 import { VaultId as VaultIdV6 } from "../types/v6";
-import { VaultId as VaultIdV1020000 } from "../types/v1020000";
 import { VaultId as VaultIdV1021000 } from "../types/v1021000";
 import { encodeLegacyVaultId, encodeVaultId } from "./encoding";
 import { ApiPromise, WsProvider } from '@polkadot/api';
@@ -14,6 +14,9 @@ import { Ctx } from "../processor";
 import { LessThanOrEqual, Like } from "typeorm";
 import { Bitcoin, Kintsugi, Kusama, Interlay, Polkadot, InterBtc, KBtc, ExchangeRate } from "@interlay/monetary-js";
 import { newMonetaryAmount } from "@interlay/interbtc-api";
+import { CurrencyExt, CurrencyIdentifier, currencyIdToMonetaryCurrency, getCurrencyIdentifier, newMonetaryAmount, StandardPooledTokenIdentifier } from "@interlay/interbtc-api";
+import { BigDecimal } from "@subsquid/big-decimal";
+import { getInterBtcApi } from "../processor";
 
 export type eventArgs = {
     event: { args: true };
@@ -235,4 +238,154 @@ export async function getExchangeRate(
         btc: monetaryAmount.toBig().div(baseMonetaryAmount.toBig()), 
         usdt: monetaryAmount.toBig().mul(exchangeRate)
     };
+}
+
+export async function symbolFromCurrency(currency: Currency): Promise<string> {
+    let amountFriendly: number;
+    switch(currency.isTypeOf) {
+        case 'NativeToken':
+            return currency.token;
+        case 'ForeignAsset':
+            const details = await getForeignAsset(currency.asset)
+            return details.symbol;
+        default:
+            return `UNKNOWN`;
+    }
+}
+
+type CurrencyType = Bitcoin | Kintsugi | Kusama | Interlay | Polkadot;
+
+function mapCurrencyType(currency: Currency): CurrencyType {
+    switch(currency.isTypeOf) {
+        case 'NativeToken':
+            switch(currency.token) {
+                case 'KINT':
+                    return Kintsugi;
+                case 'KSM':
+                    return Kusama;
+                case 'INTR':
+                    return Interlay;
+                case 'DOT':
+                    return Polkadot;
+                case 'KBTC':
+                    return KBtc;
+                case 'INTR':
+                    return InterBtc;
+            }
+        case 'ForeignAsset':
+            return Bitcoin;
+        default:
+            throw new Error(`Unsupported currency type: ${currency.isTypeOf}`);
+    }
+}
+
+type OracleRate = {
+    btc: Big;
+    usdt: Big;
+}
+
+/* This function is used to calculate the exchange rate for a given currency at
+a given time.
+*/
+export async function getExchangeRate(
+    ctx: Ctx,
+    timestamp: number,
+    currency: Currency,
+    amount: number
+): Promise<OracleRate>  {
+    const mappedCurrency = mapCurrencyType(currency);
+    let baseMonetaryAmount
+    let searchBlock = currency.toJSON();
+
+    if (mappedCurrency === KBtc || mappedCurrency === InterBtc) {
+        baseMonetaryAmount = newMonetaryAmount(Big(1e8), Bitcoin)
+    }
+    else {
+        const lastUpdate = await ctx.store.get(OracleUpdate, {
+            where: { 
+                id: Like(`%${JSON.stringify(searchBlock)}`),
+                timestamp: LessThanOrEqual(new Date(timestamp)),
+            },
+            order: { timestamp: "DESC" },
+        });
+        if (lastUpdate === undefined) {
+            ctx.log.warn(
+                `WARNING: no price registered by Oracle for ${JSON.stringify(searchBlock)} at timestamp ${new Date(timestamp)}`
+            );
+        }
+        const lastPrice = new Big((Number(lastUpdate?.updateValue) || 1e10) / 1e10);
+        baseMonetaryAmount = newMonetaryAmount(lastPrice, mappedCurrency);
+    }
+
+    searchBlock = {
+        isTypeOf: 'ForeignAsset',
+        asset: 1
+    }
+    const btcUpdate = await ctx.store.get(OracleUpdate, {
+        where: { 
+            id: Like(`%${JSON.stringify(searchBlock)}`),
+            timestamp: LessThanOrEqual(new Date(timestamp)),
+        },
+        order: { timestamp: "DESC" },
+    });
+    if (btcUpdate === undefined) {
+        ctx.log.warn(
+            `WARNING: no price registered by Oracle for ${JSON.stringify(searchBlock)} at time ${new Date(timestamp)}`
+        );
+    }
+    const btcPrice = new Big((Number(btcUpdate?.updateValue) || 1e10) / 1e8);
+    const btcMonetaryAmount = newMonetaryAmount(btcPrice, Bitcoin);
+
+    const exchangeRate = btcMonetaryAmount.toBig().div(baseMonetaryAmount.toBig());
+    const monetaryAmount = newMonetaryAmount(Big(amount), mapCurrencyType(currency));
+
+    return {
+        btc: monetaryAmount.toBig().div(baseMonetaryAmount.toBig()), 
+        usdt: monetaryAmount.toBig().mul(exchangeRate)
+    };
+}
+
+let currencyMap = new Map<CurrencyIdentifier, CurrencyExt>();
+
+export async function currencyToLibCurrencyExt(currency: Currency): Promise<CurrencyExt> {
+    const interBtcApi = await getInterBtcApi();
+
+    let id: CurrencyIdentifier;
+    if (currency.isTypeOf === "NativeToken") {
+        id = {token: currency.token};
+    } else if (currency.isTypeOf === "ForeignAsset") {
+        id = {foreignAsset: currency.asset };
+    } else if (currency.isTypeOf === "LendToken") {
+        id = {lendToken: currency.lendTokenId};
+    } else if (currency.isTypeOf === "StableLpToken") {
+        id = {stableLpToken: currency.poolId};
+    } else if (currency.isTypeOf === "LpToken") {
+        const token0 = (await currencyToLibCurrencyExt(currency.token0)) as unknown as StandardPooledTokenIdentifier;
+        const token1 = (await currencyToLibCurrencyExt(currency.token1)) as unknown as StandardPooledTokenIdentifier;
+        id =  {lpToken: [token0, token1]};
+    } else {
+        // using any for future proofing, TS thinks this is never which is correct until it isn't anymore
+        // and we've extended the types
+        throw new Error(`No handling implemented for given currency type [${(currency as any).isTypeOf}]`);
+    }
+    let currencyInfo: CurrencyExt;
+    if ( currencyMap.has(id) ) {
+        currencyInfo = currencyMap.get(id) as CurrencyExt;
+    } else {
+        const currencyId = interBtcApi.api.createType("InterbtcPrimitivesCurrencyId", id );
+        currencyInfo  = await currencyIdToMonetaryCurrency(interBtcApi.api, currencyId);
+
+        currencyMap.set(id , currencyInfo);
+    }
+    return currencyMap.get(id) as CurrencyExt;
+}
+
+/* This function takes a currency object (could be native, could be foreign) and
+an atomic amount (in the smallest unit, e.g. Planck) and returns a BigDecimal representing 
+the amount without rounding.
+*/
+export async function convertAmountToHuman(currency: Currency, amount: bigint ) : Promise<BigDecimal> {
+    const currencyInfo: CurrencyExt = await currencyToLibCurrencyExt(currency);
+    const monetaryAmount = newMonetaryAmount(amount.toString(), currencyInfo);
+    return BigDecimal(monetaryAmount.toString());
 }
