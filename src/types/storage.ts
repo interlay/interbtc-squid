@@ -238,3 +238,435 @@ export class VaultRegistryLiquidationVaultStorage {
         return this._chain.getStorageItemTypeHash('VaultRegistry', 'LiquidationVault') != null
     }
 }
+
+export class VaultRegistryPremiumRedeemThresholdStorage {
+    private readonly _chain: Chain
+    private readonly blockHash: string
+
+    constructor(ctx: BlockContext)
+    constructor(ctx: ChainContext, block: Block)
+    constructor(ctx: BlockContext, block?: Block) {
+        block = block || ctx.block
+        this.blockHash = block.hash
+        this._chain = ctx._chain
+    }
+
+    /**
+     *  Determines the rate for the collateral rate of Vaults, at which users receive a premium,
+     *  allocated from the Vault's collateral, when performing a redeem with this Vault. This
+     *  threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    get isV1() {
+        return this._chain.getStorageItemTypeHash('VaultRegistry', 'PremiumRedeemThreshold') === '77f4ab3c80fb3096696f01567869646c1b7f4c2bf86a9cf16a166aba7c80e558'
+    }
+
+    /**
+     *  Determines the rate for the collateral rate of Vaults, at which users receive a premium,
+     *  allocated from the Vault's collateral, when performing a redeem with this Vault. This
+     *  threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    async getAsV1(key: v1.CurrencyId): Promise<bigint | undefined> {
+        assert(this.isV1)
+        return this._chain.getStorage(this.blockHash, 'VaultRegistry', 'PremiumRedeemThreshold', key)
+    }
+
+    async getManyAsV1(keys: v1.CurrencyId[]): Promise<(bigint | undefined)[]> {
+        assert(this.isV1)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'PremiumRedeemThreshold', keys.map(k => [k]))
+    }
+
+    async getAllAsV1(): Promise<(bigint)[]> {
+        assert(this.isV1)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'PremiumRedeemThreshold')
+    }
+
+    /**
+     *  Determines the rate for the collateral rate of Vaults, at which users receive a premium,
+     *  allocated from the Vault's collateral, when performing a redeem with this Vault. This
+     *  threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    get isV3() {
+        return this._chain.getStorageItemTypeHash('VaultRegistry', 'PremiumRedeemThreshold') === 'f58aaaac8cc3e7edfedd81619d660e83aec1ac0adc56efd2b1cad773fe72cc51'
+    }
+
+    /**
+     *  Determines the rate for the collateral rate of Vaults, at which users receive a premium,
+     *  allocated from the Vault's collateral, when performing a redeem with this Vault. This
+     *  threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    async getAsV3(key: v3.VaultCurrencyPair): Promise<bigint | undefined> {
+        assert(this.isV3)
+        return this._chain.getStorage(this.blockHash, 'VaultRegistry', 'PremiumRedeemThreshold', key)
+    }
+
+    async getManyAsV3(keys: v3.VaultCurrencyPair[]): Promise<(bigint | undefined)[]> {
+        assert(this.isV3)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'PremiumRedeemThreshold', keys.map(k => [k]))
+    }
+
+    async getAllAsV3(): Promise<(bigint)[]> {
+        assert(this.isV3)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'PremiumRedeemThreshold')
+    }
+
+    /**
+     *  Determines the rate for the collateral rate of Vaults, at which users receive a premium,
+     *  allocated from the Vault's collateral, when performing a redeem with this Vault. This
+     *  threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    get isV6() {
+        return this._chain.getStorageItemTypeHash('VaultRegistry', 'PremiumRedeemThreshold') === '667822dd26c0fa66a43f655546cc93fa3972ecfe04074ea8896306bb516204d9'
+    }
+
+    /**
+     *  Determines the rate for the collateral rate of Vaults, at which users receive a premium,
+     *  allocated from the Vault's collateral, when performing a redeem with this Vault. This
+     *  threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    async getAsV6(key: v6.VaultCurrencyPair): Promise<bigint | undefined> {
+        assert(this.isV6)
+        return this._chain.getStorage(this.blockHash, 'VaultRegistry', 'PremiumRedeemThreshold', key)
+    }
+
+    async getManyAsV6(keys: v6.VaultCurrencyPair[]): Promise<(bigint | undefined)[]> {
+        assert(this.isV6)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'PremiumRedeemThreshold', keys.map(k => [k]))
+    }
+
+    async getAllAsV6(): Promise<(bigint)[]> {
+        assert(this.isV6)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'PremiumRedeemThreshold')
+    }
+
+    /**
+     *  Determines the rate for the collateral rate of Vaults, at which users receive a premium,
+     *  allocated from the Vault's collateral, when performing a redeem with this Vault. This
+     *  threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    get isV15() {
+        return this._chain.getStorageItemTypeHash('VaultRegistry', 'PremiumRedeemThreshold') === 'ad987919949bcb70bda67a46452d8aee65d35edc778af9ee626f2c29f0ead854'
+    }
+
+    /**
+     *  Determines the rate for the collateral rate of Vaults, at which users receive a premium,
+     *  allocated from the Vault's collateral, when performing a redeem with this Vault. This
+     *  threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    async getAsV15(key: v15.VaultCurrencyPair): Promise<bigint | undefined> {
+        assert(this.isV15)
+        return this._chain.getStorage(this.blockHash, 'VaultRegistry', 'PremiumRedeemThreshold', key)
+    }
+
+    async getManyAsV15(keys: v15.VaultCurrencyPair[]): Promise<(bigint | undefined)[]> {
+        assert(this.isV15)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'PremiumRedeemThreshold', keys.map(k => [k]))
+    }
+
+    async getAllAsV15(): Promise<(bigint)[]> {
+        assert(this.isV15)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'PremiumRedeemThreshold')
+    }
+
+    /**
+     *  Determines the rate for the collateral rate of Vaults, at which users receive a premium,
+     *  allocated from the Vault's collateral, when performing a redeem with this Vault. This
+     *  threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    get isV17() {
+        return this._chain.getStorageItemTypeHash('VaultRegistry', 'PremiumRedeemThreshold') === 'e5102c1c32c0fa240ad0896edefd085949467af35356bf67940e4cd1b6bd6487'
+    }
+
+    /**
+     *  Determines the rate for the collateral rate of Vaults, at which users receive a premium,
+     *  allocated from the Vault's collateral, when performing a redeem with this Vault. This
+     *  threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    async getAsV17(key: v17.VaultCurrencyPair): Promise<bigint | undefined> {
+        assert(this.isV17)
+        return this._chain.getStorage(this.blockHash, 'VaultRegistry', 'PremiumRedeemThreshold', key)
+    }
+
+    async getManyAsV17(keys: v17.VaultCurrencyPair[]): Promise<(bigint | undefined)[]> {
+        assert(this.isV17)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'PremiumRedeemThreshold', keys.map(k => [k]))
+    }
+
+    async getAllAsV17(): Promise<(bigint)[]> {
+        assert(this.isV17)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'PremiumRedeemThreshold')
+    }
+
+    /**
+     *  Determines the rate for the collateral rate of Vaults, at which users receive a premium,
+     *  allocated from the Vault's collateral, when performing a redeem with this Vault. This
+     *  threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    get isV1020000() {
+        return this._chain.getStorageItemTypeHash('VaultRegistry', 'PremiumRedeemThreshold') === 'a45102c9f7fbf32b53629854fd2cada14c69e181bf36a9db7ead04d95541bbc7'
+    }
+
+    /**
+     *  Determines the rate for the collateral rate of Vaults, at which users receive a premium,
+     *  allocated from the Vault's collateral, when performing a redeem with this Vault. This
+     *  threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    async getAsV1020000(key: v1020000.VaultCurrencyPair): Promise<bigint | undefined> {
+        assert(this.isV1020000)
+        return this._chain.getStorage(this.blockHash, 'VaultRegistry', 'PremiumRedeemThreshold', key)
+    }
+
+    async getManyAsV1020000(keys: v1020000.VaultCurrencyPair[]): Promise<(bigint | undefined)[]> {
+        assert(this.isV1020000)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'PremiumRedeemThreshold', keys.map(k => [k]))
+    }
+
+    async getAllAsV1020000(): Promise<(bigint)[]> {
+        assert(this.isV1020000)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'PremiumRedeemThreshold')
+    }
+
+    /**
+     *  Determines the rate for the collateral rate of Vaults, at which users receive a premium,
+     *  allocated from the Vault's collateral, when performing a redeem with this Vault. This
+     *  threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    get isV1021000() {
+        return this._chain.getStorageItemTypeHash('VaultRegistry', 'PremiumRedeemThreshold') === '65ed8331e8c49890906518854e8455bd27acfc33f13a2809a6613268186e6cf3'
+    }
+
+    /**
+     *  Determines the rate for the collateral rate of Vaults, at which users receive a premium,
+     *  allocated from the Vault's collateral, when performing a redeem with this Vault. This
+     *  threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    async getAsV1021000(key: v1021000.VaultCurrencyPair): Promise<bigint | undefined> {
+        assert(this.isV1021000)
+        return this._chain.getStorage(this.blockHash, 'VaultRegistry', 'PremiumRedeemThreshold', key)
+    }
+
+    async getManyAsV1021000(keys: v1021000.VaultCurrencyPair[]): Promise<(bigint | undefined)[]> {
+        assert(this.isV1021000)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'PremiumRedeemThreshold', keys.map(k => [k]))
+    }
+
+    async getAllAsV1021000(): Promise<(bigint)[]> {
+        assert(this.isV1021000)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'PremiumRedeemThreshold')
+    }
+
+    /**
+     * Checks whether the storage item is defined for the current chain version.
+     */
+    get isExists(): boolean {
+        return this._chain.getStorageItemTypeHash('VaultRegistry', 'PremiumRedeemThreshold') != null
+    }
+}
+
+export class VaultRegistrySecureCollateralThresholdStorage {
+    private readonly _chain: Chain
+    private readonly blockHash: string
+
+    constructor(ctx: BlockContext)
+    constructor(ctx: ChainContext, block: Block)
+    constructor(ctx: BlockContext, block?: Block) {
+        block = block || ctx.block
+        this.blockHash = block.hash
+        this._chain = ctx._chain
+    }
+
+    /**
+     *  Determines the over-collateralization rate for collateral locked by Vaults, necessary for
+     *  wrapped tokens. This threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    get isV1() {
+        return this._chain.getStorageItemTypeHash('VaultRegistry', 'SecureCollateralThreshold') === '77f4ab3c80fb3096696f01567869646c1b7f4c2bf86a9cf16a166aba7c80e558'
+    }
+
+    /**
+     *  Determines the over-collateralization rate for collateral locked by Vaults, necessary for
+     *  wrapped tokens. This threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    async getAsV1(key: v1.CurrencyId): Promise<bigint | undefined> {
+        assert(this.isV1)
+        return this._chain.getStorage(this.blockHash, 'VaultRegistry', 'SecureCollateralThreshold', key)
+    }
+
+    async getManyAsV1(keys: v1.CurrencyId[]): Promise<(bigint | undefined)[]> {
+        assert(this.isV1)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'SecureCollateralThreshold', keys.map(k => [k]))
+    }
+
+    async getAllAsV1(): Promise<(bigint)[]> {
+        assert(this.isV1)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'SecureCollateralThreshold')
+    }
+
+    /**
+     *  Determines the over-collateralization rate for collateral locked by Vaults, necessary for
+     *  wrapped tokens. This threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    get isV3() {
+        return this._chain.getStorageItemTypeHash('VaultRegistry', 'SecureCollateralThreshold') === 'f58aaaac8cc3e7edfedd81619d660e83aec1ac0adc56efd2b1cad773fe72cc51'
+    }
+
+    /**
+     *  Determines the over-collateralization rate for collateral locked by Vaults, necessary for
+     *  wrapped tokens. This threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    async getAsV3(key: v3.VaultCurrencyPair): Promise<bigint | undefined> {
+        assert(this.isV3)
+        return this._chain.getStorage(this.blockHash, 'VaultRegistry', 'SecureCollateralThreshold', key)
+    }
+
+    async getManyAsV3(keys: v3.VaultCurrencyPair[]): Promise<(bigint | undefined)[]> {
+        assert(this.isV3)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'SecureCollateralThreshold', keys.map(k => [k]))
+    }
+
+    async getAllAsV3(): Promise<(bigint)[]> {
+        assert(this.isV3)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'SecureCollateralThreshold')
+    }
+
+    /**
+     *  Determines the over-collateralization rate for collateral locked by Vaults, necessary for
+     *  wrapped tokens. This threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    get isV6() {
+        return this._chain.getStorageItemTypeHash('VaultRegistry', 'SecureCollateralThreshold') === '667822dd26c0fa66a43f655546cc93fa3972ecfe04074ea8896306bb516204d9'
+    }
+
+    /**
+     *  Determines the over-collateralization rate for collateral locked by Vaults, necessary for
+     *  wrapped tokens. This threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    async getAsV6(key: v6.VaultCurrencyPair): Promise<bigint | undefined> {
+        assert(this.isV6)
+        return this._chain.getStorage(this.blockHash, 'VaultRegistry', 'SecureCollateralThreshold', key)
+    }
+
+    async getManyAsV6(keys: v6.VaultCurrencyPair[]): Promise<(bigint | undefined)[]> {
+        assert(this.isV6)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'SecureCollateralThreshold', keys.map(k => [k]))
+    }
+
+    async getAllAsV6(): Promise<(bigint)[]> {
+        assert(this.isV6)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'SecureCollateralThreshold')
+    }
+
+    /**
+     *  Determines the over-collateralization rate for collateral locked by Vaults, necessary for
+     *  wrapped tokens. This threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    get isV15() {
+        return this._chain.getStorageItemTypeHash('VaultRegistry', 'SecureCollateralThreshold') === 'ad987919949bcb70bda67a46452d8aee65d35edc778af9ee626f2c29f0ead854'
+    }
+
+    /**
+     *  Determines the over-collateralization rate for collateral locked by Vaults, necessary for
+     *  wrapped tokens. This threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    async getAsV15(key: v15.VaultCurrencyPair): Promise<bigint | undefined> {
+        assert(this.isV15)
+        return this._chain.getStorage(this.blockHash, 'VaultRegistry', 'SecureCollateralThreshold', key)
+    }
+
+    async getManyAsV15(keys: v15.VaultCurrencyPair[]): Promise<(bigint | undefined)[]> {
+        assert(this.isV15)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'SecureCollateralThreshold', keys.map(k => [k]))
+    }
+
+    async getAllAsV15(): Promise<(bigint)[]> {
+        assert(this.isV15)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'SecureCollateralThreshold')
+    }
+
+    /**
+     *  Determines the over-collateralization rate for collateral locked by Vaults, necessary for
+     *  wrapped tokens. This threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    get isV17() {
+        return this._chain.getStorageItemTypeHash('VaultRegistry', 'SecureCollateralThreshold') === 'e5102c1c32c0fa240ad0896edefd085949467af35356bf67940e4cd1b6bd6487'
+    }
+
+    /**
+     *  Determines the over-collateralization rate for collateral locked by Vaults, necessary for
+     *  wrapped tokens. This threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    async getAsV17(key: v17.VaultCurrencyPair): Promise<bigint | undefined> {
+        assert(this.isV17)
+        return this._chain.getStorage(this.blockHash, 'VaultRegistry', 'SecureCollateralThreshold', key)
+    }
+
+    async getManyAsV17(keys: v17.VaultCurrencyPair[]): Promise<(bigint | undefined)[]> {
+        assert(this.isV17)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'SecureCollateralThreshold', keys.map(k => [k]))
+    }
+
+    async getAllAsV17(): Promise<(bigint)[]> {
+        assert(this.isV17)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'SecureCollateralThreshold')
+    }
+
+    /**
+     *  Determines the over-collateralization rate for collateral locked by Vaults, necessary for
+     *  wrapped tokens. This threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    get isV1020000() {
+        return this._chain.getStorageItemTypeHash('VaultRegistry', 'SecureCollateralThreshold') === 'a45102c9f7fbf32b53629854fd2cada14c69e181bf36a9db7ead04d95541bbc7'
+    }
+
+    /**
+     *  Determines the over-collateralization rate for collateral locked by Vaults, necessary for
+     *  wrapped tokens. This threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    async getAsV1020000(key: v1020000.VaultCurrencyPair): Promise<bigint | undefined> {
+        assert(this.isV1020000)
+        return this._chain.getStorage(this.blockHash, 'VaultRegistry', 'SecureCollateralThreshold', key)
+    }
+
+    async getManyAsV1020000(keys: v1020000.VaultCurrencyPair[]): Promise<(bigint | undefined)[]> {
+        assert(this.isV1020000)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'SecureCollateralThreshold', keys.map(k => [k]))
+    }
+
+    async getAllAsV1020000(): Promise<(bigint)[]> {
+        assert(this.isV1020000)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'SecureCollateralThreshold')
+    }
+
+    /**
+     *  Determines the over-collateralization rate for collateral locked by Vaults, necessary for
+     *  wrapped tokens. This threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    get isV1021000() {
+        return this._chain.getStorageItemTypeHash('VaultRegistry', 'SecureCollateralThreshold') === '65ed8331e8c49890906518854e8455bd27acfc33f13a2809a6613268186e6cf3'
+    }
+
+    /**
+     *  Determines the over-collateralization rate for collateral locked by Vaults, necessary for
+     *  wrapped tokens. This threshold should be greater than the LiquidationCollateralThreshold.
+     */
+    async getAsV1021000(key: v1021000.VaultCurrencyPair): Promise<bigint | undefined> {
+        assert(this.isV1021000)
+        return this._chain.getStorage(this.blockHash, 'VaultRegistry', 'SecureCollateralThreshold', key)
+    }
+
+    async getManyAsV1021000(keys: v1021000.VaultCurrencyPair[]): Promise<(bigint | undefined)[]> {
+        assert(this.isV1021000)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'SecureCollateralThreshold', keys.map(k => [k]))
+    }
+
+    async getAllAsV1021000(): Promise<(bigint)[]> {
+        assert(this.isV1021000)
+        return this._chain.queryStorage(this.blockHash, 'VaultRegistry', 'SecureCollateralThreshold')
+    }
+
+    /**
+     * Checks whether the storage item is defined for the current chain version.
+     */
+    get isExists(): boolean {
+        return this._chain.getStorageItemTypeHash('VaultRegistry', 'SecureCollateralThreshold') != null
+    }
+}
