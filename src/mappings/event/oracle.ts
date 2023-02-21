@@ -4,13 +4,21 @@ import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { Currency, NativeToken, OracleUpdate, OracleUpdateType, Token, Vault } from "../../model";
 import { Ctx, EventItem } from "../../processor";
 import { OracleFeedValuesEvent } from "../../types/events";
-import { CurrencyId as CurrencyId_V15 } from "../../types/v15";
-import { CurrencyId as CurrencyId_V17 } from "../../types/v17";
+import { 
+    CurrencyId as CurrencyId_V15,
+    VaultCurrencyPair as VaultCurrencyPair_V15,
+ } from "../../types/v15";
+
+import { 
+    CurrencyId as CurrencyId_V17,
+    VaultCurrencyPair as VaultCurrencyPair_V17,
+} from "../../types/v17";
 import { address, currencyId, legacyCurrencyId, currencyToString } from "../encoding";
 import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
 import { convertAmountToHuman } from "../_utils";
 import { vaultCollateralMap } from "./vault";
+import { getLiquidationThreshold } from "../utils/vaultThresholds";
 
 export async function feedValues(
     ctx: Ctx,
@@ -65,7 +73,8 @@ export async function feedValues(
                         (await ctx.store.get(Vault, vaultID));
 
                         //Calculating Collateralization
-                        const exchangeRateDec = BigDecimal(value.toString()).div(10 ** 16);
+                        const exchangeRateDec = BigDecimal(value.toString()).div(10 ** 5);
+
                         const collateralToSat = BigDecimal(vault.collateralAmount.toString()).mul(exchangeRateDec);
                         const lockedBTCDec = BigDecimal(vault.wrappedAmount.toString());
                         let collateralization : BigDecimal = BigDecimal("-1");
@@ -74,8 +83,24 @@ export async function feedValues(
                         }
                         vault.collateralization = collateralization;
                         
-                        // calculating threshold status
-                        
+                        //Get thresholds
+                        let currencyPair;
+                        if (useLegacyCurrency) {
+                            currencyPair = {
+                                collateral: key.value as CurrencyId_V15,
+                                wrapped: { __kind: 'Token', value: { __kind: 'IBTC' } } as CurrencyId_V15,
+                            };
+                        }
+                        else {
+                            currencyPair = {
+                                collateral: key.value as CurrencyId_V17,
+                                wrapped: { __kind: 'Token', value: { __kind: 'IBTC' } } as CurrencyId_V17,
+                            };
+                        }
+
+                                                
+                        const LiquidationThreshold = getLiquidationThreshold(ctx, block, currencyPair);
+                        console.log(LiquidationThreshold); 
                         entityBuffer.pushEntity(
                             Vault.name,
                             vault,

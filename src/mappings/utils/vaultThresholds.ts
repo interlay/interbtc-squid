@@ -12,8 +12,22 @@ import { VaultCurrencyPair as VaultCurrencyPairv15 } from "../../types/v15";
 import { VaultCurrencyPair as VaultCurrencyPairv17 } from "../../types/v17";
 import { VaultCurrencyPair as VaultCurrencyPairv1020000 } from "../../types/v1020000";
 import { VaultCurrencyPair as VaultCurrencyPairv1021000 } from "../../types/v1021000";
+import { Currency } from "../../model";
 
-async function getLiquidationThreshold(
+
+// export function convertToVaultCurrencyPair(
+//     collateral: Currency,
+//     wrapped: Currency,
+//     verison: string
+// )
+// {
+//     const tokenCollateral = collateral.token();
+//     if (verison === "V3"){
+        
+//     }
+// }
+
+export async function getLiquidationThreshold(
     ctx: Ctx,
     block: SubstrateBlock,
     key: CurrencyIdv1 | VaultCurrencyPairv3 | VaultCurrencyPairv6   | VaultCurrencyPairv15 
@@ -22,9 +36,7 @@ async function getLiquidationThreshold(
 {
     const rawLiquidationThreshold = new VaultRegistryLiquidationVaultStorage(ctx, block);
     let value;
-    if (rawLiquidationThreshold.isV1)
-        value = await rawLiquidationThreshold.getAsV1(key as CurrencyIdv1);
-    else if (rawLiquidationThreshold.isV3)
+    if (rawLiquidationThreshold.isV3)
         value = await rawLiquidationThreshold.getAsV3(key as VaultCurrencyPairv3);
     else if (rawLiquidationThreshold.isV6)
         value = await rawLiquidationThreshold.getAsV6(key as VaultCurrencyPairv6);
@@ -42,7 +54,7 @@ async function getLiquidationThreshold(
     return value;
 }
 
-async function getRegistryPremiumRedeemThreshold(
+export async function getRegistryPremiumRedeemThreshold(
     ctx: Ctx,
     block: SubstrateBlock,
     key: CurrencyIdv1 | VaultCurrencyPairv3 | VaultCurrencyPairv6   | VaultCurrencyPairv15 
@@ -71,7 +83,7 @@ async function getRegistryPremiumRedeemThreshold(
     return value;
 }
 
-async function getSecureCollateralThreshold(
+export async function getSecureCollateralThreshold(
     ctx: Ctx,
     block: SubstrateBlock,
     key: CurrencyIdv1 | VaultCurrencyPairv3 | VaultCurrencyPairv6 | VaultCurrencyPairv15 | VaultCurrencyPairv17 | VaultCurrencyPairv1020000 | VaultCurrencyPairv1021000
