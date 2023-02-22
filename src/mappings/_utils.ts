@@ -298,19 +298,26 @@ export async function getExchangeRate(
         baseMonetaryAmount = newMonetaryAmount(Big(1e8), Bitcoin)
     }
     else {
-        const lastUpdate = await ctx.store.get(OracleUpdate, {
+        let lastUpdate = await ctx.store.get(OracleUpdate, {
             where: { 
                 id: Like(`%${JSON.stringify(searchBlock)}`),
                 timestamp: LessThanOrEqual(new Date(timestamp)),
             },
             order: { timestamp: "DESC" },
         });
+        console.log(lastUpdate?.timestamp);
         if (lastUpdate === undefined) {
             ctx.log.warn(
-                `WARNING: no price registered by Oracle for ${JSON.stringify(searchBlock)} at timestamp ${new Date(timestamp)}`
+                `WARNING: no price registered by Oracle for ${JSON.stringify(searchBlock)} at timestamp ${new Date(timestamp)}. Fetching first value.`
             );
+            lastUpdate = await ctx.store.get(OracleUpdate, {
+                where: { 
+                    id: Like(`%${JSON.stringify(searchBlock)}`),
+                },
+                order: { timestamp: "ASC" },
+            });
         }
-        const lastPrice = new Big((Number(lastUpdate?.updateValue) || 1e10) / 1e10);
+        const lastPrice = new Big((Number(lastUpdate?.updateValue) || 0) / 1e10);
         baseMonetaryAmount = newMonetaryAmount(lastPrice, mappedCurrency);
     }
 
@@ -318,7 +325,7 @@ export async function getExchangeRate(
         isTypeOf: 'ForeignAsset',
         asset: 1
     }
-    const btcUpdate = await ctx.store.get(OracleUpdate, {
+    let btcUpdate = await ctx.store.get(OracleUpdate, {
         where: { 
             id: Like(`%${JSON.stringify(searchBlock)}`),
             timestamp: LessThanOrEqual(new Date(timestamp)),
@@ -329,12 +336,18 @@ export async function getExchangeRate(
         ctx.log.warn(
             `WARNING: no price registered by Oracle for ${JSON.stringify(searchBlock)} at time ${new Date(timestamp)}`
         );
+        btcUpdate = await ctx.store.get(OracleUpdate, {
+            where: { 
+                id: Like(`%${JSON.stringify(searchBlock)}`),
+            },
+            order: { timestamp: "ASC" },
+        });
     }
-    const btcPrice = new Big((Number(btcUpdate?.updateValue) || 1e10) / 1e8);
+    const btcPrice = new Big((Number(btcUpdate?.updateValue) || 0) / 1e8);
     const btcMonetaryAmount = newMonetaryAmount(btcPrice, Bitcoin);
 
     const exchangeRate = btcMonetaryAmount.toBig().div(baseMonetaryAmount.toBig());
-    const monetaryAmount = newMonetaryAmount(Big(amount), mapCurrencyType(currency));
+    const monetaryAmount = newMonetaryAmount(Big(amount), mappedCurrency);
 
     return {
         btc: monetaryAmount.toBig().div(baseMonetaryAmount.toBig()), 
