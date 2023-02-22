@@ -44,7 +44,7 @@ import { CurrencyId as CurrencyId_V1021000,
 
 import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
-import { friendlyAmount, getFirstAndLastFour, symbolFromCurrency, getExchangeRate } from "../_utils";
+import { friendlyAmount, getFirstAndLastFour, symbolFromCurrency, getExchangeRate, decimalsFromCurrency, divideByTenToTheNth } from "../_utils";
 import { lendTokenDetails } from "../utils/markets";
 
 import { CurrencyId_Token as CurrencyId_Token_V6 } from "../../types/v6";
@@ -647,16 +647,22 @@ export async function accrueInterest(
     const rawEvent = new LoansInterestAccruedEvent(ctx, item.event);
     const interestAccrued = rawEvent.asV1021000;
     const { exchangeRate: exchangeRate} = interestAccrued;
-    const ex = Number(exchangeRate) / 10 ** 18;
+    //const ex = Number(exchangeRate) / 10 ** 18;
+    const ex = divideByTenToTheNth(exchangeRate, 18)
 
     const currency = currencyId.encode(interestAccrued.underlyingCurrencyId);
     const height = await blockToHeight(ctx, block.height, "Interest Accrued");
     const symbol = await symbolFromCurrency(currency);
+    const decimals = await decimalsFromCurrency(currency);
     cachedRates.addRate(
         block.height,
         symbol,
         ex,
     );
+
+    const totalBorrowsUsdtAndBtc = await getExchangeRate(ctx, block.timestamp, currency, Number(interestAccrued.totalBorrows));
+    const totalReservesUsdtAndBtc = await getExchangeRate(ctx, block.timestamp, currency, Number(interestAccrued.totalReserves));
+    const borrowIndexUsdtAndBtc = await getExchangeRate(ctx, block.timestamp, currency, Number(interestAccrued.borrowIndex));
 
     await entityBuffer.pushEntity(
         InterestAccrual.name,
@@ -669,12 +675,20 @@ export async function accrueInterest(
             totalBorrows: interestAccrued.totalBorrows,
             totalReserves: interestAccrued.totalReserves,
             borrowIndex: interestAccrued.borrowIndex,
-            utilizationRatio: interestAccrued.utilizationRatio,
+            totalBorrowsNative: divideByTenToTheNth(interestAccrued.totalBorrows, decimals),
+            totalReservesNative: divideByTenToTheNth(interestAccrued.totalReserves, decimals),
+            borrowIndexNative: divideByTenToTheNth(interestAccrued.borrowIndex, decimals),
+            totalBorrowsUsdt: totalBorrowsUsdtAndBtc.usdt.toNumber(),
+            totalReservesUsdt: totalReservesUsdtAndBtc.usdt.toNumber(),
+            borrowIndexUsdt: borrowIndexUsdtAndBtc.usdt.toNumber(),
+            utilizationRatio: interestAccrued.utilizationRatio / 1e6,
             borrowRate: interestAccrued.borrowRate,
             supplyRate: interestAccrued.supplyRate,
+            borrowRatePct: divideByTenToTheNth(interestAccrued.borrowRate, 18-2),
+            supplyRatePct: divideByTenToTheNth(interestAccrued.supplyRate, 18-2),
             exchangeRate: interestAccrued.exchangeRate,
             exchangeRateFloat: ex,
-            comment: `Exchange rate for ${symbol} now ${ex}`
+            comment: `Exchange rate for ${symbol} now ${ex}...v3`
         })
     );
 }

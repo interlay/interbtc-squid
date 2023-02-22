@@ -334,11 +334,19 @@ type InterestAccrual @entity {
     underlyingCurrency: Currency!
     currencySymbol: String!
     utilizationRatio: Float!
+    borrowRate: BigInt!
+    supplyRate: BigInt!
     totalBorrows: BigInt!
     totalReserves: BigInt!
     borrowIndex: BigInt!
-    borrowRate: BigInt!
-    supplyRate: BigInt!
+    totalBorrowsNative: Float
+    totalReservesNative: Float
+    borrowIndexNative: Float
+    totalBorrowsUsdt: Float
+    totalReservesUsdt: Float
+    borrowIndexUsdt: Float
+    borrowRatePct: Float
+    supplyRatePct: Float
     exchangeRate: BigInt!
     exchangeRateFloat: Float!
     height: Height!

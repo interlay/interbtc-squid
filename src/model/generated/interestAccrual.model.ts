@@ -22,6 +22,12 @@ export class InterestAccrual {
     utilizationRatio!: number
 
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    borrowRate!: bigint
+
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    supplyRate!: bigint
+
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
     totalBorrows!: bigint
 
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
@@ -30,11 +36,29 @@ export class InterestAccrual {
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
     borrowIndex!: bigint
 
-    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-    borrowRate!: bigint
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: true})
+    totalBorrowsNative!: number | undefined | null
 
-    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-    supplyRate!: bigint
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: true})
+    totalReservesNative!: number | undefined | null
+
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: true})
+    borrowIndexNative!: number | undefined | null
+
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: true})
+    totalBorrowsUsdt!: number | undefined | null
+
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: true})
+    totalReservesUsdt!: number | undefined | null
+
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: true})
+    borrowIndexUsdt!: number | undefined | null
+
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: true})
+    borrowRatePct!: number | undefined | null
+
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: true})
+    supplyRatePct!: number | undefined | null
 
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
     exchangeRate!: bigint

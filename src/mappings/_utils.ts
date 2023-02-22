@@ -9,11 +9,12 @@ import { encodeLegacyVaultId, encodeVaultId } from "./encoding";
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import * as process from "process";
 import { Ctx } from "../processor";
-import { LessThanOrEqual, Like } from "typeorm";
+import { DriverOptionNotSetError, LessThanOrEqual, Like } from "typeorm";
 import { Bitcoin, Kintsugi, Kusama, Interlay, Polkadot, InterBtc, KBtc, ExchangeRate } from "@interlay/monetary-js";
 import { CurrencyExt, CurrencyIdentifier, currencyIdToMonetaryCurrency, getCurrencyIdentifier, newMonetaryAmount, StandardPooledTokenIdentifier } from "@interlay/interbtc-api";
 import { BigDecimal } from "@subsquid/big-decimal";
 import { getInterBtcApi } from "../processor";
+import { Result } from "@polkadot/types-codec";
 
 export type eventArgs = {
     event: { args: true };
@@ -132,110 +133,13 @@ export async function friendlyAmount(currency: Currency, amount: number): Promis
     }
 }
 
-// export async function symbolFromCurrency(currency: Currency): Promise<string> {
-//     let amountFriendly: number;
-//     switch(currency.isTypeOf) {
-//         case 'NativeToken':
-//             return currency.token;
-//         case 'ForeignAsset':
-//             const details = await getForeignAsset(currency.asset)
-//             return details.symbol;
-//         default:
-//             return `UNKNOWN`;
-//     }
-// }
-
-// type CurrencyType = Bitcoin | Kintsugi | Kusama | Interlay | Polkadot;
-
-// function mapCurrencyType(currency: Currency): CurrencyType {
-//     switch(currency.isTypeOf) {
-//         case 'NativeToken':
-//             switch(currency.token) {
-//                 case 'KINT':
-//                     return Kintsugi;
-//                 case 'KSM':
-//                     return Kusama;
-//                 case 'INTR':
-//                     return Interlay;
-//                 case 'DOT':
-//                     return Polkadot;
-//                 case 'KBTC':
-//                     return KBtc;
-//                 case 'INTR':
-//                     return InterBtc;
-//             }
-//         case 'ForeignAsset':
-//             return Bitcoin;
-//         default:
-//             throw new Error(`Unsupported currency type: ${currency.isTypeOf}`);
-//     }
-// }
-
-// type OracleRate = {
-//     btc: Big;
-//     usdt: Big;
-// }
-
-// /* This function is used to calculate the exchange rate for a given currency at
-// a given time.
-// */
-// export async function getExchangeRate(
-//     ctx: Ctx,
-//     timestamp: number,
-//     currency: Currency,
-//     amount: number
-// ): Promise<OracleRate>  {
-//     const mappedCurrency = mapCurrencyType(currency);
-//     let baseMonetaryAmount
-//     let searchBlock = currency.toJSON();
-
-//     if (mappedCurrency === KBtc || mappedCurrency === InterBtc) {
-//         baseMonetaryAmount = newMonetaryAmount(Big(1e8), Bitcoin)
-//     }
-//     else {
-//         const lastUpdate = await ctx.store.get(OracleUpdate, {
-//             where: { 
-//                 id: Like(`%${JSON.stringify(searchBlock)}`),
-//                 timestamp: LessThanOrEqual(new Date(timestamp)),
-//             },
-//             order: { timestamp: "DESC" },
-//         });
-//         if (lastUpdate === undefined) {
-//             ctx.log.warn(
-//                 `WARNING: no price registered by Oracle for ${JSON.stringify(searchBlock)} at timestamp ${new Date(timestamp)}`
-//             );
-//         }
-//         const lastPrice = new Big((Number(lastUpdate?.updateValue) || 1e10) / 1e10);
-//         baseMonetaryAmount = newMonetaryAmount(lastPrice, mappedCurrency);
-//     }
-
-//     searchBlock = {
-//         isTypeOf: 'ForeignAsset',
-//         asset: 1
-//     }
-//     const btcUpdate = await ctx.store.get(OracleUpdate, {
-//         where: { 
-//             id: Like(`%${JSON.stringify(searchBlock)}`),
-//             timestamp: LessThanOrEqual(new Date(timestamp)),
-//         },
-//         order: { timestamp: "DESC" },
-//     });
-//     if (btcUpdate === undefined) {
-//         ctx.log.warn(
-//             `WARNING: no price registered by Oracle for ${JSON.stringify(searchBlock)} at time ${new Date(timestamp)}`
-//         );
-//     }
-//     const btcPrice = new Big((Number(btcUpdate?.updateValue) || 1e10) / 1e8);
-//     const btcMonetaryAmount = newMonetaryAmount(btcPrice, Bitcoin);
-
-//     const exchangeRate = btcMonetaryAmount.toBig().div(baseMonetaryAmount.toBig());
-//     const monetaryAmount = newMonetaryAmount(Big(amount), mapCurrencyType(currency));
-
-//     return {
-//         btc: monetaryAmount.toBig().div(baseMonetaryAmount.toBig()), 
-//         usdt: monetaryAmount.toBig().mul(exchangeRate)
-//     };
-// }
+export function divideByTenToTheNth(amount: bigint, n: number): number {
+    const divisor = Big(10**n);
+    const amountBig = Big(amount.toString())
+    const division = amountBig.div(divisor);
+    const result = division.toNumber();
+    return result;
+}
 
 export async function symbolFromCurrency(currency: Currency): Promise<string> {
     let amountFriendly: number;
@@ -247,6 +151,30 @@ export async function symbolFromCurrency(currency: Currency): Promise<string> {
             return details.symbol;
         default:
             return `UNKNOWN`;
+    }
+}
+
+export async function decimalsFromCurrency(currency: Currency): Promise<number> {
+    switch(currency.isTypeOf) {
+        case 'NativeToken':
+            switch (currency.token) {
+                case 'KINT':
+                case 'KSM':
+                    return 12
+                case 'INTR':
+                case 'DOT':
+                    return 10
+                case 'KBTC':
+                case 'IBTC':
+                    return 8
+                default:
+                    return 0
+            }
+        case 'ForeignAsset':
+            const details = await getForeignAsset(currency.asset)
+            return details.decimals;
+        default:
+            return 0;
     }
 }
 
