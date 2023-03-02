@@ -1,14 +1,18 @@
 import {
+    CumulativeDexTradingVolumePerPool,
     CumulativeVolume,
     CumulativeVolumePerCurrencyPair,
     Currency,
+    PooledAmount,
+    PooledToken,
+    PoolType,
     VolumeType,
 } from "../../model";
 import { Equal, LessThanOrEqual } from "typeorm";
 import { Store } from "@subsquid/typeorm-store";
-import { EventItem } from "../../processor";
 import EntityBuffer from "./entityBuffer";
 import { convertAmountToHuman } from "../_utils";
+import { inferGeneralPoolId } from "./pools";
 
 function getLatestCurrencyPairCumulativeVolume(
     cumulativeVolumes: CumulativeVolumePerCurrencyPair[],
@@ -200,4 +204,132 @@ export async function updateCumulativeVolumesForCurrencyPair(
         );
         return cumulativeVolumeForCollateral;
     }
+}
+
+type SwapDetailsAmount = {
+    currency: PooledToken,
+    atomicAmount: bigint
+};
+
+export type SwapDetails = {
+    from: SwapDetailsAmount,
+    to: SwapDetailsAmount
+}
+
+async function createPooledAmount(swapAmount: SwapDetailsAmount): Promise<PooledAmount> {
+    const amountHuman = await convertAmountToHuman(swapAmount.currency, swapAmount.atomicAmount);
+    return new PooledAmount({
+        token: swapAmount.currency,
+        amount: swapAmount.atomicAmount,
+        amountHuman
+    });
+}
+
+/**
+ * Modifies the passed in entity to add or update pooled token volumes.
+ * @param entity The entity to add pooled amounts to, or update existing ones
+ * @param swapDetails The swap details used to modify the event
+ * @return Returns the modified entity
+ */
+async function updateOrAddPooledAmounts(entity: CumulativeDexTradingVolumePerPool, swapDetails: SwapDetails): Promise<CumulativeDexTradingVolumePerPool> {
+    // we need to find & update existing amounts, or add new ones
+    let foundFrom = false;
+    let foundTo = false;
+    
+    for (const pooledAmount of entity.amounts) {
+        if (foundFrom && foundTo) {
+            // done: exit loop
+            break;
+        }
+
+        let amountToAdd: bigint | undefined = undefined;
+        if (pooledAmount.token === swapDetails.from.currency) {
+            amountToAdd = swapDetails.from.atomicAmount;
+            foundFrom = true;
+        } else if (pooledAmount.token === swapDetails.to.currency) {
+            amountToAdd = swapDetails.to.atomicAmount;
+            foundTo = true;
+        }
+
+        // update volume in place (ie. modify the entity directly)
+        if (amountToAdd) {
+            const newAmount = pooledAmount.amount + swapDetails.to.atomicAmount;
+            pooledAmount.amount = newAmount;
+            pooledAmount.amountHuman = await convertAmountToHuman(pooledAmount.token, newAmount);
+        }
+    }
+
+    // if we get here, there is at least one new pooled amount to add to the entity
+    if (!foundFrom) {
+        const pooledAmount = await createPooledAmount(swapDetails.from);
+        entity.amounts.push(pooledAmount);
+    }
+    if (!foundTo) {
+        const pooledAmount = await createPooledAmount(swapDetails.to);
+        entity.amounts.push(pooledAmount);
+    }
+
+    return entity;
+}
+
+async function fetchOrCreateEntity(
+    entityId: string, 
+    poolId: string, 
+    poolType: PoolType, 
+    tillTimestamp: Date, 
+    store: Store, 
+    entityBuffer: EntityBuffer
+): Promise<CumulativeDexTradingVolumePerPool> {
+    // fetch from buffer if it exists
+    return (entityBuffer.getBufferedEntityBy(
+            CumulativeDexTradingVolumePerPool.name,
+            entityId
+        ) as CumulativeDexTradingVolumePerPool | undefined) ||
+        // if not found, try to fetch from store
+        (await store.get(CumulativeDexTradingVolumePerPool, entityId)) ||
+        // still not found, create a new entity
+        new CumulativeDexTradingVolumePerPool({
+            id: entityId,
+            poolId: poolId,
+            poolType,
+            tillTimestamp,
+            amounts: []
+        });
+}
+
+function buildPoolEntityId(poolId: string, poolType: PoolType, timestamp: Date): string {
+    return `${poolId}-${poolType}-${timestamp
+        .getTime()
+        .toString()}`;
+}
+
+export async function updateCumulativeDexVolumesForStandardPool(
+    store: Store,
+    timestamp: Date,
+    swapDetails: SwapDetails,
+    entityBuffer: EntityBuffer
+): Promise<CumulativeDexTradingVolumePerPool> {
+    const poolType = PoolType.Standard;
+
+    const poolId = inferGeneralPoolId(swapDetails.from.currency, swapDetails.to.currency);
+
+    const entityId = buildPoolEntityId(poolId, poolType, timestamp);
+
+    const entity = await fetchOrCreateEntity(entityId, poolId, poolType, timestamp, store, entityBuffer);
+    return await updateOrAddPooledAmounts(entity, swapDetails);
+}
+
+export async function updateCumulativeDexVolumesForStablePool(
+    store: Store,
+    timestamp: Date,
+    poolId: number,
+    swapDetails: SwapDetails,
+    entityBuffer: EntityBuffer
+): Promise<CumulativeDexTradingVolumePerPool> {
+    const poolType = PoolType.Stable;
+
+    const entityId = buildPoolEntityId(poolId.toString(), poolType, timestamp);
+
+    const entity = await fetchOrCreateEntity(entityId, poolId.toString(), poolType, timestamp, store, entityBuffer);
+    return await updateOrAddPooledAmounts(entity, swapDetails);
 }

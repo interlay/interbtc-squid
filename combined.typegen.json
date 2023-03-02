@@ -4,6 +4,8 @@
     "typesBundle": "indexer/typesBundle.json",
     "events": [
         "BTCRelay.StoreMainChainHeader",
+        "DexGeneral.AssetSwap",
+        "DexStable.CurrencyExchange",
         "Escrow.Deposit",
         "Escrow.Withdraw",
         "Issue.CancelIssue",
@@ -42,6 +44,7 @@
         "System.set_storage"
     ],
     "storage": [
+        "DexStable.Pools",
         "Issue.IssuePeriod",
         "Redeem.RedeemPeriod"
     ]

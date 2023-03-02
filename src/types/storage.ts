@@ -1,5 +1,51 @@
 import assert from 'assert'
 import {Block, Chain, ChainContext, BlockContext, Result, Option} from './support'
+import * as v1021000 from './v1021000'
+
+export class DexStablePoolsStorage {
+    private readonly _chain: Chain
+    private readonly blockHash: string
+
+    constructor(ctx: BlockContext)
+    constructor(ctx: ChainContext, block: Block)
+    constructor(ctx: BlockContext, block?: Block) {
+        block = block || ctx.block
+        this.blockHash = block.hash
+        this._chain = ctx._chain
+    }
+
+    /**
+     *  Info of a pool.
+     */
+    get isV1021000() {
+        return this._chain.getStorageItemTypeHash('DexStable', 'Pools') === '589bc6643ae522e9f672bbb153dcc85f9ed48dd356b43697ce45ce589424599a'
+    }
+
+    /**
+     *  Info of a pool.
+     */
+    async getAsV1021000(key: number): Promise<v1021000.Pool | undefined> {
+        assert(this.isV1021000)
+        return this._chain.getStorage(this.blockHash, 'DexStable', 'Pools', key)
+    }
+
+    async getManyAsV1021000(keys: number[]): Promise<(v1021000.Pool | undefined)[]> {
+        assert(this.isV1021000)
+        return this._chain.queryStorage(this.blockHash, 'DexStable', 'Pools', keys.map(k => [k]))
+    }
+
+    async getAllAsV1021000(): Promise<(v1021000.Pool)[]> {
+        assert(this.isV1021000)
+        return this._chain.queryStorage(this.blockHash, 'DexStable', 'Pools')
+    }
+
+    /**
+     * Checks whether the storage item is defined for the current chain version.
+     */
+    get isExists(): boolean {
+        return this._chain.getStorageItemTypeHash('DexStable', 'Pools') != null
+    }
+}
 
 export class IssueIssuePeriodStorage {
     private readonly _chain: Chain

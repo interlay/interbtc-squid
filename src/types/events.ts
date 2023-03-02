@@ -154,6 +154,35 @@ export class DexGeneralLiquidityRemovedEvent {
     }
 }
 
+export class DexStableCurrencyExchangeEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'DexStable.CurrencyExchange')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * Swap a amounts of currency to get other.
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('DexStable.CurrencyExchange') === '0abe856f4fa3b499a28439696d7ae07664a33ec25834861bc9032b5d4950a766'
+    }
+
+    /**
+     * Swap a amounts of currency to get other.
+     */
+    get asV1021000(): {poolId: number, who: Uint8Array, to: Uint8Array, inIndex: number, inAmount: bigint, outIndex: number, outAmount: bigint} {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
 export class EscrowDepositEvent {
     private readonly _chain: Chain
     private readonly event: Event
@@ -641,23 +670,6 @@ export class LoansLiquidatedBorrowEvent {
         assert(event.name === 'Loans.LiquidatedBorrow')
         this._chain = ctx._chain
         this.event = event
-    }
-
-    /**
-     * Event emitted when a borrow is liquidated
-     * [liquidator, borrower, liquidation_asset_id, collateral_asset_id, repay_amount, collateral_amount]
-     */
-    get isV1020000(): boolean {
-        return this._chain.getEventHash('Loans.LiquidatedBorrow') === '564d3b69f26adc5d718502510404c616f593ab8c57227fb360a2635d20e76b2c'
-    }
-
-    /**
-     * Event emitted when a borrow is liquidated
-     * [liquidator, borrower, liquidation_asset_id, collateral_asset_id, repay_amount, collateral_amount]
-     */
-    get asV1020000(): [Uint8Array, Uint8Array, v1020000.CurrencyId, v1020000.CurrencyId, bigint, bigint] {
-        assert(this.isV1020000)
-        return this._chain.decodeEvent(this.event)
     }
 
     /**
@@ -1577,97 +1589,6 @@ export class VaultRegistryRegisterVaultEvent {
     }
 
     get asV1021000(): {vaultId: v1021000.VaultId, collateral: bigint} {
-        assert(this.isV1021000)
-        return this._chain.decodeEvent(this.event)
-    }
-}
-
-export class ZenlinkProtocolAssetSwapEvent {
-    private readonly _chain: Chain
-    private readonly event: Event
-
-    constructor(ctx: EventContext)
-    constructor(ctx: ChainContext, event: Event)
-    constructor(ctx: EventContext, event?: Event) {
-        event = event || ctx.event
-        assert(event.name === 'ZenlinkProtocol.AssetSwap')
-        this._chain = ctx._chain
-        this.event = event
-    }
-
-    /**
-     * Transact in trading \[owner, recipient, swap_path, balances\]
-     */
-    get isV1021000(): boolean {
-        return this._chain.getEventHash('ZenlinkProtocol.AssetSwap') === '30f80dbfcfdeb3f5f4ee219068494b5b646f7456fb27dea0316737eec2e3f8c6'
-    }
-
-    /**
-     * Transact in trading \[owner, recipient, swap_path, balances\]
-     */
-    get asV1021000(): [Uint8Array, Uint8Array, v1021000.CurrencyId[], bigint[]] {
-        assert(this.isV1021000)
-        return this._chain.decodeEvent(this.event)
-    }
-}
-
-export class ZenlinkProtocolLiquidityAddedEvent {
-    private readonly _chain: Chain
-    private readonly event: Event
-
-    constructor(ctx: EventContext)
-    constructor(ctx: ChainContext, event: Event)
-    constructor(ctx: EventContext, event?: Event) {
-        event = event || ctx.event
-        assert(event.name === 'ZenlinkProtocol.LiquidityAdded')
-        this._chain = ctx._chain
-        this.event = event
-    }
-
-    /**
-     * Add liquidity. \[owner, asset_0, asset_1, add_balance_0, add_balance_1,
-     * mint_balance_lp\]
-     */
-    get isV1021000(): boolean {
-        return this._chain.getEventHash('ZenlinkProtocol.LiquidityAdded') === 'd8b087aac9964db76a860392438c8c03122c1821fc97316158cf5177e3078899'
-    }
-
-    /**
-     * Add liquidity. \[owner, asset_0, asset_1, add_balance_0, add_balance_1,
-     * mint_balance_lp\]
-     */
-    get asV1021000(): [Uint8Array, v1021000.CurrencyId, v1021000.CurrencyId, bigint, bigint, bigint] {
-        assert(this.isV1021000)
-        return this._chain.decodeEvent(this.event)
-    }
-}
-
-export class ZenlinkProtocolLiquidityRemovedEvent {
-    private readonly _chain: Chain
-    private readonly event: Event
-
-    constructor(ctx: EventContext)
-    constructor(ctx: ChainContext, event: Event)
-    constructor(ctx: EventContext, event?: Event) {
-        event = event || ctx.event
-        assert(event.name === 'ZenlinkProtocol.LiquidityRemoved')
-        this._chain = ctx._chain
-        this.event = event
-    }
-
-    /**
-     * Remove liquidity. \[owner, recipient, asset_0, asset_1, rm_balance_0, rm_balance_1,
-     * burn_balance_lp\]
-     */
-    get isV1021000(): boolean {
-        return this._chain.getEventHash('ZenlinkProtocol.LiquidityRemoved') === '3b79687d35ae212367d8e45de1258467b263a0005a6840dceaf3184c4aad8999'
-    }
-
-    /**
-     * Remove liquidity. \[owner, recipient, asset_0, asset_1, rm_balance_0, rm_balance_1,
-     * burn_balance_lp\]
-     */
-    get asV1021000(): [Uint8Array, Uint8Array, v1021000.CurrencyId, v1021000.CurrencyId, bigint, bigint, bigint] {
         assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }

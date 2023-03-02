@@ -1,3 +1,4 @@
+export * from "./dex";
 export * from "./issue";
 export * from "./redeem";
 export * from "./vault";
