@@ -243,6 +243,26 @@ type CumulativeVolumePerCurrencyPair @entity {
     collateralCurrency: Currency
 }
 
+type PooledAmount {
+    amount: BigInt!
+    amountHuman: BigDecimal
+    token: PooledToken!
+    # TODO: check if this should be Currency?
+}
+
+enum PoolType {
+    Standard
+    Stable
+}
+
+type CumulativeDexTradingVolumePerPool @entity {
+    id: ID!
+    poolId: String! @index
+    poolType: PoolType!
+    tillTimestamp: DateTime! @index
+    amounts: [PooledAmount!]!
+}
+
 type IssuePeriod @entity {
     height: Height!
     timestamp: DateTime!

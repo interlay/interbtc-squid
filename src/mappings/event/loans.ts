@@ -176,8 +176,6 @@ export async function activatedMarket(
     marketDb.activation = activation;
     await entityBuffer.pushEntity(LoanMarketActivation.name, activation);
     await entityBuffer.pushEntity(LoanMarket.name, marketDb);
-
-    console.log(`Activated ${marketDb.id}`);
 }
 
 export async function borrow(

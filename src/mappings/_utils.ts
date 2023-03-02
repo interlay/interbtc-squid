@@ -80,7 +80,7 @@ export async function getForeignAsset(id: number): Promise<AssetMetadata> {
     }
     try {
         const wsProvider = new WsProvider(process.env.CHAIN_ENDPOINT);
-        const api = await ApiPromise.create({ provider: wsProvider });
+        const api = await ApiPromise.create({ provider: wsProvider, noInitWarn: true });
         const assets = await api.query.assetRegistry.metadata(id);
         const assetsJSON = assets.toHuman();
         const metadata = assetsJSON as AssetMetadata;
@@ -170,4 +170,9 @@ export async function convertAmountToHuman(currency: Currency, amount: bigint ) 
     const currencyInfo: CurrencyExt = await currencyToLibCurrencyExt(currency);
     const monetaryAmount = newMonetaryAmount(amount.toString(), currencyInfo);
     return BigDecimal(monetaryAmount.toString());
+}
+
+// helper method to switch around key/value pairs for a given map
+export function invertMap<K extends Object, V extends Object>(map: Map<K, V>): Map<V, K> {
+    return new Map(Array.from(map, ([key, value]) => [value, key]));
 }
