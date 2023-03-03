@@ -1,4 +1,11 @@
+import { Store } from "@subsquid/typeorm-store";
+import { isEqual, cloneDeep } from "lodash";
+import { Equal, LessThan, LessThanOrEqual } from "typeorm";
 import {
+    CumulativeDexTradeCount,
+    CumulativeDexTradeCountPerAccount,
+    CumulativeDexTradingVolume,
+    CumulativeDexTradingVolumePerAccount,
     CumulativeDexTradingVolumePerPool,
     CumulativeVolume,
     CumulativeVolumePerCurrencyPair,
@@ -6,12 +13,10 @@ import {
     PooledAmount,
     PooledToken,
     PoolType,
-    VolumeType,
+    VolumeType
 } from "../../model";
-import { Equal, LessThanOrEqual } from "typeorm";
-import { Store } from "@subsquid/typeorm-store";
-import EntityBuffer from "./entityBuffer";
 import { convertAmountToHuman } from "../_utils";
+import EntityBuffer from "./entityBuffer";
 import { inferGeneralPoolId } from "./pools";
 
 function getLatestCurrencyPairCumulativeVolume(
@@ -206,7 +211,7 @@ export async function updateCumulativeVolumesForCurrencyPair(
     }
 }
 
-type SwapDetailsAmount = {
+export type SwapDetailsAmount = {
     currency: PooledToken,
     atomicAmount: bigint
 };
@@ -228,51 +233,189 @@ async function createPooledAmount(swapAmount: SwapDetailsAmount): Promise<Pooled
 /**
  * Modifies the passed in entity to add or update pooled token volumes.
  * @param entity The entity to add pooled amounts to, or update existing ones
- * @param swapDetails The swap details used to modify the event
+ * @param amounts The swap detail amounts to add to the entity's values
  * @return Returns the modified entity
  */
-async function updateOrAddPooledAmounts(entity: CumulativeDexTradingVolumePerPool, swapDetails: SwapDetails): Promise<CumulativeDexTradingVolumePerPool> {
-    // we need to find & update existing amounts, or add new ones
-    let foundFrom = false;
-    let foundTo = false;
-    
-    for (const pooledAmount of entity.amounts) {
-        if (foundFrom && foundTo) {
-            // done: exit loop
-            break;
+async function increaseSwapDetailsAmountsForEntity<T extends CumulativeDexTradingVolume | CumulativeDexTradingVolumePerAccount>(
+    entity: T,
+    amounts: SwapDetailsAmount[]
+): Promise<T> {
+    for (const amountToAdd of amounts) {
+        let updatedExistingAmount = false;
+        for (const pooledAmount of entity.amounts) {
+            if (isEqual(pooledAmount.token, amountToAdd.currency)) {
+                const newAmount = pooledAmount.amount + amountToAdd.atomicAmount;
+                pooledAmount.amount = newAmount;
+                pooledAmount.amountHuman = await convertAmountToHuman(pooledAmount.token, newAmount);
+                updatedExistingAmount = true;
+                break;
+            }
         }
 
-        let amountToAdd: bigint | undefined = undefined;
-        if (pooledAmount.token === swapDetails.from.currency) {
-            amountToAdd = swapDetails.from.atomicAmount;
-            foundFrom = true;
-        } else if (pooledAmount.token === swapDetails.to.currency) {
-            amountToAdd = swapDetails.to.atomicAmount;
-            foundTo = true;
-        }
-
-        // update volume in place (ie. modify the entity directly)
-        if (amountToAdd) {
-            const newAmount = pooledAmount.amount + swapDetails.to.atomicAmount;
-            pooledAmount.amount = newAmount;
-            pooledAmount.amountHuman = await convertAmountToHuman(pooledAmount.token, newAmount);
-        }
-    }
-
-    // if we get here, there is at least one new pooled amount to add to the entity
-    if (!foundFrom) {
-        const pooledAmount = await createPooledAmount(swapDetails.from);
-        entity.amounts.push(pooledAmount);
-    }
-    if (!foundTo) {
-        const pooledAmount = await createPooledAmount(swapDetails.to);
+        // did not find amount in the entity's list of pooled amounts
+        // add new pooled amount
+        const pooledAmount = await createPooledAmount(amountToAdd);
         entity.amounts.push(pooledAmount);
     }
 
     return entity;
 }
 
-async function fetchOrCreateEntity(
+function findLatestTimestampedEntityBefore<
+    T extends CumulativeDexTradingVolume | 
+    CumulativeDexTradingVolumePerPool | 
+    CumulativeDexTradingVolumePerAccount |
+    CumulativeDexTradeCount |
+    CumulativeDexTradeCountPerAccount
+>(
+    timestampedEntities: T[],
+    beforeTimestamp: Date,
+    customFilter?: (elem: T) => boolean
+): T | undefined {
+    if (timestampedEntities.length < 1) {
+        return undefined;
+    }
+
+    // find the latest entry that has a tillTimestamp of less than the search timestamp
+    const timestampFiltered = timestampedEntities
+        .filter(entity => entity.tillTimestamp.getTime() < beforeTimestamp.getTime());
+
+    // apply custom filter (most likely checking poolId for volume per pool entities)
+    const customFiltered = (customFilter == undefined) ? timestampFiltered : timestampFiltered.filter(customFilter);
+
+    return customFiltered.reduce((prev, current) => {
+        return prev.tillTimestamp.getTime() >
+            current.tillTimestamp.getTime()
+            ? prev
+            : current;
+    });
+}
+
+function cloneTimestampedEntity<
+    T extends CumulativeDexTradingVolume | 
+    CumulativeDexTradingVolumePerPool | 
+    CumulativeDexTradingVolumePerAccount |
+    CumulativeDexTradeCount |
+    CumulativeDexTradeCountPerAccount
+>(
+    entity: T,
+    entityId: string,
+    tillTimestamp: Date
+): T {
+    // deep clone to preserve existing amounts
+    const clone = cloneDeep(entity);
+    // change id and tillTimestamp
+    clone.id = entityId;
+    clone.tillTimestamp = tillTimestamp;
+    return clone;
+}
+
+async function fetchOrCreateTotalVolumeEntity(
+    entityId: string, 
+    tillTimestamp: Date, 
+    store: Store, 
+    entityBuffer: EntityBuffer
+): Promise<CumulativeDexTradingVolume> {
+    // first try to find by id
+    let maybeEntity = entityBuffer.getBufferedEntityBy(
+        CumulativeDexTradingVolume.name,
+        entityId
+    ) as CumulativeDexTradingVolume | undefined;
+
+    if (maybeEntity !== undefined) {
+        return maybeEntity;
+    }
+
+    // next, try to find latest matching entity in buffer to copy values from
+    const bufferedEntities = entityBuffer.getBufferedEntities(CumulativeDexTradingVolume.name) as CumulativeDexTradingVolume[];
+    maybeEntity = findLatestTimestampedEntityBefore(bufferedEntities, tillTimestamp);
+
+    if (maybeEntity !== undefined) {
+        return cloneTimestampedEntity(maybeEntity, entityId, tillTimestamp);
+    }
+
+    // not found in buffer, try store next
+    maybeEntity = await store.get(CumulativeDexTradingVolume, entityId);
+    if (maybeEntity !== undefined) {
+        return maybeEntity;
+    }
+
+    // try to find latest matching entity before tillTimestamp
+    maybeEntity = await store.get(CumulativeDexTradingVolume, {
+        where: { 
+            tillTimestamp: LessThan(tillTimestamp),
+        },
+        order: { tillTimestamp: "DESC" },
+    });
+
+    if (maybeEntity) {
+        return cloneTimestampedEntity(maybeEntity, entityId, tillTimestamp);
+    }
+
+    // not found in buffer or store, create new empty
+    return new CumulativeDexTradingVolume({
+        id: entityId,
+        tillTimestamp,
+        amounts: []
+    });
+}
+
+async function fetchOrCreatePerAccountVolumeEntity(
+    entityId: string, 
+    accountId: string, 
+    tillTimestamp: Date, 
+    store: Store, 
+    entityBuffer: EntityBuffer
+): Promise<CumulativeDexTradingVolumePerAccount> {
+    // try to find in buffer by id first
+    let maybeEntity = entityBuffer.getBufferedEntityBy(
+        CumulativeDexTradingVolumePerAccount.name,
+        entityId
+    ) as CumulativeDexTradingVolumePerAccount | undefined;
+
+    if (maybeEntity !== undefined) {
+        return maybeEntity;
+    }
+
+    // next try to find latest entry with volumes in the entity buffer
+    const bufferedEntities = entityBuffer.getBufferedEntities(CumulativeDexTradingVolumePerAccount.name) as CumulativeDexTradingVolumePerAccount[];
+    const accountFilter = (elem: CumulativeDexTradingVolumePerAccount) => elem.accountId == accountId;
+    maybeEntity = findLatestTimestampedEntityBefore(bufferedEntities, tillTimestamp, accountFilter);
+
+    if (maybeEntity !== undefined) {
+        return cloneTimestampedEntity(maybeEntity, entityId, tillTimestamp);
+    }
+
+    // not found in buffer, try store next
+    maybeEntity = await store.get(CumulativeDexTradingVolumePerAccount, entityId);
+
+    if (maybeEntity !== undefined) {
+        return maybeEntity;
+    }
+
+    // not found, try and locate latest matching entity to clone volumes from
+    maybeEntity = await store.get(CumulativeDexTradingVolumePerAccount, {
+        where: {
+            accountId: accountId,
+            tillTimestamp: LessThan(tillTimestamp),
+        },
+        order: { tillTimestamp: "DESC" },
+    });
+
+    if (maybeEntity) {
+        return cloneTimestampedEntity(maybeEntity, entityId, tillTimestamp);
+    }
+
+    // not found in buffer or store, create new empty
+    return new CumulativeDexTradingVolumePerAccount({
+        id: entityId,
+        accountId,
+        tillTimestamp,
+        amounts: []
+    });
+}
+
+async function fetchOrCreateVolumePerPoolEntity(
     entityId: string, 
     poolId: string, 
     poolType: PoolType, 
@@ -280,27 +423,188 @@ async function fetchOrCreateEntity(
     store: Store, 
     entityBuffer: EntityBuffer
 ): Promise<CumulativeDexTradingVolumePerPool> {
-    // fetch from buffer if it exists
-    return (entityBuffer.getBufferedEntityBy(
-            CumulativeDexTradingVolumePerPool.name,
-            entityId
-        ) as CumulativeDexTradingVolumePerPool | undefined) ||
-        // if not found, try to fetch from store
-        (await store.get(CumulativeDexTradingVolumePerPool, entityId)) ||
-        // still not found, create a new entity
-        new CumulativeDexTradingVolumePerPool({
-            id: entityId,
+    // try to find in buffer by id first
+    let maybeEntity = entityBuffer.getBufferedEntityBy(
+        CumulativeDexTradingVolumePerPool.name,
+        entityId
+    ) as CumulativeDexTradingVolumePerPool | undefined;
+
+    if (maybeEntity !== undefined) {
+        return maybeEntity;
+    }
+
+    // next try to find latest entry with volumes in the entity buffer
+    const bufferedEntities = entityBuffer.getBufferedEntities(CumulativeDexTradingVolumePerPool.name) as CumulativeDexTradingVolumePerPool[];
+    const poolFilter = (elem: CumulativeDexTradingVolumePerPool) => elem.poolId == poolId && elem.poolType == poolType;
+    maybeEntity = findLatestTimestampedEntityBefore(bufferedEntities, tillTimestamp, poolFilter);
+
+    if (maybeEntity !== undefined) {
+        return cloneTimestampedEntity(maybeEntity, entityId, tillTimestamp);
+    }
+
+    // not found in buffer, try store next
+    maybeEntity = await store.get(CumulativeDexTradingVolumePerPool, entityId);
+
+    if (maybeEntity !== undefined) {
+        return maybeEntity;
+    }
+
+    // not found, try and locate latest matching entity to clone volumes from
+    maybeEntity = await store.get(CumulativeDexTradingVolumePerPool, {
+        where: {
             poolId: poolId,
-            poolType,
-            tillTimestamp,
-            amounts: []
-        });
+            poolType: poolType,
+            tillTimestamp: LessThan(tillTimestamp),
+        },
+        order: { tillTimestamp: "DESC" },
+    });
+
+    if (maybeEntity) {
+        return cloneTimestampedEntity(maybeEntity, entityId, tillTimestamp);
+    }
+
+    // not found in buffer or store, create new empty
+    return new CumulativeDexTradingVolumePerPool({
+        id: entityId,
+        poolId,
+        poolType,
+        tillTimestamp,
+        amounts: []
+    });
+}
+
+async function fetchOrCreateTotalTradeCountEntity(
+    entityId: string,
+    tillTimestamp: Date,
+    store: Store,
+    entityBuffer: EntityBuffer
+): Promise<CumulativeDexTradeCount> {
+    // try to find in buffer by id first
+    let maybeEntity = entityBuffer.getBufferedEntityBy(
+        CumulativeDexTradeCount.name,
+        entityId
+    ) as CumulativeDexTradeCount | undefined;
+
+    if (maybeEntity !== undefined) {
+        return maybeEntity;
+    }
+
+    // next try to find latest entry with volumes in the entity buffer
+    const bufferedEntities = entityBuffer.getBufferedEntities(CumulativeDexTradeCount.name) as CumulativeDexTradeCount[];
+    maybeEntity = findLatestTimestampedEntityBefore(bufferedEntities, tillTimestamp);
+
+    if (maybeEntity !== undefined) {
+        return cloneTimestampedEntity(maybeEntity, entityId, tillTimestamp);
+    }
+
+    // not found in buffer, try store next
+    maybeEntity = await store.get(CumulativeDexTradeCount, entityId);
+
+    if (maybeEntity !== undefined) {
+        return maybeEntity;
+    }
+
+    // not found, try and locate latest matching entity to clone volumes from
+    maybeEntity = await store.get(CumulativeDexTradeCount, {
+        where: {
+            tillTimestamp: LessThan(tillTimestamp),
+        },
+        order: { tillTimestamp: "DESC" },
+    });
+
+    if (maybeEntity) {
+        return cloneTimestampedEntity(maybeEntity, entityId, tillTimestamp);
+    }
+
+    // not found in buffer or store, create new one
+    return new CumulativeDexTradeCount({
+        id: entityId,
+        tillTimestamp,
+        count: 0n
+    });
+}
+
+async function fetchOrCreateTradeCountPerAccountEntity(
+    entityId: string,
+    accountId: string,
+    tillTimestamp: Date,
+    store: Store,
+    entityBuffer: EntityBuffer
+): Promise<CumulativeDexTradeCountPerAccount> {
+    // try to find in buffer by id first
+    let maybeEntity = entityBuffer.getBufferedEntityBy(
+        CumulativeDexTradeCountPerAccount.name,
+        entityId
+    ) as CumulativeDexTradeCountPerAccount | undefined;
+
+    if (maybeEntity !== undefined) {
+        return maybeEntity;
+    }
+
+    // next try to find latest entry with volumes in the entity buffer
+    const bufferedEntities = entityBuffer.getBufferedEntities(CumulativeDexTradeCountPerAccount.name) as CumulativeDexTradeCountPerAccount[];
+    const accountFilter = (elem: CumulativeDexTradeCountPerAccount) => elem.accountId == accountId;
+    maybeEntity = findLatestTimestampedEntityBefore(bufferedEntities, tillTimestamp, accountFilter);
+
+    if (maybeEntity !== undefined) {
+        return cloneTimestampedEntity(maybeEntity, entityId, tillTimestamp);
+    }
+
+    // not found in buffer, try store next
+    maybeEntity = await store.get(CumulativeDexTradeCountPerAccount, entityId);
+
+    if (maybeEntity !== undefined) {
+        return maybeEntity;
+    }
+
+    // not found, try and locate latest matching entity to clone volumes from
+    maybeEntity = await store.get(CumulativeDexTradeCountPerAccount, {
+        where: {
+            tillTimestamp: LessThan(tillTimestamp),
+        },
+        order: { tillTimestamp: "DESC" },
+    });
+
+    if (maybeEntity) {
+        return cloneTimestampedEntity(maybeEntity, entityId, tillTimestamp);
+    }
+
+    // not found in buffer or store, create new one
+    return new CumulativeDexTradeCountPerAccount({
+        id: entityId,
+        accountId,
+        tillTimestamp,
+        count: 0n
+    });
 }
 
 function buildPoolEntityId(poolId: string, poolType: PoolType, timestamp: Date): string {
     return `${poolId}-${poolType}-${timestamp
         .getTime()
         .toString()}`;
+}
+
+export async function updateCumulativeDexTotalVolumes(
+    store: Store,
+    timestamp: Date,
+    amounts: SwapDetailsAmount[],
+    entityBuffer: EntityBuffer 
+): Promise<CumulativeDexTradingVolume> {
+    const entityId = `total-${timestamp.getTime().toString()}`;
+    const entity = await fetchOrCreateTotalVolumeEntity(entityId, timestamp, store, entityBuffer);
+    return increaseSwapDetailsAmountsForEntity(entity, amounts);
+}
+
+export async function updateCumulativeDexVolumesPerAccount(
+    store: Store,
+    timestamp: Date,
+    amounts: SwapDetailsAmount[],
+    accountId: string,
+    entityBuffer: EntityBuffer 
+): Promise<CumulativeDexTradingVolumePerAccount> {
+    const entityId = `account-${accountId}-${timestamp.getTime().toString()}`;
+    const entity = await fetchOrCreatePerAccountVolumeEntity(entityId, accountId, timestamp, store, entityBuffer);
+    return increaseSwapDetailsAmountsForEntity(entity, amounts);
 }
 
 export async function updateCumulativeDexVolumesForStandardPool(
@@ -315,8 +619,9 @@ export async function updateCumulativeDexVolumesForStandardPool(
 
     const entityId = buildPoolEntityId(poolId, poolType, timestamp);
 
-    const entity = await fetchOrCreateEntity(entityId, poolId, poolType, timestamp, store, entityBuffer);
-    return await updateOrAddPooledAmounts(entity, swapDetails);
+    const entity = await fetchOrCreateVolumePerPoolEntity(entityId, poolId, poolType, timestamp, store, entityBuffer);
+
+    return await increaseSwapDetailsAmountsForEntity(entity, [swapDetails.from, swapDetails.to]);
 }
 
 export async function updateCumulativeDexVolumesForStablePool(
@@ -330,6 +635,29 @@ export async function updateCumulativeDexVolumesForStablePool(
 
     const entityId = buildPoolEntityId(poolId.toString(), poolType, timestamp);
 
-    const entity = await fetchOrCreateEntity(entityId, poolId.toString(), poolType, timestamp, store, entityBuffer);
-    return await updateOrAddPooledAmounts(entity, swapDetails);
+    const entity = await fetchOrCreateVolumePerPoolEntity(entityId, poolId.toString(), poolType, timestamp, store, entityBuffer);
+    return await increaseSwapDetailsAmountsForEntity(entity, [swapDetails.from, swapDetails.to]);
+}
+
+export async function updateCumulativeDexTotalTradeCount(
+    store: Store,
+    timestamp: Date,
+    entityBuffer: EntityBuffer 
+): Promise<CumulativeDexTradeCount> {
+    const entityId = `total-${timestamp.getTime().toString()}`;
+    const entity = await fetchOrCreateTotalTradeCountEntity(entityId, timestamp, store, entityBuffer);
+    entity.count = entity.count + 1n;
+    return entity;
+}
+
+export async function updateCumulativeDexTradeCountPerAccount(
+    store: Store,
+    timestamp: Date,
+    accountId: string,
+    entityBuffer: EntityBuffer 
+): Promise<CumulativeDexTradeCountPerAccount> {
+    const entityId = `account-${accountId}-${timestamp.getTime().toString()}`;
+    const entity = await fetchOrCreateTradeCountPerAccountEntity(entityId, accountId, timestamp, store, entityBuffer);
+    entity.count = entity.count + 1n;
+    return entity;
 }
