@@ -103,6 +103,18 @@ export interface VaultCurrencyPair {
     wrapped: CurrencyId
 }
 
+export type Pool = Pool_Base | Pool_Meta
+
+export interface Pool_Base {
+    __kind: 'Base'
+    value: BasePool
+}
+
+export interface Pool_Meta {
+    __kind: 'Meta'
+    value: MetaPool
+}
+
 export type TokenSymbol = TokenSymbol_DOT | TokenSymbol_IBTC | TokenSymbol_INTR | TokenSymbol_KSM | TokenSymbol_KBTC | TokenSymbol_KINT
 
 export interface TokenSymbol_DOT {
@@ -170,6 +182,31 @@ export interface MarketState_Pending {
 
 export interface MarketState_Supervision {
     __kind: 'Supervision'
+}
+
+export interface BasePool {
+    currencyIds: CurrencyId[]
+    lpCurrencyId: CurrencyId
+    tokenMultipliers: bigint[]
+    balances: bigint[]
+    fee: bigint
+    adminFee: bigint
+    initialA: bigint
+    futureA: bigint
+    initialATime: bigint
+    futureATime: bigint
+    account: Uint8Array
+    adminFeeReceiver: Uint8Array
+    lpCurrencySymbol: Uint8Array
+    lpCurrencyDecimal: number
+}
+
+export interface MetaPool {
+    basePoolId: number
+    baseVirtualPrice: bigint
+    baseCacheLastUpdated: bigint
+    baseCurrencies: CurrencyId[]
+    info: BasePool
 }
 
 export interface JumpModel {
