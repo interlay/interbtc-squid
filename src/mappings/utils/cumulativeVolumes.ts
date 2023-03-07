@@ -283,12 +283,17 @@ function findLatestTimestampedEntityBefore<
     // apply custom filter (most likely checking poolId for volume per pool entities)
     const customFiltered = (customFilter == undefined) ? timestampFiltered : timestampFiltered.filter(customFilter);
 
-    return customFiltered.reduce((prev, current) => {
+    return customFiltered.reduce((prev: T | undefined, current) => {
+        if (prev === undefined) {
+            return current;
+        }
+
         return prev.tillTimestamp.getTime() >
             current.tillTimestamp.getTime()
             ? prev
             : current;
-    });
+    },
+    undefined);
 }
 
 function cloneTimestampedEntity<
