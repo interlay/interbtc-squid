@@ -103,7 +103,7 @@ export async function registerVault(
             collateralAmount,
             pendingWrappedAmount: 0n,
             wrappedAmount: 0n,
-            statusCollateral: CollateralThreshold.SecureCollateral,
+            statusCollateral: CollateralThreshold.AboveSecureThreshold,
         })
     );
 }

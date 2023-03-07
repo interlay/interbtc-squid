@@ -40,7 +40,7 @@ export class Vault {
     @Column_("bool", {nullable: true})
     statusIssuing!: boolean | undefined | null
 
-    @Column_("varchar", {length: 16, nullable: false})
+    @Column_("varchar", {length: 27, nullable: false})
     statusCollateral!: CollateralThreshold
 
     @Index_()

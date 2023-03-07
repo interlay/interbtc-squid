@@ -1,6 +1,6 @@
 export enum CollateralThreshold {
-    SecureCollateral = "SecureCollateral",
-    PremiumRedeem = "PremiumRedeem",
-    None = "None",
-    VaultLiquidation = "VaultLiquidation",
+    AboveSecureThreshold = "AboveSecureThreshold",
+    BelowSecureThreshold = "BelowSecureThreshold",
+    BelowPremiumRedeemThreshold = "BelowPremiumRedeemThreshold",
+    Liquidated = "Liquidated",
 }

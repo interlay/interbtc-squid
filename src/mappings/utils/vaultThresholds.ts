@@ -112,21 +112,21 @@ export async function thresholdStatus(
     let secureThreshold = await getSecureCollateralThreshold(ctx, block, collateral);
     currThreshold = BigDecimal(secureThreshold?.toString() ?? "0").div(10 ** 16);
     if (currentCollateralPercent > currThreshold) {
-        return CollateralThreshold.SecureCollateral;
+        return CollateralThreshold.AboveSecureThreshold;
     }
     const premiumThreshold = await getPremiumRedeemThreshold(ctx, block, collateral);
     currThreshold = BigDecimal(premiumThreshold?.toString() ?? "0").div(10 ** 16);
     if (currentCollateralPercent > currThreshold) {
-        return CollateralThreshold.PremiumRedeem;
+        return CollateralThreshold.BelowSecureThreshold;
     }
     const liquidationThreshold = await getLiquidationThreshold(ctx, block, collateral);
     currThreshold = BigDecimal(liquidationThreshold?.toString() ?? "0").div(10 ** 16);
     if (currentCollateralPercent > currThreshold) {
         // below the premium, but above the liquidation threshold
-        return CollateralThreshold.None;
+        return CollateralThreshold.BelowPremiumRedeemThreshold;
     }
     else {
         // below the liquidation threshold
-        return CollateralThreshold.VaultLiquidation;
+        return CollateralThreshold.Liquidated;
     }
 }

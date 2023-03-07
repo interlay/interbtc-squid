@@ -84,17 +84,18 @@ export async function feedValues(
                         vault.collateralization = collateralization;
                         
                         //Get thresholds
+                        const wrappedValue = process.env.SS58_CODEC === "interlay" ? 'IBTC' : 'KBTC';
                         let currencyPair;
                         if (useLegacyCurrency) {
                             currencyPair = {
                                 collateral: key.value as CurrencyId_V15,
-                                wrapped: { __kind: 'Token', value: { __kind: 'IBTC' } } as CurrencyId_V15,
+                                wrapped: { __kind: 'Token', value: { __kind: wrappedValue } } as CurrencyId_V15,
                             };
                         }
                         else {
                             currencyPair = {
                                 collateral: key.value as CurrencyId_V17,
-                                wrapped: { __kind: 'Token', value: { __kind: 'IBTC' } } as CurrencyId_V17,
+                                wrapped: { __kind: 'Token', value: { __kind: wrappedValue } } as CurrencyId_V17,
                             };
                         }
                         //updating this value is very expensive operation so we will only do so if there has been a change in the vault
