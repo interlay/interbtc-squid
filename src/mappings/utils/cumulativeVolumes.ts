@@ -254,8 +254,10 @@ async function increaseSwapDetailsAmountsForEntity<T extends CumulativeDexTradin
 
         // did not find amount in the entity's list of pooled amounts
         // add new pooled amount
-        const pooledAmount = await createPooledAmount(amountToAdd);
-        entity.amounts.push(pooledAmount);
+        if (!updatedExistingAmount) {
+            const pooledAmount = await createPooledAmount(amountToAdd);
+            entity.amounts.push(pooledAmount);
+        }
     }
 
     return entity;
