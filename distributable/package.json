@@ -1,8 +1,0 @@
-{
-    "name": "@interlay/interbtc-indexer-distributables",
-    "version": "0.2.0",
-    "description": "Helper files for running a docker-based deployment of interbtc-indexer",
-    "author": "",
-    "license": "ISC",
-    "files": ["types.json", "schema.graphql"]
-}

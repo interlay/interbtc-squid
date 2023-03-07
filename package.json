@@ -18,7 +18,6 @@
         "gen:types:testnet": "squid-substrate-typegen testnet.typegen.json",
         "gen:types:combined": "squid-substrate-typegen combined.typegen.json",
         "gen:code": "squid-typeorm-codegen",
-        "gen:distributables": "cp indexer/types.json distributable/ && cp schema.graphql distributable/",
         "db:create-migration": "squid-typeorm-migration generate",
         "db:migrate": "squid-typeorm-migration apply",
         "processor:start": "node -r dotenv/config lib/processor.js",
