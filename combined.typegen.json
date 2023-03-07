@@ -44,8 +44,8 @@
     "storage": [
         "Issue.IssuePeriod",
         "Redeem.RedeemPeriod",
-        "VaultRegistry.LiquidationVault",
         "VaultRegistry.PremiumRedeemThreshold",
-        "VaultRegistry.SecureCollateralThreshold"
+        "VaultRegistry.SecureCollateralThreshold",
+        "VaultRegistry.LiquidationCollateralThreshold"
     ]
 }

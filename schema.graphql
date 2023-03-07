@@ -32,6 +32,7 @@ enum Token {
 enum CollateralThreshold {
     SecureCollateral
     PremiumRedeem
+    None
     VaultLiquidation
 }
 

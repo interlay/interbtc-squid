@@ -77,16 +77,3 @@ export interface CurrencyId_KBTC {
 export interface CurrencyId_KINT {
     __kind: 'KINT'
 }
-
-export interface DefaultSystemVault {
-    toBeIssuedTokens: bigint
-    issuedTokens: bigint
-    toBeRedeemedTokens: bigint
-    collateral: bigint
-    currencyPair: VaultCurrencyPair
-}
-
-export interface VaultCurrencyPair {
-    collateral: CurrencyId
-    wrapped: CurrencyId
-}

@@ -17,8 +17,8 @@ import { address, currencyId, legacyCurrencyId, currencyToString } from "../enco
 import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
 import { convertAmountToHuman } from "../_utils";
-import { vaultCollateralMap } from "./vault";
-import { getLiquidationThreshold } from "../utils/vaultThresholds";
+import {  setVaultChange, getVaultChange, vaultCollateralMap } from "./vault";
+import { getLiquidationThreshold, getPremiumRedeemThreshold, getSecureCollateralThreshold, thresholdStatus } from "../utils/vaultThresholds";
 
 export async function feedValues(
     ctx: Ctx,
@@ -97,10 +97,11 @@ export async function feedValues(
                                 wrapped: { __kind: 'Token', value: { __kind: 'IBTC' } } as CurrencyId_V17,
                             };
                         }
-
-                                                
-                        const LiquidationThreshold = getLiquidationThreshold(ctx, block, currencyPair);
-                        console.log(LiquidationThreshold); 
+                        //updating this value is very expensive operation so we will only do so if there has been a change in the vault
+                        if (getVaultChange() === true) {
+                            vault.statusCollateral = await thresholdStatus(collateralization, ctx, block, currencyPair);
+                            setVaultChange(false);
+                        }
                         entityBuffer.pushEntity(
                             Vault.name,
                             vault,

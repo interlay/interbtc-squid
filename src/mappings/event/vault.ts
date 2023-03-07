@@ -29,6 +29,14 @@ import { currencyToString } from "../encoding";
 
 export let vaultCollateralMap = new Map<string, Set<string>>();
 
+let _vaultChange: boolean = false;
+export function setVaultChange(input: boolean) {
+  _vaultChange = input;
+}
+export function getVaultChange() {
+  return _vaultChange;
+}
+
 export async function registerVault(
     ctx: Ctx,
     block: SubstrateBlock,
@@ -199,6 +207,7 @@ export async function withdrawCollateralVault(
         ctx,
         item.event
     );
+    _vaultChange = true; 
     let e;
     let vaultId;
     if (rawEvent.isV6) {
@@ -240,6 +249,7 @@ export async function depositCollateralVault(
         ctx,
         item.event
     );
+    _vaultChange = true;
     let e;
     let vaultId;
     if (rawEvent.isV6) {

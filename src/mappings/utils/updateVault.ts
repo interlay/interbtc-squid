@@ -9,6 +9,8 @@ export enum updateType {
     redeemWrapped = "redeemWrapped"
 }
 
+
+
 export async function  updateVault(vaultID: string, amount: bigint, entityBuffer: EntityBuffer, store: Store, updateTypeValue: updateType): Promise<Vault> {
     // find by vaultid if it exists in either entity buffer or database
     const existingVault =

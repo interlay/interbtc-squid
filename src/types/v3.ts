@@ -55,14 +55,6 @@ export interface VaultCurrencyPair {
     wrapped: CurrencyId
 }
 
-export interface SystemVault {
-    toBeIssuedTokens: bigint
-    issuedTokens: bigint
-    toBeRedeemedTokens: bigint
-    collateral: bigint
-    currencyPair: VaultCurrencyPair
-}
-
 export type CurrencyId = CurrencyId_DOT | CurrencyId_INTERBTC | CurrencyId_INTR | CurrencyId_KSM | CurrencyId_KBTC | CurrencyId_KINT
 
 export interface CurrencyId_DOT {

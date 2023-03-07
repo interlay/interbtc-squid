@@ -1,7 +1,7 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { Ctx } from "../../processor";
 import { 
-    VaultRegistryLiquidationVaultStorage,
+    VaultRegistryLiquidationCollateralThresholdStorage,
     VaultRegistryPremiumRedeemThresholdStorage,
     VaultRegistrySecureCollateralThresholdStorage,
  } from "../../types/storage";
@@ -12,20 +12,9 @@ import { VaultCurrencyPair as VaultCurrencyPairv15 } from "../../types/v15";
 import { VaultCurrencyPair as VaultCurrencyPairv17 } from "../../types/v17";
 import { VaultCurrencyPair as VaultCurrencyPairv1020000 } from "../../types/v1020000";
 import { VaultCurrencyPair as VaultCurrencyPairv1021000 } from "../../types/v1021000";
-import { Currency } from "../../model";
+import { CollateralThreshold, Currency } from "../../model";
+import { BigDecimal } from "@subsquid/big-decimal";
 
-
-// export function convertToVaultCurrencyPair(
-//     collateral: Currency,
-//     wrapped: Currency,
-//     verison: string
-// )
-// {
-//     const tokenCollateral = collateral.token();
-//     if (verison === "V3"){
-        
-//     }
-// }
 
 export async function getLiquidationThreshold(
     ctx: Ctx,
@@ -34,7 +23,7 @@ export async function getLiquidationThreshold(
     | VaultCurrencyPairv17 | VaultCurrencyPairv1020000 | VaultCurrencyPairv1021000
 )
 {
-    const rawLiquidationThreshold = new VaultRegistryLiquidationVaultStorage(ctx, block);
+    const rawLiquidationThreshold = new VaultRegistryLiquidationCollateralThresholdStorage(ctx, block);
     let value;
     if (rawLiquidationThreshold.isV3)
         value = await rawLiquidationThreshold.getAsV3(key as VaultCurrencyPairv3);
@@ -54,7 +43,7 @@ export async function getLiquidationThreshold(
     return value;
 }
 
-export async function getRegistryPremiumRedeemThreshold(
+export async function getPremiumRedeemThreshold(
     ctx: Ctx,
     block: SubstrateBlock,
     key: CurrencyIdv1 | VaultCurrencyPairv3 | VaultCurrencyPairv6   | VaultCurrencyPairv15 
@@ -111,4 +100,33 @@ export async function getSecureCollateralThreshold(
         throw new Error("Secure collateral threshold does not exist");
     }
     return value;
+}
+
+export async function thresholdStatus(
+    currentCollateralPercent: BigDecimal,
+    ctx: Ctx,
+    block: SubstrateBlock,
+    collateral: CurrencyIdv1 | VaultCurrencyPairv3 | VaultCurrencyPairv6 | VaultCurrencyPairv15 | VaultCurrencyPairv17 | VaultCurrencyPairv1020000 | VaultCurrencyPairv1021000
+) {
+    let currThreshold;
+    let secureThreshold = await getSecureCollateralThreshold(ctx, block, collateral);
+    currThreshold = BigDecimal(secureThreshold?.toString() ?? "0").div(10 ** 16);
+    if (currentCollateralPercent > currThreshold) {
+        return CollateralThreshold.SecureCollateral;
+    }
+    const premiumThreshold = await getPremiumRedeemThreshold(ctx, block, collateral);
+    currThreshold = BigDecimal(premiumThreshold?.toString() ?? "0").div(10 ** 16);
+    if (currentCollateralPercent > currThreshold) {
+        return CollateralThreshold.PremiumRedeem;
+    }
+    const liquidationThreshold = await getLiquidationThreshold(ctx, block, collateral);
+    currThreshold = BigDecimal(liquidationThreshold?.toString() ?? "0").div(10 ** 16);
+    if (currentCollateralPercent > currThreshold) {
+        // below the premium, but above the liquidation threshold
+        return CollateralThreshold.None;
+    }
+    else {
+        // below the liquidation threshold
+        return CollateralThreshold.VaultLiquidation;
+    }
 }
