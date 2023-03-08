@@ -1,21 +1,5 @@
-import { Deposit, Loan, LoanMarket, LoanMarketActivation, MarketState } from "../../model";
-import { SubstrateBlock, toHex } from "@subsquid/substrate-processor";
-import { LessThanOrEqual } from "typeorm";
-import {
-    CumulativeVolume,
-    CumulativeVolumePerCurrencyPair,
-    LendToken,
-    InterestAccrual,
-    Redeem,
-    RedeemCancellation,
-    RedeemExecution,
-    RedeemPeriod,
-    RedeemRequest,
-    RedeemStatus,
-    RelayedBlock,
-    Transfer,
-    VolumeType,
-} from "../../model";
+import { SubstrateBlock } from "@subsquid/substrate-processor";
+import { Deposit, InterestAccrual, Loan, LoanMarket, LoanMarketActivation, MarketState } from "../../model";
 import { Ctx, EventItem } from "../../processor";
 import {
     LoansActivatedMarketEvent,
@@ -38,30 +22,23 @@ import {
     CurrencyId_LendToken
 } from "../../types/v1020000";
 
-import { CurrencyId as CurrencyId_V1021000,
+import {
+    CurrencyId as CurrencyId_V1021000,
     Market as LoanMarket_V1021000
 } from "../../types/v1021000";
 
 import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
-import { friendlyAmount, getFirstAndLastFour, symbolFromCurrency, getExchangeRate, decimalsFromCurrency, divideByTenToTheNth } from "../_utils";
 import { lendTokenDetails } from "../utils/markets";
-
-import { CurrencyId_Token as CurrencyId_Token_V6 } from "../../types/v6";
-import { CurrencyId_Token as CurrencyId_Token_V10 } from "../../types/v10";
-import { CurrencyId_Token as CurrencyId_Token_V15 } from "../../types/v15";
-import { CurrencyId as CurrencyId_V17 } from "../../types/v17";
-import { InterestRateModel as InterestRateModel_V1021000 } from "../../types/v1021000";
-import { address, currencyId, currencyToString, legacyCurrencyId, rateModel } from "../encoding";
-import {
-    updateCumulativeVolumes,
-    updateCumulativeVolumesForCurrencyPair,
-} from "../utils/cumulativeVolumes";
-import { getCurrentRedeemPeriod } from "../utils/requestPeriods";
-import { getVaultId, getVaultIdLegacy } from "../_utils";
-import {Currency} from "../../model/generated/_currency"
-import { number } from "bitcoinjs-lib/types/script";
-import { storeMainChainHeader } from "./btcRelay";
+import { 
+    decimalsFromCurrency,
+    divideByTenToTheNth,
+    friendlyAmount,
+    getExchangeRate,
+    getFirstAndLastFour,
+    symbolFromCurrency
+} from "../_utils";
+import { address, currencyId, currencyToString, rateModel } from "../encoding";
 
 type Rate = {
     block: number;
@@ -259,8 +236,6 @@ export async function activatedMarket(
     marketDb.activation = activation;
     await entityBuffer.pushEntity(LoanMarketActivation.name, activation);
     await entityBuffer.pushEntity(LoanMarket.name, marketDb);
-
-    console.log(`Activated ${marketDb.id}`);
 }
 
 export async function borrow(

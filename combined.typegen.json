@@ -4,6 +4,10 @@
     "typesBundle": "indexer/typesBundle.json",
     "events": [
         "BTCRelay.StoreMainChainHeader",
+        "DexGeneral.AssetSwap",
+        "DexGeneral.LiquidityAdded",
+        "DexGeneral.LiquidityRemoved",
+        "DexStable.CurrencyExchange",
         "Escrow.Deposit",
         "Escrow.Withdraw",
         "Issue.CancelIssue",
@@ -32,16 +36,14 @@
         "Tokens.Transfer",
         "VaultRegistry.DecreaseLockedCollateral",
         "VaultRegistry.IncreaseLockedCollateral",
-        "VaultRegistry.RegisterVault",
-        "DexGeneral.AssetSwap",
-        "DexGeneral.LiquidityAdded",
-        "DexGeneral.LiquidityRemoved"
+        "VaultRegistry.RegisterVault"
     ],
     "calls": [
         "BTCRelay.store_block_header",
         "System.set_storage"
     ],
     "storage": [
+        "DexStable.Pools",
         "Issue.IssuePeriod",
         "Redeem.RedeemPeriod"
     ]

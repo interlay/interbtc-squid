@@ -1,20 +1,17 @@
-import { Big, BigSource } from "big.js";
-import { BN } from "bn.js";
-import { Entity, Store } from "@subsquid/typeorm-store";
-import { Currency, ForeignAsset, Height, Issue, LendToken, OracleUpdate, Redeem, Vault } from "../model";
+import { CurrencyExt, CurrencyIdentifier, currencyIdToMonetaryCurrency, newMonetaryAmount, StandardPooledTokenIdentifier } from "@interlay/interbtc-api";
+import { Bitcoin, InterBtc, Interlay, KBtc, Kintsugi, Kusama, Polkadot } from "@interlay/monetary-js";
+import { ApiPromise, WsProvider } from '@polkadot/api';
+import { BigDecimal } from "@subsquid/big-decimal";
+import { Store } from "@subsquid/typeorm-store";
+import { Big } from "big.js";
+import * as process from "process";
+import { LessThanOrEqual, Like } from "typeorm";
+import { Currency, Height, Issue, OracleUpdate, Redeem, Vault } from "../model";
+import { Ctx, getInterBtcApi } from "../processor";
+import { VaultId as VaultIdV1021000 } from "../types/v1021000";
 import { VaultId as VaultIdV15 } from "../types/v15";
 import { VaultId as VaultIdV6 } from "../types/v6";
-import { VaultId as VaultIdV1021000 } from "../types/v1021000";
 import { encodeLegacyVaultId, encodeVaultId } from "./encoding";
-import { ApiPromise, WsProvider } from '@polkadot/api';
-import * as process from "process";
-import { Ctx } from "../processor";
-import { DriverOptionNotSetError, LessThanOrEqual, Like } from "typeorm";
-import { Bitcoin, Kintsugi, Kusama, Interlay, Polkadot, InterBtc, KBtc, ExchangeRate } from "@interlay/monetary-js";
-import { CurrencyExt, CurrencyIdentifier, currencyIdToMonetaryCurrency, getCurrencyIdentifier, newMonetaryAmount, StandardPooledTokenIdentifier } from "@interlay/interbtc-api";
-import { BigDecimal } from "@subsquid/big-decimal";
-import { getInterBtcApi } from "../processor";
-import { Result } from "@polkadot/types-codec";
 
 export type eventArgs = {
     event: { args: true };
@@ -86,7 +83,7 @@ export async function getForeignAsset(id: number): Promise<AssetMetadata> {
     }
     try {
         const wsProvider = new WsProvider(process.env.CHAIN_ENDPOINT);
-        const api = await ApiPromise.create({ provider: wsProvider });
+        const api = await ApiPromise.create({ provider: wsProvider, noInitWarn: true });
         const assets = await api.query.assetRegistry.metadata(id);
         const assetsJSON = assets.toHuman();
         const metadata = assetsJSON as AssetMetadata;
@@ -327,4 +324,9 @@ export async function convertAmountToHuman(currency: Currency, amount: bigint ) 
     const currencyInfo: CurrencyExt = await currencyToLibCurrencyExt(currency);
     const monetaryAmount = newMonetaryAmount(amount.toString(), currencyInfo);
     return BigDecimal(monetaryAmount.toString());
+}
+
+// helper method to switch around key/value pairs for a given map
+export function invertMap<K extends Object, V extends Object>(map: Map<K, V>): Map<V, K> {
+    return new Map(Array.from(map, ([key, value]) => [value, key]));
 }

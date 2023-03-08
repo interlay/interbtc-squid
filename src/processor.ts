@@ -16,6 +16,8 @@ import {
     cancelIssue,
     cancelRedeem,
     decreaseLockedCollateral,
+    dexGeneralAssetSwap,
+    dexStableCurrencyExchange,
     executeIssue,
     executeRedeem,
     feedValues,
@@ -36,21 +38,22 @@ import { tokensTransfer } from "./mappings/event/transfer";
 import * as heights from "./mappings/utils/heights";
 import EntityBuffer from "./mappings/utils/entityBuffer";
 import { eventArgsData } from "./mappings/_utils";
-import {
-    newMarket,
-    updatedMarket,
-    activatedMarket,
-    borrow,
+import { BitcoinNetwork, createInterBtcApi, InterBtcApi } from "@interlay/interbtc-api";
+import { 
+    newMarket, 
+    updatedMarket, 
+    activatedMarket, 
+    borrow, 
     depositCollateral,
     depositForLending,
     distributeBorrowerReward,
     distributeSupplierReward,
     repay,
     withdrawCollateral,
-    withdrawDeposit, accrueInterest, liquidateLoan
+    withdrawDeposit,
+    accrueInterest, 
+    liquidateLoan
 } from "./mappings/event/loans";
-import { ApiPromise, WsProvider } from '@polkadot/api';
-import { BitcoinNetwork, createInterBtcApi, InterBtcApi } from "@interlay/interbtc-api";
 
 const archive = process.env.ARCHIVE_ENDPOINT;
 assert(!!archive);
@@ -70,6 +73,8 @@ const processor = new SubstrateBatchProcessor()
     .setTypesBundle("indexer/typesBundle.json")
     .setBlockRange({ from: processFrom })
     .addEvent("BTCRelay.StoreMainChainHeader", eventArgsData)
+    .addEvent("DexGeneral.AssetSwap", eventArgsData)
+    .addEvent("DexStable.CurrencyExchange", eventArgsData)
     .addEvent("Escrow.Deposit", eventArgsData)
     .addEvent("Escrow.Withdraw", eventArgsData)
     .addEvent("Issue.CancelIssue", eventArgsData)
@@ -274,6 +279,16 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
             mapping: withdraw,
             totalTime: 0,
         },
+        {
+            filter: { name: "DexGeneral.AssetSwap" },
+            mapping: dexGeneralAssetSwap,
+            totalTime: 0
+        },
+        {
+            filter: { name: "DexStable.CurrencyExchange" },
+            mapping: dexStableCurrencyExchange,
+            totalTime: 0
+        }
     ]);
 
     // second stage

@@ -20,12 +20,6 @@ enum MarketState {
     Supervision
 }
 
-enum MarketState {
-    Active
-    Pending
-    Supervision
-}
-
 enum Token {
     DOT
     INTR
@@ -47,31 +41,6 @@ type LendToken {
     lendTokenId: Int!
 }
 
-type StableLpToken {
-    poolId: Int!
-}
-
-union PooledToken = NativeToken | ForeignAsset | StableLpToken
-
-type LpToken {
-    token0: PooledToken!
-    token1: PooledToken!
-}
-
-union Currency = NativeToken | ForeignAsset | LendToken | LpToken | StableLpToken
-
-type RateModelJump {
-    baseRate: BigInt!
-    jumpRate: BigInt!
-    fullRate: BigInt!
-    jumpUtilization: Int!
-}
-
-type RateModelCurve {
-    baseRate: BigInt!
-}
-
-union RateModel = RateModelJump | RateModelCurve
 type StableLpToken {
     poolId: Int!
 }
@@ -136,7 +105,6 @@ type Issue @entity {
     vault: Vault!
     period: IssuePeriod!
     backingPayment: IssuePayment @derivedFrom(field: "issue")
-    status: IssueStatus @index
     status: IssueStatus @index
     execution: IssueExecution @derivedFrom(field: "issue")
     cancellation: IssueCancellation @derivedFrom(field: "issue")
@@ -256,8 +224,6 @@ enum VolumeType {
     Staked
     Locked
     BridgeVolume
-    Locked
-    BridgeVolume
 }
 
 type CumulativeVolume @entity {
@@ -275,6 +241,26 @@ type CumulativeVolumePerCurrencyPair @entity {
     amountHuman: BigDecimal!
     wrappedCurrency: Currency
     collateralCurrency: Currency
+}
+
+type PooledAmount {
+    amount: BigInt!
+    amountHuman: BigDecimal
+    token: PooledToken!
+    # TODO: check if this should be Currency?
+}
+
+enum PoolType {
+    Standard
+    Stable
+}
+
+type CumulativeDexTradingVolumePerPool @entity {
+    id: ID!
+    poolId: String! @index
+    poolType: PoolType!
+    tillTimestamp: DateTime! @index
+    amounts: [PooledAmount!]!
 }
 
 type IssuePeriod @entity {
@@ -318,7 +304,6 @@ type LoanMarket @entity {
     liquidateIncentiveReservedFactor: Int!
     activation: LoanMarketActivation @derivedFrom(field: "market")
     currencySymbol: String!
-
 }
 
 type LoanMarketActivation @entity {
