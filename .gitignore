@@ -6,3 +6,4 @@
 .env
 .vscode
 .yarn
+/queries

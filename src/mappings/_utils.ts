@@ -233,7 +233,6 @@ export async function getExchangeRate(
             },
             order: { timestamp: "DESC" },
         });
-        console.log(lastUpdate?.timestamp);
         if (lastUpdate === undefined) {
             ctx.log.warn(
                 `WARNING: no price registered by Oracle for ${JSON.stringify(searchBlock)} at timestamp ${new Date(timestamp)}. Fetching first value.`
@@ -246,6 +245,7 @@ export async function getExchangeRate(
             });
         }
         const lastPrice = new Big((Number(lastUpdate?.updateValue) || 0) / 1e10);
+        // Why 1e10? All prices are in BTC (8 digits) and there 18 digits worth of units for all values (18-8=10)
         baseMonetaryAmount = newMonetaryAmount(lastPrice, mappedCurrency);
     }
 
@@ -272,6 +272,7 @@ export async function getExchangeRate(
         });
     }
     const btcPrice = new Big((Number(btcUpdate?.updateValue) || 0) / 1e8);
+    // there are 8 digits in BTC
     const btcMonetaryAmount = newMonetaryAmount(btcPrice, Bitcoin);
 
     const exchangeRate = btcMonetaryAmount.toBig().div(baseMonetaryAmount.toBig());
