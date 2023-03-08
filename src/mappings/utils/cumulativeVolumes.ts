@@ -567,6 +567,7 @@ async function fetchOrCreateTradeCountPerAccountEntity(
     // not found, try and locate latest matching entity to clone volumes from
     maybeEntity = await store.get(CumulativeDexTradeCountPerAccount, {
         where: {
+            accountId: accountId,
             tillTimestamp: LessThan(tillTimestamp),
         },
         order: { tillTimestamp: "DESC" },
