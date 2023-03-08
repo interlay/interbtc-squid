@@ -16,13 +16,31 @@ export class Deposit {
     token!: Currency
 
     @Column_("text", {nullable: false})
+    symbol!: string
+
+    @Column_("text", {nullable: false})
     userParachainAddress!: string
+
+    @Column_("text", {nullable: false})
+    type!: string
 
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: true})
     amountDeposited!: bigint | undefined | null
 
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: true})
+    amountDepositedUsdt!: number | undefined | null
+
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: true})
+    amountDepositedBtc!: number | undefined | null
+
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: true})
     amountWithdrawn!: bigint | undefined | null
+
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: true})
+    amountWithdrawnUsdt!: number | undefined | null
+
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: true})
+    amountWithdrawnBtc!: number | undefined | null
 
     @Index_()
     @ManyToOne_(() => Height, {nullable: true})
@@ -33,4 +51,7 @@ export class Deposit {
 
     @Column_("text", {nullable: true})
     comment!: string | undefined | null
+
+    @Column_("text", {nullable: false})
+    currencySymbol!: string
 }

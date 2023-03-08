@@ -1,14 +1,17 @@
+import { CurrencyExt, CurrencyIdentifier, currencyIdToMonetaryCurrency, newMonetaryAmount, StandardPooledTokenIdentifier } from "@interlay/interbtc-api";
+import { Bitcoin, InterBtc, Interlay, KBtc, Kintsugi, Kusama, Polkadot } from "@interlay/monetary-js";
+import { ApiPromise, WsProvider } from '@polkadot/api';
+import { BigDecimal } from "@subsquid/big-decimal";
 import { Store } from "@subsquid/typeorm-store";
-import { Currency, Height, Issue, Redeem, Vault } from "../model";
+import { Big } from "big.js";
+import * as process from "process";
+import { LessThanOrEqual, Like } from "typeorm";
+import { Currency, Height, Issue, OracleUpdate, Redeem, Vault } from "../model";
+import { Ctx, getInterBtcApi } from "../processor";
+import { VaultId as VaultIdV1021000 } from "../types/v1021000";
 import { VaultId as VaultIdV15 } from "../types/v15";
 import { VaultId as VaultIdV6 } from "../types/v6";
-import { VaultId as VaultIdV1021000 } from "../types/v1021000";
 import { encodeLegacyVaultId, encodeVaultId } from "./encoding";
-import { ApiPromise, WsProvider } from '@polkadot/api';
-import * as process from "process";
-import { CurrencyExt, CurrencyIdentifier, currencyIdToMonetaryCurrency, getCurrencyIdentifier, newMonetaryAmount, StandardPooledTokenIdentifier } from "@interlay/interbtc-api";
-import { BigDecimal } from "@subsquid/big-decimal";
-import { getInterBtcApi } from "../processor";
 
 export type eventArgs = {
     event: { args: true };
@@ -125,6 +128,157 @@ export async function friendlyAmount(currency: Currency, amount: number): Promis
         default:
             return `Unknown asset: ${currency}`
     }
+}
+
+export function divideByTenToTheNth(amount: bigint, n: number): number {
+    const divisor = Big(10**n);
+    const amountBig = Big(amount.toString())
+    const division = amountBig.div(divisor);
+    const result = division.toNumber();
+    return result;
+}
+
+export async function symbolFromCurrency(currency: Currency): Promise<string> {
+    let amountFriendly: number;
+    switch(currency.isTypeOf) {
+        case 'NativeToken':
+            return currency.token;
+        case 'ForeignAsset':
+            const details = await getForeignAsset(currency.asset)
+            return details.symbol;
+        default:
+            return `UNKNOWN`;
+    }
+}
+
+export async function decimalsFromCurrency(currency: Currency): Promise<number> {
+    switch(currency.isTypeOf) {
+        case 'NativeToken':
+            switch (currency.token) {
+                case 'KINT':
+                case 'KSM':
+                    return 12
+                case 'INTR':
+                case 'DOT':
+                    return 10
+                case 'KBTC':
+                case 'IBTC':
+                    return 8
+                default:
+                    return 0
+            }
+        case 'ForeignAsset':
+            const details = await getForeignAsset(currency.asset)
+            return details.decimals;
+        default:
+            return 0;
+    }
+}
+
+type CurrencyType = Bitcoin | Kintsugi | Kusama | Interlay | Polkadot;
+
+function mapCurrencyType(currency: Currency): CurrencyType {
+    switch(currency.isTypeOf) {
+        case 'NativeToken':
+            switch(currency.token) {
+                case 'KINT':
+                    return Kintsugi;
+                case 'KSM':
+                    return Kusama;
+                case 'INTR':
+                    return Interlay;
+                case 'DOT':
+                    return Polkadot;
+                case 'KBTC':
+                    return KBtc;
+                case 'INTR':
+                    return InterBtc;
+            }
+        case 'ForeignAsset':
+            return Bitcoin;
+        default:
+            throw new Error(`Unsupported currency type: ${currency.isTypeOf}`);
+    }
+}
+
+type OracleRate = {
+    btc: Big;
+    usdt: Big;
+}
+
+/* This function is used to calculate the exchange rate for a given currency at
+a given time.
+*/
+export async function getExchangeRate(
+    ctx: Ctx,
+    timestamp: number,
+    currency: Currency,
+    amount: number
+): Promise<OracleRate>  {
+    const mappedCurrency = mapCurrencyType(currency);
+    let baseMonetaryAmount
+    let searchBlock = currency.toJSON();
+
+    if (mappedCurrency === KBtc || mappedCurrency === InterBtc) {
+        baseMonetaryAmount = newMonetaryAmount(Big(1e8), Bitcoin)
+    }
+    else {
+        let lastUpdate = await ctx.store.get(OracleUpdate, {
+            where: { 
+                id: Like(`%${JSON.stringify(searchBlock)}`),
+                timestamp: LessThanOrEqual(new Date(timestamp)),
+            },
+            order: { timestamp: "DESC" },
+        });
+        if (lastUpdate === undefined) {
+            ctx.log.warn(
+                `WARNING: no price registered by Oracle for ${JSON.stringify(searchBlock)} at timestamp ${new Date(timestamp)}. Fetching first value.`
+            );
+            lastUpdate = await ctx.store.get(OracleUpdate, {
+                where: { 
+                    id: Like(`%${JSON.stringify(searchBlock)}`),
+                },
+                order: { timestamp: "ASC" },
+            });
+        }
+        const lastPrice = new Big((Number(lastUpdate?.updateValue) || 0) / 1e10);
+        // Why 1e10? All prices are in BTC (8 digits) and there 18 digits worth of units for all values (18-8=10)
+        baseMonetaryAmount = newMonetaryAmount(lastPrice, mappedCurrency);
+    }
+
+    searchBlock = {
+        isTypeOf: 'ForeignAsset',
+        asset: 1
+    }
+    let btcUpdate = await ctx.store.get(OracleUpdate, {
+        where: { 
+            id: Like(`%${JSON.stringify(searchBlock)}`),
+            timestamp: LessThanOrEqual(new Date(timestamp)),
+        },
+        order: { timestamp: "DESC" },
+    });
+    if (btcUpdate === undefined) {
+        ctx.log.warn(
+            `WARNING: no price registered by Oracle for ${JSON.stringify(searchBlock)} at time ${new Date(timestamp)}`
+        );
+        btcUpdate = await ctx.store.get(OracleUpdate, {
+            where: { 
+                id: Like(`%${JSON.stringify(searchBlock)}`),
+            },
+            order: { timestamp: "ASC" },
+        });
+    }
+    const btcPrice = new Big((Number(btcUpdate?.updateValue) || 0) / 1e8);
+    // there are 8 digits in BTC
+    const btcMonetaryAmount = newMonetaryAmount(btcPrice, Bitcoin);
+
+    const exchangeRate = btcMonetaryAmount.toBig().div(baseMonetaryAmount.toBig());
+    const monetaryAmount = newMonetaryAmount(Big(amount), mappedCurrency);
+
+    return {
+        btc: monetaryAmount.toBig().div(baseMonetaryAmount.toBig()), 
+        usdt: monetaryAmount.toBig().mul(exchangeRate)
+    };
 }
 
 let currencyMap = new Map<CurrencyIdentifier, CurrencyExt>();
