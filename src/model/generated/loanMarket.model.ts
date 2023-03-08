@@ -61,4 +61,7 @@ export class LoanMarket {
 
     @OneToOne_(() => LoanMarketActivation)
     activation!: LoanMarketActivation | undefined | null
+
+    @Column_("text", {nullable: false})
+    currencySymbol!: string
 }

@@ -21,8 +21,20 @@ export class Loan {
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: true})
     amountBorrowed!: bigint | undefined | null
 
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: true})
+    amountBorrowedUsdt!: number | undefined | null
+
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: true})
+    amountBorrowedBtc!: number | undefined | null
+
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: true})
     amountRepaid!: bigint | undefined | null
+
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: true})
+    amountRepaidUsdt!: number | undefined | null
+
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: true})
+    amountRepaidBtc!: number | undefined | null
 
     @Index_()
     @ManyToOne_(() => Height, {nullable: true})
@@ -33,4 +45,7 @@ export class Loan {
 
     @Column_("text", {nullable: true})
     comment!: string | undefined | null
+
+    @Column_("text", {nullable: false})
+    currencySymbol!: string
 }
