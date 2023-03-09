@@ -37,7 +37,7 @@ import { deposit, withdraw } from "./mappings/event/escrow";
 import { tokensTransfer } from "./mappings/event/transfer";
 import * as heights from "./mappings/utils/heights";
 import EntityBuffer from "./mappings/utils/entityBuffer";
-import { eventArgsData } from "./mappings/_utils";
+import { eventArgsData, cacheForeignAsset } from "./mappings/_utils";
 import { BitcoinNetwork, createInterBtcApi, InterBtcApi } from "@interlay/interbtc-api";
 import { 
     newMarket, 
@@ -67,6 +67,9 @@ const eventArgsData: eventArgsData = {
         event: { args: true },
     },
 };
+
+// initialise a cache with all the foreign assets
+cacheForeignAsset();
 
 const processor = new SubstrateBatchProcessor()
     .setDataSource({ archive, chain })
