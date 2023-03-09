@@ -1,24 +1,22 @@
-import { tokenSymbolToCurrency } from "@interlay/interbtc-api";
 import { BigDecimal } from "@subsquid/big-decimal";
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { Currency, NativeToken, OracleUpdate, OracleUpdateType, Token, Vault } from "../../model";
 import { Ctx, EventItem } from "../../processor";
 import { OracleFeedValuesEvent } from "../../types/events";
-import { 
-    CurrencyId as CurrencyId_V15,
-    VaultCurrencyPair as VaultCurrencyPair_V15,
- } from "../../types/v15";
-
-import { 
-    CurrencyId as CurrencyId_V17,
-    VaultCurrencyPair as VaultCurrencyPair_V17,
-} from "../../types/v17";
 import { address, currencyId, legacyCurrencyId, currencyToString } from "../encoding";
 import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
 import { convertAmountToHuman } from "../_utils";
 import {  setVaultChange, getVaultChange, vaultCollateralMap } from "./vault";
-import { getLiquidationThreshold, getPremiumRedeemThreshold, getSecureCollateralThreshold, thresholdStatus } from "../utils/vaultThresholds";
+import { thresholdStatus } from "../utils/vaultThresholds";
+import { 
+    Key_ExchangeRate as Key_ExchangeRatev15,
+    CurrencyId as CurrencyIdv15,
+} from "../../types/v15";
+import {
+    Key_ExchangeRate as Key_ExchangeRatev17,
+    CurrencyId as CurrencyIdv17,
+} from "../../types/v17";
 
 export async function feedValues(
     ctx: Ctx,
@@ -55,8 +53,8 @@ export async function feedValues(
         let updateValueHuman : BigDecimal = BigDecimal("0");
         if (key.__kind === "ExchangeRate") {
             const exchangeCurrency = useLegacyCurrency
-                ? legacyCurrencyId.encode(key.value as CurrencyId_V15)
-                : currencyId.encode(key.value as CurrencyId_V17);
+                ? legacyCurrencyId.encode(key.value as CurrencyIdv15)
+                : currencyId.encode(key.value as CurrencyIdv17);
             update.typeKey = exchangeCurrency;
             keyToString += JSON.stringify(exchangeCurrency);
             // Updating Vault Exchange Rates if needed
@@ -74,7 +72,6 @@ export async function feedValues(
 
                         //Calculating Collateralization
                         const exchangeRateDec = BigDecimal(value.toString()).div(10 ** 5);
-
                         const collateralToSat = BigDecimal(vault.collateralAmount.toString()).mul(exchangeRateDec);
                         const lockedBTCDec = BigDecimal(vault.wrappedAmount.toString());
                         let collateralization : BigDecimal = BigDecimal("-1");
@@ -83,24 +80,11 @@ export async function feedValues(
                         }
                         vault.collateralization = collateralization;
                         
-                        //Get thresholds
-                        const wrappedValue = process.env.SS58_CODEC === "interlay" ? 'IBTC' : 'KBTC';
-                        let currencyPair;
-                        if (useLegacyCurrency) {
-                            currencyPair = {
-                                collateral: key.value as CurrencyId_V15,
-                                wrapped: { __kind: 'Token', value: { __kind: wrappedValue } } as CurrencyId_V15,
-                            };
-                        }
-                        else {
-                            currencyPair = {
-                                collateral: key.value as CurrencyId_V17,
-                                wrapped: { __kind: 'Token', value: { __kind: wrappedValue } } as CurrencyId_V17,
-                            };
-                        }
-                        //updating this value is very expensive operation so we will only do so if there has been a change in the vault
+                        const typedKey = useLegacyCurrency ? key as Key_ExchangeRatev15 : key as Key_ExchangeRatev17;
+                        //pulling thresholds from storage is expensive 
+                        //only do so if there has been a change in the vault
                         if (getVaultChange() === true) {
-                            vault.statusCollateral = await thresholdStatus(collateralization, ctx, block, currencyPair);
+                            vault.statusCollateral = await thresholdStatus(collateralization, ctx, block, useLegacyCurrency, typedKey);
                             setVaultChange(false);
                         }
                         entityBuffer.pushEntity(

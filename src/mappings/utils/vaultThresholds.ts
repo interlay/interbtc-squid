@@ -8,8 +8,16 @@ import {
 import { CurrencyId as CurrencyIdv1 } from "../../types/v1";
 import { VaultCurrencyPair as VaultCurrencyPairv3 } from "../../types/v3";
 import { VaultCurrencyPair as VaultCurrencyPairv6 } from "../../types/v6";
-import { VaultCurrencyPair as VaultCurrencyPairv15 } from "../../types/v15";
-import { VaultCurrencyPair as VaultCurrencyPairv17 } from "../../types/v17";
+import { 
+    Key_ExchangeRate as Key_ExchangeRatev15,
+    VaultCurrencyPair as VaultCurrencyPairv15,
+    CurrencyId as CurrencyIdv15,
+} from "../../types/v15";
+import {
+    Key_ExchangeRate as Key_ExchangeRatev17,
+    VaultCurrencyPair as VaultCurrencyPairv17,
+    CurrencyId as CurrencyIdv17,
+} from "../../types/v17";
 import { VaultCurrencyPair as VaultCurrencyPairv1020000 } from "../../types/v1020000";
 import { VaultCurrencyPair as VaultCurrencyPairv1021000 } from "../../types/v1021000";
 import { CollateralThreshold, Currency } from "../../model";
@@ -106,20 +114,35 @@ export async function thresholdStatus(
     currentCollateralPercent: BigDecimal,
     ctx: Ctx,
     block: SubstrateBlock,
-    collateral: CurrencyIdv1 | VaultCurrencyPairv3 | VaultCurrencyPairv6 | VaultCurrencyPairv15 | VaultCurrencyPairv17 | VaultCurrencyPairv1020000 | VaultCurrencyPairv1021000
+    useLegacyCurrency: Boolean,
+    key:  Key_ExchangeRatev15 | Key_ExchangeRatev17,
 ) {
+    const wrappedValue = process.env.SS58_CODEC === "interlay" ? 'IBTC' : 'KBTC';
+    let currencyPair;
+    if (useLegacyCurrency) {
+        currencyPair = {
+            collateral: key.value as CurrencyIdv15,
+            wrapped: { __kind: 'Token', value: { __kind: wrappedValue } } as CurrencyIdv15,
+        };
+    }
+    else {
+        currencyPair = {
+            collateral: key.value as CurrencyIdv17,
+            wrapped: { __kind: 'Token', value: { __kind: wrappedValue } } as CurrencyIdv17,
+        };
+    }
     let currThreshold;
-    let secureThreshold = await getSecureCollateralThreshold(ctx, block, collateral);
+    let secureThreshold = await getSecureCollateralThreshold(ctx, block, currencyPair);
     currThreshold = BigDecimal(secureThreshold?.toString() ?? "0").div(10 ** 16);
     if (currentCollateralPercent > currThreshold) {
         return CollateralThreshold.AboveSecureThreshold;
     }
-    const premiumThreshold = await getPremiumRedeemThreshold(ctx, block, collateral);
+    const premiumThreshold = await getPremiumRedeemThreshold(ctx, block, currencyPair);
     currThreshold = BigDecimal(premiumThreshold?.toString() ?? "0").div(10 ** 16);
     if (currentCollateralPercent > currThreshold) {
         return CollateralThreshold.BelowSecureThreshold;
     }
-    const liquidationThreshold = await getLiquidationThreshold(ctx, block, collateral);
+    const liquidationThreshold = await getLiquidationThreshold(ctx, block, currencyPair);
     currThreshold = BigDecimal(liquidationThreshold?.toString() ?? "0").div(10 ** 16);
     if (currentCollateralPercent > currThreshold) {
         // below the premium, but above the liquidation threshold
