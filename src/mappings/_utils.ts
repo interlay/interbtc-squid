@@ -88,8 +88,6 @@ export async function cacheForeignAsset(): Promise<void> {
             const assetDetails = details.toHuman() as AssetMetadata;
             cache[id] = assetDetails;
             if(assetDetails.symbol==='USDT') usdtAssetId = id;
-            console.log('key arguments:', key.args.map((k) => k.toHuman()));
-            console.log('     exposure:', details.toHuman());
           });        
     } catch (error) {
         console.error(`Error getting foreign asset metadata: ${error}`);

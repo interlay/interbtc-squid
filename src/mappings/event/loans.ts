@@ -171,7 +171,7 @@ export async function updatedMarket(
     // console.log(JSON.stringify(my_market));
     await entityBuffer.pushEntity(LoanMarket.name, my_market);
 
-    console.log(`Updated ${my_market.id}`);
+    // console.log(`Updated ${my_market.id}`);
 }
 
 export async function activatedMarket(
