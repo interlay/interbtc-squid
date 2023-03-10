@@ -293,8 +293,7 @@ export async function depositCollateral(
         const newCurrency = await lendTokenDetails(ctx, currency.lendTokenId);
         symbol = await symbolFromCurrency(newCurrency);
         const qRate = cachedRates.getRate(block.height, symbol);
-        const blockDifferences = block.height-qRate.block
-        if(blockDifferences>0) console.log(`${blockDifferences} blocks difference for ${qRate.symbol}` )
+
         const newAmount = Number(amount) * qRate.rate;
         amounts = await getExchangeRate(ctx, block.timestamp, newCurrency, newAmount);
         symbol = `q`.concat(symbol);
@@ -356,8 +355,7 @@ export async function withdrawCollateral(
         const newCurrency = await lendTokenDetails(ctx, currency.lendTokenId)
         symbol = await symbolFromCurrency(newCurrency);
         const qRate = cachedRates.getRate(block.height, symbol);
-        const blockDifferences = block.height-qRate.block
-        if(blockDifferences>0) console.log(`${blockDifferences} blocks difference for ${qRate.symbol}` )
+
         const newAmount = Number(amount) * qRate.rate;
         amounts = await getExchangeRate(ctx, block.timestamp, newCurrency, newAmount);
         symbol = `q`.concat(symbol);
