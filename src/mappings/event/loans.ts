@@ -493,7 +493,6 @@ export async function repay(
     );
 }
 
-"Redeem means withdrawing a deposit by redeeming qTokens for Tokens."
 export async function withdrawDeposit(
     ctx: Ctx,
     block: SubstrateBlock,
@@ -539,7 +538,6 @@ export async function withdrawDeposit(
     );
 }
 
-"Redeem means withdrawing a deposit by redeeming qTokens for Tokens."
 export async function liquidateLoan(
     ctx: Ctx,
     block: SubstrateBlock,
@@ -589,7 +587,7 @@ export async function liquidateLoan(
     // );
 }
 
-"Whenever a loan is taken or repaid, interest is accrued by slightly changing the exchange rate"
+// Whenever a loan is taken or repaid, interest is accrued by slightly changing the exchange rate
 export async function accrueInterest(
     ctx: Ctx,
     block: SubstrateBlock,
