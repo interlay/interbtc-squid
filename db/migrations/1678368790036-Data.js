@@ -1,5 +1,5 @@
-module.exports = class Data1677064016448 {
-    name = 'Data1677064016448'
+module.exports = class Data1678368790036 {
+    name = 'Data1678368790036'
 
     async up(db) {
         await db.query(`CREATE TABLE "height" ("id" character varying NOT NULL, "absolute" integer NOT NULL, "active" integer NOT NULL, CONSTRAINT "PK_90f1773799ae13708b533416960" PRIMARY KEY ("id"))`)
@@ -46,6 +46,9 @@ module.exports = class Data1677064016448 {
         await db.query(`CREATE INDEX "IDX_b98c119d788456a5f133024aa5" ON "oracle_update" ("height_id") `)
         await db.query(`CREATE TABLE "cumulative_volume" ("id" character varying NOT NULL, "type" character varying(12) NOT NULL, "till_timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "amount" numeric NOT NULL, CONSTRAINT "PK_4cddeb1db9f5652b7f55e88e8d6" PRIMARY KEY ("id"))`)
         await db.query(`CREATE TABLE "cumulative_volume_per_currency_pair" ("id" character varying NOT NULL, "type" character varying(12) NOT NULL, "till_timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "amount" numeric NOT NULL, "amount_human" numeric NOT NULL, "wrapped_currency" jsonb, "collateral_currency" jsonb, CONSTRAINT "PK_b55d48297b58de0876411bb8f82" PRIMARY KEY ("id"))`)
+        await db.query(`CREATE TABLE "cumulative_dex_trading_volume_per_pool" ("id" character varying NOT NULL, "pool_id" text NOT NULL, "pool_type" character varying(8) NOT NULL, "till_timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "amounts" jsonb NOT NULL, CONSTRAINT "PK_c9bb1ee57bff1390d948e3e6f12" PRIMARY KEY ("id"))`)
+        await db.query(`CREATE INDEX "IDX_bd6bc9a6ce9e1fcb81b0650c0f" ON "cumulative_dex_trading_volume_per_pool" ("pool_id") `)
+        await db.query(`CREATE INDEX "IDX_a903319c2555960f188406a839" ON "cumulative_dex_trading_volume_per_pool" ("till_timestamp") `)
         await db.query(`CREATE TABLE "transfer" ("id" character varying NOT NULL, "token" jsonb NOT NULL, "amount" numeric NOT NULL, "amount_human" numeric NOT NULL, "from" text NOT NULL, "to" text NOT NULL, "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "height_id" character varying, CONSTRAINT "PK_fd9ddbdd49a17afcbe014401295" PRIMARY KEY ("id"))`)
         await db.query(`CREATE INDEX "IDX_be54ea276e0f665ffc38630fc0" ON "transfer" ("from") `)
         await db.query(`CREATE INDEX "IDX_4cbc37e8c3b47ded161f44c24f" ON "transfer" ("to") `)
@@ -139,6 +142,9 @@ module.exports = class Data1677064016448 {
         await db.query(`DROP INDEX "public"."IDX_b98c119d788456a5f133024aa5"`)
         await db.query(`DROP TABLE "cumulative_volume"`)
         await db.query(`DROP TABLE "cumulative_volume_per_currency_pair"`)
+        await db.query(`DROP TABLE "cumulative_dex_trading_volume_per_pool"`)
+        await db.query(`DROP INDEX "public"."IDX_bd6bc9a6ce9e1fcb81b0650c0f"`)
+        await db.query(`DROP INDEX "public"."IDX_a903319c2555960f188406a839"`)
         await db.query(`DROP TABLE "transfer"`)
         await db.query(`DROP INDEX "public"."IDX_be54ea276e0f665ffc38630fc0"`)
         await db.query(`DROP INDEX "public"."IDX_4cbc37e8c3b47ded161f44c24f"`)

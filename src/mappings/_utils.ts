@@ -76,6 +76,25 @@ type AssetMetadata = {
 // This function uses the storage API to obtain the details directly from the
 // WSS RPC provider for the correct chain
 const cache: { [id: number]: AssetMetadata } = {};
+let usdtAssetId: number;
+
+export async function cacheForeignAsset(): Promise<void> {
+    try {
+        const wsProvider = new WsProvider(process.env.CHAIN_ENDPOINT);
+        const api = await ApiPromise.create({ provider: wsProvider, noInitWarn: true });
+        const assets = await api.query.assetRegistry.metadata.entries();
+        assets.forEach(([key, details]) => {
+            const id:number = Number(key.args[0]);
+            const assetDetails = details.toHuman() as AssetMetadata;
+            cache[id] = assetDetails;
+            if(assetDetails.symbol==='USDT') usdtAssetId = id;
+          });        
+    } catch (error) {
+        console.error(`Error getting foreign asset metadata: ${error}`);
+        throw error;
+    }
+}
+
 
 export async function getForeignAsset(id: number): Promise<AssetMetadata> {
     if (id in cache) {
@@ -246,9 +265,10 @@ export async function getExchangeRate(
         baseMonetaryAmount = newMonetaryAmount(lastPrice, mappedCurrency);
     }
 
+    if(!usdtAssetId) throw new Error("Unable to determine USDT Asset ID");
     searchBlock = {
         isTypeOf: 'ForeignAsset',
-        asset: 1
+        asset: usdtAssetId // determined at the start of the processor by reading all foreign assets into cache
     }
     let btcUpdate = await ctx.store.get(OracleUpdate, {
         where: { 
