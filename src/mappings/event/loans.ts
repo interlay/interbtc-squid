@@ -66,27 +66,6 @@ class BlockRates {
     }
 }
 
-class CachedRates {
-    private cache = new Map<number, Map<string, number>>();
-
-    add(entry: Rate) {
-        if (!this.cache.has(entry.block)) {
-            this.cache.set(entry.block, new Map([[entry.symbol, entry.rate]]));
-            return;
-        }
-        this.cache.get(entry.block)!.set(entry.symbol, entry.rate);
-    }
-
-    get(block: number, symbol: string): number | undefined {
-        const blockRates = this.cache.get(block);
-        return blockRates ? blockRates.get(symbol) : undefined;
-    }
-
-    clear() {
-        this.cache.clear();
-    }
-}
-
 const cachedRates = new BlockRates();
 
 export async function newMarket(
@@ -192,7 +171,7 @@ export async function updatedMarket(
     // console.log(JSON.stringify(my_market));
     await entityBuffer.pushEntity(LoanMarket.name, my_market);
 
-    console.log(`Updated ${my_market.id}`);
+    // console.log(`Updated ${my_market.id}`);
 }
 
 export async function activatedMarket(
