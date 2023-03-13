@@ -254,20 +254,16 @@ export async function depositCollateralVault(
     if (rawEvent.isV6) {
         e = rawEvent.asV6;
         vaultId = encodeLegacyVaultId(e.vaultId);
-    }
-    else if (rawEvent.isV15) {
+    } else if (rawEvent.isV15) {
         e = rawEvent.asV15;
         vaultId = encodeLegacyVaultId(e.vaultId);
-    }
-    else if (rawEvent.isV17)  {
+    } else if (rawEvent.isV17)  {
         e = rawEvent.asV17
         vaultId = encodeVaultId(e.vaultId);
-    }
-    else if (rawEvent.isV1020000) {
+    } else if (rawEvent.isV1020000) {
         e = rawEvent.asV1020000;
         vaultId = encodeVaultId(e.vaultId);
-    }
-    else { 
+    } else { 
         ctx.log.warn(`UNKNOWN EVENT VERSION: Vault.DepositCollateralEvent`);
         return;
     }

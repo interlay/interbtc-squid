@@ -102,9 +102,6 @@ export async function requestIssue(
         status: IssueStatus.Pending,
         period,
     });
-    if (issue.vault === undefined) {
-        console.log("vault corresponding to an issue is undefined after adding it to issue instance");
-    }
 
     const height = await blockToHeight(ctx, block.height, "RequestIssue");
 
