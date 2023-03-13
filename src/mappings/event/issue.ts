@@ -245,7 +245,6 @@ export async function cancelIssue(
     }
     e = rawEvent.asV4;
     
-
     const issue = await ctx.store.get(Issue, {
         where: { id: toHex(e.issueId) },
         relations: ['vault'] as FindOptionsRelations<Issue>,
@@ -255,9 +254,6 @@ export async function cancelIssue(
             "WARNING: CancelIssue event did not match any existing issue requests! Skipping."
         );
         return;
-    }
-    if (issue.vault === undefined) {
-        console.log("vault corresponding to an issue is undefined after pulling from database by id");
     }
     const height = await blockToHeight(ctx, block.height, "CancelIssue");
     const cancellation = new IssueCancellation({
@@ -272,15 +268,11 @@ export async function cancelIssue(
     entityBuffer.pushEntity(Issue.name, issue);
 
     // removing Pending BTC for this specific vault
-
-
-    const vaultIdString = issue.vault.id;
-
     const amountRemove = - issue.request.amountWrapped
     entityBuffer.pushEntity(
         Vault.name,
         await updateVault(
-            vaultIdString,
+            issue.vault.id,
             amountRemove,
             entityBuffer,
             ctx.store,

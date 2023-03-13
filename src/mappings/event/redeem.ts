@@ -109,7 +109,7 @@ export async function requestRedeem(
     }
 
     redeem.request = new RedeemRequest({
-        requestedAmountBacking: e.amount, // I think this name is confusing shouldn't this be amountBTC to align with the spec?
+        requestedAmountBacking: e.amount, 
         height: height.id,
         timestamp: new Date(block.timestamp),
         backingHeight: backingBlock?.backingHeight || 0,

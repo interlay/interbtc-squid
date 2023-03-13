@@ -124,8 +124,7 @@ export async function thresholdStatus(
             collateral: key.value as CurrencyIdv15,
             wrapped: { __kind: 'Token', value: { __kind: wrappedValue } } as CurrencyIdv15,
         };
-    }
-    else {
+    } else {
         currencyPair = {
             collateral: key.value as CurrencyIdv17,
             wrapped: { __kind: 'Token', value: { __kind: wrappedValue } } as CurrencyIdv17,
@@ -147,8 +146,7 @@ export async function thresholdStatus(
     if (currentCollateralPercent > currThreshold) {
         // below the premium, but above the liquidation threshold
         return CollateralThreshold.BelowPremiumRedeemThreshold;
-    }
-    else {
+    } else {
         // below the liquidation threshold
         return CollateralThreshold.Liquidated;
     }
