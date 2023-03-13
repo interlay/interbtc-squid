@@ -33,22 +33,25 @@ export async function getLiquidationThreshold(
 {
     const rawLiquidationThreshold = new VaultRegistryLiquidationCollateralThresholdStorage(ctx, block);
     let value;
-    if (rawLiquidationThreshold.isV3)
+    if (rawLiquidationThreshold.isV3) {
         value = await rawLiquidationThreshold.getAsV3(key as VaultCurrencyPairv3);
-    else if (rawLiquidationThreshold.isV6)
+    } else if (rawLiquidationThreshold.isV6) {
         value = await rawLiquidationThreshold.getAsV6(key as VaultCurrencyPairv6);
-    else if (rawLiquidationThreshold.isV15)
+    } else if (rawLiquidationThreshold.isV15) {
         value = await rawLiquidationThreshold.getAsV15(key as VaultCurrencyPairv15);
-    else if (rawLiquidationThreshold.isV17)
+    } else if (rawLiquidationThreshold.isV17) {
         value = await rawLiquidationThreshold.getAsV17(key as VaultCurrencyPairv17);
-    else if (rawLiquidationThreshold.isV1020000)
+    } else if (rawLiquidationThreshold.isV1020000) {
         value = await rawLiquidationThreshold.getAsV1020000(key as VaultCurrencyPairv1020000);
-    else if (rawLiquidationThreshold.isV1021000)
+    } else if (rawLiquidationThreshold.isV1021000) {
         value = await rawLiquidationThreshold.getAsV1021000(key as VaultCurrencyPairv1021000);
-    else throw Error("Unknown storage verison")
-    if (!rawLiquidationThreshold.isExists)
+    } else {
+        throw new Error("Unknown storage version");
+    }
+    if (!rawLiquidationThreshold.isExists) {
         throw new Error("Issue period does not exist");
-    return value;
+    }
+    return value;    
 }
 
 export async function getPremiumRedeemThreshold(

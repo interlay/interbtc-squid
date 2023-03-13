@@ -78,8 +78,7 @@ export async function registerVault(
         if ( !vaultCollateralMap.get(collateralString)?.has(vaultId) ) {
             vaultCollateralMap.get(collateralString)?.add(vaultId);
         }
-    }
-    else {
+    } else {
         vaultCollateralMap.set(collateralString, new Set([vaultId]));
     }
 
