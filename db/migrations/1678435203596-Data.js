@@ -1,5 +1,5 @@
-module.exports = class Data1678368790036 {
-    name = 'Data1678368790036'
+module.exports = class Data1678435203596 {
+    name = 'Data1678435203596'
 
     async up(db) {
         await db.query(`CREATE TABLE "height" ("id" character varying NOT NULL, "absolute" integer NOT NULL, "active" integer NOT NULL, CONSTRAINT "PK_90f1773799ae13708b533416960" PRIMARY KEY ("id"))`)
@@ -49,6 +49,16 @@ module.exports = class Data1678368790036 {
         await db.query(`CREATE TABLE "cumulative_dex_trading_volume_per_pool" ("id" character varying NOT NULL, "pool_id" text NOT NULL, "pool_type" character varying(8) NOT NULL, "till_timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "amounts" jsonb NOT NULL, CONSTRAINT "PK_c9bb1ee57bff1390d948e3e6f12" PRIMARY KEY ("id"))`)
         await db.query(`CREATE INDEX "IDX_bd6bc9a6ce9e1fcb81b0650c0f" ON "cumulative_dex_trading_volume_per_pool" ("pool_id") `)
         await db.query(`CREATE INDEX "IDX_a903319c2555960f188406a839" ON "cumulative_dex_trading_volume_per_pool" ("till_timestamp") `)
+        await db.query(`CREATE TABLE "cumulative_dex_trading_volume_per_account" ("id" character varying NOT NULL, "account_id" text NOT NULL, "till_timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "amounts" jsonb NOT NULL, CONSTRAINT "PK_014a93ec80c000241591ebb7d1e" PRIMARY KEY ("id"))`)
+        await db.query(`CREATE INDEX "IDX_d8cca4aa75481cbef78c0fabae" ON "cumulative_dex_trading_volume_per_account" ("account_id") `)
+        await db.query(`CREATE INDEX "IDX_8d4d104d3fdda735ad959c7547" ON "cumulative_dex_trading_volume_per_account" ("till_timestamp") `)
+        await db.query(`CREATE TABLE "cumulative_dex_trading_volume" ("id" character varying NOT NULL, "till_timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "amounts" jsonb NOT NULL, CONSTRAINT "PK_283cec7156272ed6a2403934d6a" PRIMARY KEY ("id"))`)
+        await db.query(`CREATE INDEX "IDX_17d4754307c61f823d98896a11" ON "cumulative_dex_trading_volume" ("till_timestamp") `)
+        await db.query(`CREATE TABLE "cumulative_dex_trade_count_per_account" ("id" character varying NOT NULL, "account_id" text NOT NULL, "till_timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "count" numeric NOT NULL, CONSTRAINT "PK_3b45eb895406ab041f12f2965b3" PRIMARY KEY ("id"))`)
+        await db.query(`CREATE INDEX "IDX_f20b922f56a98fd0483e4ba0d6" ON "cumulative_dex_trade_count_per_account" ("account_id") `)
+        await db.query(`CREATE INDEX "IDX_5f872c3cc3aa04df58b3288fd9" ON "cumulative_dex_trade_count_per_account" ("till_timestamp") `)
+        await db.query(`CREATE TABLE "cumulative_dex_trade_count" ("id" character varying NOT NULL, "till_timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "count" numeric NOT NULL, CONSTRAINT "PK_28f693c012e905438b6b1d80d77" PRIMARY KEY ("id"))`)
+        await db.query(`CREATE INDEX "IDX_4086e8663faeb3eabc1f8fb0ea" ON "cumulative_dex_trade_count" ("till_timestamp") `)
         await db.query(`CREATE TABLE "transfer" ("id" character varying NOT NULL, "token" jsonb NOT NULL, "amount" numeric NOT NULL, "amount_human" numeric NOT NULL, "from" text NOT NULL, "to" text NOT NULL, "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "height_id" character varying, CONSTRAINT "PK_fd9ddbdd49a17afcbe014401295" PRIMARY KEY ("id"))`)
         await db.query(`CREATE INDEX "IDX_be54ea276e0f665ffc38630fc0" ON "transfer" ("from") `)
         await db.query(`CREATE INDEX "IDX_4cbc37e8c3b47ded161f44c24f" ON "transfer" ("to") `)
@@ -145,6 +155,16 @@ module.exports = class Data1678368790036 {
         await db.query(`DROP TABLE "cumulative_dex_trading_volume_per_pool"`)
         await db.query(`DROP INDEX "public"."IDX_bd6bc9a6ce9e1fcb81b0650c0f"`)
         await db.query(`DROP INDEX "public"."IDX_a903319c2555960f188406a839"`)
+        await db.query(`DROP TABLE "cumulative_dex_trading_volume_per_account"`)
+        await db.query(`DROP INDEX "public"."IDX_d8cca4aa75481cbef78c0fabae"`)
+        await db.query(`DROP INDEX "public"."IDX_8d4d104d3fdda735ad959c7547"`)
+        await db.query(`DROP TABLE "cumulative_dex_trading_volume"`)
+        await db.query(`DROP INDEX "public"."IDX_17d4754307c61f823d98896a11"`)
+        await db.query(`DROP TABLE "cumulative_dex_trade_count_per_account"`)
+        await db.query(`DROP INDEX "public"."IDX_f20b922f56a98fd0483e4ba0d6"`)
+        await db.query(`DROP INDEX "public"."IDX_5f872c3cc3aa04df58b3288fd9"`)
+        await db.query(`DROP TABLE "cumulative_dex_trade_count"`)
+        await db.query(`DROP INDEX "public"."IDX_4086e8663faeb3eabc1f8fb0ea"`)
         await db.query(`DROP TABLE "transfer"`)
         await db.query(`DROP INDEX "public"."IDX_be54ea276e0f665ffc38630fc0"`)
         await db.query(`DROP INDEX "public"."IDX_4cbc37e8c3b47ded161f44c24f"`)

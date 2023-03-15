@@ -263,6 +263,32 @@ type CumulativeDexTradingVolumePerPool @entity {
     amounts: [PooledAmount!]!
 }
 
+type CumulativeDexTradingVolumePerAccount @entity {
+    id: ID!
+    accountId: String! @index
+    tillTimestamp: DateTime! @index
+    amounts: [PooledAmount!]!
+}
+
+type CumulativeDexTradingVolume @entity {
+    id: ID!
+    tillTimestamp: DateTime! @index
+    amounts: [PooledAmount!]!
+}
+
+type CumulativeDexTradeCountPerAccount  @entity {
+    id: ID!
+    accountId: String! @index
+    tillTimestamp: DateTime! @index
+    count: BigInt!
+}
+
+type CumulativeDexTradeCount  @entity {
+    id: ID!
+    tillTimestamp: DateTime! @index
+    count: BigInt!
+}
+
 type IssuePeriod @entity {
     height: Height!
     timestamp: DateTime!

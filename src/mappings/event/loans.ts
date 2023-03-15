@@ -293,8 +293,7 @@ export async function depositCollateral(
         const newCurrency = await lendTokenDetails(ctx, currency.lendTokenId);
         symbol = await symbolFromCurrency(newCurrency);
         const qRate = cachedRates.getRate(block.height, symbol);
-        const blockDifferences = block.height-qRate.block
-        if(blockDifferences>0) console.log(`${blockDifferences} blocks difference for ${qRate.symbol}` )
+
         const newAmount = Number(amount) * qRate.rate;
         amounts = await getExchangeRate(ctx, block.timestamp, newCurrency, newAmount);
         symbol = `q`.concat(symbol);
@@ -356,8 +355,7 @@ export async function withdrawCollateral(
         const newCurrency = await lendTokenDetails(ctx, currency.lendTokenId)
         symbol = await symbolFromCurrency(newCurrency);
         const qRate = cachedRates.getRate(block.height, symbol);
-        const blockDifferences = block.height-qRate.block
-        if(blockDifferences>0) console.log(`${blockDifferences} blocks difference for ${qRate.symbol}` )
+
         const newAmount = Number(amount) * qRate.rate;
         amounts = await getExchangeRate(ctx, block.timestamp, newCurrency, newAmount);
         symbol = `q`.concat(symbol);
@@ -495,7 +493,6 @@ export async function repay(
     );
 }
 
-"Redeem means withdrawing a deposit by redeeming qTokens for Tokens."
 export async function withdrawDeposit(
     ctx: Ctx,
     block: SubstrateBlock,
@@ -541,7 +538,6 @@ export async function withdrawDeposit(
     );
 }
 
-"Redeem means withdrawing a deposit by redeeming qTokens for Tokens."
 export async function liquidateLoan(
     ctx: Ctx,
     block: SubstrateBlock,
@@ -591,7 +587,7 @@ export async function liquidateLoan(
     // );
 }
 
-"Whenever a loan is taken or repaid, interest is accrued by slightly changing the exchange rate"
+// Whenever a loan is taken or repaid, interest is accrued by slightly changing the exchange rate
 export async function accrueInterest(
     ctx: Ctx,
     block: SubstrateBlock,
