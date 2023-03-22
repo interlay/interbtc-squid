@@ -399,3 +399,14 @@ type InterestAccrual @entity {
     timestamp: DateTime!
     comment: String
 }
+
+type LoanLiquidation @entity {
+    id: ID!
+    amountRepaid: BigInt!
+    amountRepaidToken: Currency!
+    seizedCollateral: BigInt!
+    seizedCollateralToken: Currency!
+    liquidationCost: BigInt!
+    liquidationCostToken: Currency!
+    timestamp: DateTime!
+}
