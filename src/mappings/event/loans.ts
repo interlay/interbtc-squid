@@ -1,5 +1,5 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
-import { Deposit, InterestAccrual, Loan, LoanMarket, LoanMarketActivation, MarketState } from "../../model";
+import { Deposit, LoanLiquidation, InterestAccrual, Loan, LoanMarket, LoanMarketActivation, MarketState } from "../../model";
 import { Ctx, EventItem } from "../../processor";
 import {
     LoansActivatedMarketEvent,
@@ -570,40 +570,42 @@ export async function liquidateLoan(
     // collateralCurrencyId: v1021000.CurrencyId,
     // repayAmount: bigint,
     // collateralUnderlyingAmount: bigint}
-    // let accountId: Uint8Array;
-    // let myCurrencyId: CurrencyId_V1020000|CurrencyId_V1021000;
-    // let amount: bigint;
-    // let e;
-    // if (rawEvent.isV1020000) {
-    //     e = rawEvent.asV1020000;
-    //     [ accountId, myCurrencyId, amount ] = e;
-    // }
-    // else if (rawEvent.isV1021000) {
-    //     e = rawEvent.asV1021000;
-    //     accountId = e.accountId;
-    //     myCurrencyId = e.currencyId;
-    //     amount = e.amount;
-    // }
-    // else {
-    //     ctx.log.warn(`UNKOWN EVENT VERSION: LoansRepaidBorrowEvent`);
-    //     return;
-    // }
-    // const currency = currencyId.encode(myCurrencyId);
-    // const height = await blockToHeight(ctx, block.height, "Redeemed");
-    // const account = address.interlay.encode(accountId);
-    // const comment = `${getFirstAndLastFour(account)} withdrew ${await friendlyAmount(currency, Number(amount))} from deposit`;
-    // await entityBuffer.pushEntity(
-    //     Deposit.name,
-    //     new Deposit({
-    //         id: item.event.id,
-    //         height: height,
-    //         timestamp: new Date(block.timestamp),
-    //         userParachainAddress: account,
-    //         token: currency,
-    //         amountWithdrawn: amount,
-    //         comment: comment// expand to 3 tokens: qToken, Token, equivalent in USD(T)
-    //     })
-    // );
+    let amountRepaid: bigint;
+    let amountRepaidToken;
+    let seizedCollateral: bigint;
+    let seizedCollateralToken;
+    let liquidationCost: bigint;
+    let liquidationCostToken;
+    let e;
+    if (rawEvent.isV1021000) {
+        e = rawEvent.asV1021000;
+        amountRepaid = e.repayAmount;
+        amountRepaidToken = currencyId.encode(e.liquidationCurrencyId);
+        seizedCollateral = e.collateralUnderlyingAmount;
+        seizedCollateralToken = currencyId.encode(e.collateralCurrencyId);
+    }
+    else {
+        ctx.log.warn(`UNKOWN EVENT VERSION: LoansLiquidatedBorrowEvent`);
+        return;
+    }
+    // guess
+    liquidationCost = seizedCollateral - amountRepaid;
+    liquidationCostToken = seizedCollateralToken;
+
+
+    await entityBuffer.pushEntity(
+        LoanLiquidation.name,
+        new LoanLiquidation({
+            id: item.event.id,
+            amountRepaid: amountRepaid,
+            amountRepaidToken: amountRepaidToken,
+            seizedCollateral: seizedCollateral,
+            seizedCollateralToken: seizedCollateralToken,
+            liquidationCost: liquidationCost,
+            liquidationCostToken: liquidationCostToken,
+            timestamp: new Date(block.timestamp),
+        })
+    );
 }
 
 // Whenever a loan is taken or repaid, interest is accrued by slightly changing the exchange rate
