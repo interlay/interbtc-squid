@@ -564,12 +564,6 @@ export async function liquidateLoan(
     entityBuffer: EntityBuffer
 ): Promise<void> {
     const rawEvent = new LoansLiquidatedBorrowEvent(ctx, item.event);
-    // {liquidator: Uint8Array,
-    // borrower: Uint8Array,
-    // liquidationCurrencyId: v1021000.CurrencyId,
-    // collateralCurrencyId: v1021000.CurrencyId,
-    // repayAmount: bigint,
-    // collateralUnderlyingAmount: bigint}
     let amountRepaid: bigint;
     let amountRepaidToken;
     let seizedCollateral: bigint;
@@ -588,10 +582,9 @@ export async function liquidateLoan(
         ctx.log.warn(`UNKOWN EVENT VERSION: LoansLiquidatedBorrowEvent`);
         return;
     }
-    // guess
+    
     liquidationCost = seizedCollateral - amountRepaid;
     liquidationCostToken = seizedCollateralToken;
-
 
     await entityBuffer.pushEntity(
         LoanLiquidation.name,
