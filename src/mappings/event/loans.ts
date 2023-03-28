@@ -1,5 +1,6 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
-import { Deposit, LoanLiquidation, InterestAccrual, Loan, LoanMarket, LoanMarketActivation, MarketState } from "../../model";
+import { Deposit, LoanLiquidation, InterestAccrual, Loan, LoanMarket, LoanMarketActivation, MarketState, Currency, OracleUpdate } from "../../model";
+import { Bitcoin, ExchangeRate  } from "@interlay/monetary-js";
 import { Ctx, EventItem } from "../../processor";
 import {
     LoansActivatedMarketEvent,
@@ -37,9 +38,11 @@ import {
     getExchangeRate,
     getFirstAndLastFour,
     symbolFromCurrency,
+    currencyToLibCurrencyExt,
     truncateTimestampToDate
 } from "../_utils";
 import { address, currencyId, currencyToString, rateModel } from "../encoding";
+import { createExchangeRateOracleKey, CurrencyExt, decodeFixedPointType, unwrapRawExchangeRate } from "@interlay/interbtc-api";
 
 // https://github.com/paritytech/substrate/blob/8ae4738bd7ee57556ea42c33600dc95488b58db6/primitives/arithmetic/src/fixed_point.rs#L2200
 const FIXEDI128_SCALING_FACTOR = 18;
@@ -565,11 +568,10 @@ export async function liquidateLoan(
 ): Promise<void> {
     const rawEvent = new LoansLiquidatedBorrowEvent(ctx, item.event);
     let amountRepaid: bigint;
-    let amountRepaidToken;
+    let amountRepaidToken: Currency;
     let seizedCollateral: bigint;
-    let seizedCollateralToken;
+    let seizedCollateralToken: Currency;
     let liquidationCost: bigint;
-    let liquidationCostToken;
     let e;
     if (rawEvent.isV1021000) {
         e = rawEvent.asV1021000;
@@ -582,10 +584,12 @@ export async function liquidateLoan(
         ctx.log.warn(`UNKOWN EVENT VERSION: LoansLiquidatedBorrowEvent`);
         return;
     }
-    
-    liquidationCost = seizedCollateral - amountRepaid;
-    liquidationCostToken = seizedCollateralToken;
 
+    const amountRepaidExchangeRate = await getExchangeRate(ctx, block.timestamp, amountRepaidToken, Number(amountRepaid));
+    const seizedCollateralExchangeRate = await getExchangeRate(ctx, block.timestamp, seizedCollateralToken, Number(seizedCollateral));
+    const liquidationCostBtc = seizedCollateralExchangeRate.btc.toNumber() - amountRepaidExchangeRate.btc.toNumber();
+    const liquidationCostUsdt = seizedCollateralExchangeRate.usdt.toNumber() - amountRepaidExchangeRate.usdt.toNumber();
+    
     await entityBuffer.pushEntity(
         LoanLiquidation.name,
         new LoanLiquidation({
@@ -594,8 +598,8 @@ export async function liquidateLoan(
             amountRepaidToken: amountRepaidToken,
             seizedCollateral: seizedCollateral,
             seizedCollateralToken: seizedCollateralToken,
-            liquidationCost: liquidationCost,
-            liquidationCostToken: liquidationCostToken,
+            liquidationCostBtc: liquidationCostBtc,
+            liquidationCostUsdt: liquidationCostUsdt,
             timestamp: new Date(block.timestamp),
         })
     );
