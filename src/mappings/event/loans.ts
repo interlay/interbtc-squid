@@ -38,7 +38,8 @@ import {
     getExchangeRate,
     getFirstAndLastFour,
     symbolFromCurrency,
-    currencyToLibCurrencyExt
+    currencyToLibCurrencyExt,
+    convertAmountToHuman
 } from "../_utils";
 import { address, currencyId, currencyToString, rateModel } from "../encoding";
 import { createExchangeRateOracleKey, CurrencyExt, decodeFixedPointType, unwrapRawExchangeRate } from "@interlay/interbtc-api";
@@ -576,8 +577,10 @@ export async function liquidateLoan(
         new LoanLiquidation({
             id: item.event.id,
             amountRepaid: amountRepaid,
+            amountRepaidHuman: await convertAmountToHuman(amountRepaidToken, amountRepaid),
             amountRepaidToken: amountRepaidToken,
             seizedCollateral: seizedCollateral,
+            seizedCollateralHuman: await convertAmountToHuman(seizedCollateralToken, seizedCollateral),
             seizedCollateralToken: seizedCollateralToken,
             liquidationCostBtc: liquidationCostBtc,
             liquidationCostUsdt: liquidationCostUsdt,
