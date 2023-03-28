@@ -39,6 +39,7 @@ import {
     getFirstAndLastFour,
     symbolFromCurrency,
     currencyToLibCurrencyExt,
+    convertAmountToHuman,
     truncateTimestampToDate
 } from "../_utils";
 import { address, currencyId, currencyToString, rateModel } from "../encoding";
@@ -595,8 +596,10 @@ export async function liquidateLoan(
         new LoanLiquidation({
             id: item.event.id,
             amountRepaid: amountRepaid,
+            amountRepaidHuman: await convertAmountToHuman(amountRepaidToken, amountRepaid),
             amountRepaidToken: amountRepaidToken,
             seizedCollateral: seizedCollateral,
+            seizedCollateralHuman: await convertAmountToHuman(seizedCollateralToken, seizedCollateral),
             seizedCollateralToken: seizedCollateralToken,
             liquidationCostBtc: liquidationCostBtc,
             liquidationCostUsdt: liquidationCostUsdt,

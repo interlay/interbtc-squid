@@ -457,8 +457,10 @@ type CumulativeCirculatingSupply @entity {
 type LoanLiquidation @entity {
     id: ID!
     amountRepaid: BigInt!
+    amountRepaidHuman: BigDecimal!
     amountRepaidToken: Currency!
     seizedCollateral: BigInt!
+    seizedCollateralHuman: BigDecimal!
     seizedCollateralToken: Currency!
     liquidationCostBtc: Float!
     liquidationCostUsdt: Float!
