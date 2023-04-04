@@ -566,11 +566,12 @@ export async function liquidateLoan(
         ctx.log.warn(`UNKOWN EVENT VERSION: LoansLiquidatedBorrowEvent`);
         return;
     }
-
+    
     const amountRepaidExchangeRate = await getExchangeRate(ctx, block.timestamp, amountRepaidToken, Number(amountRepaid));
     const seizedCollateralExchangeRate = await getExchangeRate(ctx, block.timestamp, seizedCollateralToken, Number(seizedCollateral));
     const liquidationCostBtc = seizedCollateralExchangeRate.btc.toNumber() - amountRepaidExchangeRate.btc.toNumber();
-    const liquidationCostUsdt = seizedCollateralExchangeRate.usdt.toNumber() - amountRepaidExchangeRate.usdt.toNumber();
+
+    liquidationCost = BigInt(liquidationCostBtc * seizedCollateralExchangeRate.btcExchangeRate.toNumber());
     
     await entityBuffer.pushEntity(
         LoanLiquidation.name,
@@ -582,8 +583,9 @@ export async function liquidateLoan(
             seizedCollateral: seizedCollateral,
             seizedCollateralHuman: await convertAmountToHuman(seizedCollateralToken, seizedCollateral),
             seizedCollateralToken: seizedCollateralToken,
-            liquidationCostBtc: liquidationCostBtc,
-            liquidationCostUsdt: liquidationCostUsdt,
+            liquidationCost: liquidationCost,
+            liquidationCostHuman: await convertAmountToHuman(seizedCollateralToken, BigInt(liquidationCost)),
+            liquidationCostToken: seizedCollateralToken,
             timestamp: new Date(block.timestamp),
         })
     );

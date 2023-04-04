@@ -408,7 +408,8 @@ type LoanLiquidation @entity {
     seizedCollateral: BigInt!
     seizedCollateralHuman: BigDecimal!
     seizedCollateralToken: Currency!
-    liquidationCostBtc: Float!
-    liquidationCostUsdt: Float!
+    liquidationCost: BigInt!
+    liquidationCostHuman: BigDecimal!
+    liquidationCostToken: Currency!
     timestamp: DateTime!
 }
