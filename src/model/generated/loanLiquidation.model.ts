@@ -30,11 +30,14 @@ export class LoanLiquidation {
     @Column_("jsonb", {transformer: {to: obj => obj.toJSON(), from: obj => obj == null ? undefined : fromJsonCurrency(obj)}, nullable: false})
     seizedCollateralToken!: Currency
 
-    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: false})
-    liquidationCostBtc!: number
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    liquidationCost!: bigint
 
-    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: false})
-    liquidationCostUsdt!: number
+    @Column_("numeric", {transformer: marshal.bigdecimalTransformer, nullable: false})
+    liquidationCostHuman!: BigDecimal
+
+    @Column_("jsonb", {transformer: {to: obj => obj.toJSON(), from: obj => obj == null ? undefined : fromJsonCurrency(obj)}, nullable: false})
+    liquidationCostToken!: Currency
 
     @Column_("timestamp with time zone", {nullable: false})
     timestamp!: Date

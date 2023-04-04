@@ -221,6 +221,7 @@ function mapCurrencyType(currency: Currency): CurrencyType {
 }
 
 type OracleRate = {
+    btcExchangeRate: Big;
     btc: Big;
     usdt: Big;
 }
@@ -232,7 +233,7 @@ export async function getExchangeRate(
     ctx: Ctx,
     timestamp: number,
     currency: Currency,
-    amount: number
+    amount: number,
 ): Promise<OracleRate>  {
     const mappedCurrency = mapCurrencyType(currency);
     let baseMonetaryAmount
@@ -264,7 +265,6 @@ export async function getExchangeRate(
         // Why 1e10? All prices are in BTC (8 digits) and there 18 digits worth of units for all values (18-8=10)
         baseMonetaryAmount = newMonetaryAmount(lastPrice, mappedCurrency);
     }
-
     if(!usdtAssetId) throw new Error("Unable to determine USDT Asset ID");
     searchBlock = {
         isTypeOf: 'ForeignAsset',
@@ -299,6 +299,7 @@ export async function getExchangeRate(
     const monetaryAmount = newMonetaryAmount(Big(amount), mappedCurrency);
 
     return {
+        btcExchangeRate: baseMonetaryAmount.toBig(),
         btc: baseAmt.eq(0)
             ? Big(0)
             : monetaryAmount.toBig().div(baseAmt),
