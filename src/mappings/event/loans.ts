@@ -588,10 +588,10 @@ export async function liquidateLoan(
     
     const amountRepaidExchangeRate = await getExchangeRate(ctx, block.timestamp, amountRepaidToken, Number(amountRepaid));
     const seizedCollateralExchangeRate = await getExchangeRate(ctx, block.timestamp, seizedCollateralToken, Number(seizedCollateral));
-    const liquidationCostBtc = seizedCollateralExchangeRate.btc.toNumber() - amountRepaidExchangeRate.btc.toNumber();
+    const liquidationCostBtc = seizedCollateralExchangeRate.btc.minus(amountRepaidExchangeRate.btc);
 
-    liquidationCost = BigInt(liquidationCostBtc * seizedCollateralExchangeRate.btcExchangeRate.toNumber());
-    
+    liquidationCost = BigInt(seizedCollateralExchangeRate.btcExchangeRate.mul(liquidationCostBtc).toString());
+
     await entityBuffer.pushEntity(
         LoanLiquidation.name,
         new LoanLiquidation({
