@@ -317,17 +317,17 @@ type LoanMarket @entity {
     token: Currency!
     height: Height!
     timestamp: DateTime!
-    borrowCap: BigInt!
-    supplyCap: BigInt!
+    borrowCap: Float!
+    supplyCap: Float!
     rateModel: RateModel!
-    closeFactor: Int!
+    closeFactor: Float!
     lendTokenId: Int! @unique
     state: MarketState!
-    reserveFactor: Int!
-    collateralFactor: Int!
-    liquidateIncentive: BigInt!
-    liquidationThreshold: Int!
-    liquidateIncentiveReservedFactor: Int!
+    reserveFactor: Float!
+    collateralFactor: Float!
+    liquidateIncentive: Float!
+    liquidationThreshold: Float!
+    liquidateIncentiveReservedFactor: Float!
     activation: LoanMarketActivation @derivedFrom(field: "market")
     currencySymbol: String!
 
@@ -353,6 +353,7 @@ type Loan @entity {
     amountRepaidBtc: Float
     height: Height!
     timestamp: DateTime!
+    day: DateTime!
     comment: String
     currencySymbol: String!
 }
@@ -371,6 +372,7 @@ type Deposit @entity {
     amountWithdrawnBtc: Float
     height: Height!
     timestamp: DateTime!
+    day: DateTime!
     comment: String
     currencySymbol: String!
 }
@@ -397,5 +399,6 @@ type InterestAccrual @entity {
     exchangeRateFloat: Float!
     height: Height!
     timestamp: DateTime!
+    day: DateTime!
     comment: String
 }

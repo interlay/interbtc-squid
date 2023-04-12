@@ -43,6 +43,9 @@ export class Loan {
     @Column_("timestamp with time zone", {nullable: false})
     timestamp!: Date
 
+    @Column_("timestamp with time zone", {nullable: false})
+    day!: Date
+
     @Column_("text", {nullable: true})
     comment!: string | undefined | null
 
