@@ -399,3 +399,10 @@ type InterestAccrual @entity {
     timestamp: DateTime!
     comment: String
 }
+
+type CumulativeSupply @entity {
+  totalSupply: BigInt!
+  circulatingSupply: BigInt!
+  totalVestingTokens: BigInt!
+  totalEscrowTokens: BigInt!
+}
