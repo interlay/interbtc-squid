@@ -54,6 +54,7 @@ import {
     accrueInterest, 
     liquidateLoan
 } from "./mappings/event/loans";
+import { handleTokensTotalIssuanceSetEvent } from "./mappings/event/circulating-supply";
 
 const archive = process.env.ARCHIVE_ENDPOINT;
 assert(!!archive);
@@ -71,7 +72,7 @@ const eventArgsData: eventArgsData = {
 // initialise a cache with all the foreign assets
 cacheForeignAsset();
 
-const processor = new SubstrateBatchProcessor()
+let processor = new SubstrateBatchProcessor()
     .setDataSource({ archive, chain })
     .setTypesBundle("indexer/typesBundle.json")
     .setBlockRange({ from: processFrom })
@@ -124,6 +125,9 @@ const processor = new SubstrateBatchProcessor()
             },
         },
     });
+
+//We have reached the max amount of type instatiations above, add new events here
+processor.addEvent("Tokens.TotalIssuanceSet", eventArgsData);
 
 export type Item = BatchProcessorItem<typeof processor>;
 export type EventItem = Exclude<
@@ -291,7 +295,12 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
             filter: { name: "DexStable.CurrencyExchange" },
             mapping: dexStableCurrencyExchange,
             totalTime: 0
-        }
+        },
+        {
+            filter: { name: "Tokens.TotalIssuanceSet" },
+            mapping: handleTokensTotalIssuanceSetEvent,
+            totalTime: 0
+        },
     ]);
 
     // second stage

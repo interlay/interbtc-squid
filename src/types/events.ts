@@ -1265,6 +1265,65 @@ export class SecurityUpdateActiveBlockEvent {
     }
 }
 
+export class TokensTotalIssuanceSetEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'Tokens.TotalIssuanceSet')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * The total issuance of an currency has been set
+     */
+    get isV17(): boolean {
+        return this._chain.getEventHash('Tokens.TotalIssuanceSet') === 'd2a6fb672513b42ee1c373b37e12745fdc3aac5033c333f7aa26f721f1b39764'
+    }
+
+    /**
+     * The total issuance of an currency has been set
+     */
+    get asV17(): {currencyId: v17.CurrencyId, amount: bigint} {
+        assert(this.isV17)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * The total issuance of an currency has been set
+     */
+    get isV1020000(): boolean {
+        return this._chain.getEventHash('Tokens.TotalIssuanceSet') === '525f68c9ee5f912dc7dc95930e416fda905a938bccb35506d7b511fb0d6efafa'
+    }
+
+    /**
+     * The total issuance of an currency has been set
+     */
+    get asV1020000(): {currencyId: v1020000.CurrencyId, amount: bigint} {
+        assert(this.isV1020000)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * The total issuance of an currency has been set
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Tokens.TotalIssuanceSet') === '3f6051a21dbbfa9be29efbe916827a15b19ba3a0b4603e37a97083d3dd5f0ef1'
+    }
+
+    /**
+     * The total issuance of an currency has been set
+     */
+    get asV1021000(): {currencyId: v1021000.CurrencyId, amount: bigint} {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
 export class TokensTransferEvent {
     private readonly _chain: Chain
     private readonly event: Event

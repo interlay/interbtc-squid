@@ -400,7 +400,11 @@ type InterestAccrual @entity {
     comment: String
 }
 
-type CumulativeSupply @entity {
+type Query {
+  cumulativeSupply: CumulativeSupply
+}
+
+type CumulativeSupply {
   totalSupply: BigInt!
   circulatingSupply: BigInt!
   totalVestingTokens: BigInt!
