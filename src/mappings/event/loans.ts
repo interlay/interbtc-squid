@@ -110,7 +110,7 @@ export async function newMarket(
         state: MarketState.Pending,
         reserveFactor: market.reserveFactor / 10**6,
         collateralFactor: market.collateralFactor / 10**6,
-        liquidateIncentive: divideByTenToTheNth(market.liquidateIncentive, decimals),
+        liquidateIncentive: divideByTenToTheNth(market.liquidateIncentive, 18),
         liquidationThreshold: market.liquidationThreshold / 10**6,
         liquidateIncentiveReservedFactor: market.liquidateIncentiveReservedFactor / 10**6,
         currencySymbol: await symbolFromCurrency(currency)
