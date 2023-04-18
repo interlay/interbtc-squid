@@ -6,6 +6,8 @@ import { CurrencyId, Pool, Pool_Base, Pool_Meta } from "../../types/v1021000";
 import { currencyToString, currencyId as currencyEncoder } from "../encoding";
 import { invertMap } from "../_utils";
 
+// Replicated order from parachain code. 
+// See https://github.com/interlay/interbtc/blob/4cf80ce563825d28d637067a8a63c1d9825be1f4/primitives/src/lib.rs#L492-L498
 const indexToCurrencyTypeMap: Map<number, string> = new Map([
     [0, "NativeToken"],
     [1, "ForeignAsset"],
