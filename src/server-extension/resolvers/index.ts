@@ -1,32 +1,42 @@
-// import { Arg, Field, ObjectType, Query, Resolver } from 'type-graphql'
-// import type { EntityManager } from 'typeorm'
+import { ObjectType, Field, Resolver, Query } from 'type-graphql';
+import 'reflect-metadata';
 
-// // Define custom GraphQL ObjectType of the query result
-// @ObjectType()
-// export class MyQueryResult {
-//   @Field(() => Number, { nullable: false })
-//   total!: number
+@ObjectType()
+class CumulativeSupply {
+  @Field(() => BigInt)
+  totalSupply: bigint;
 
-//   @Field(() => Number, { nullable: false })
-//   max!: number
+  @Field(() => BigInt)
+  circulatingSupply: bigint;
 
-// //   constructor(props: Partial<MyQueryResult>) {
-// //     Object.assign(this, props);
-// //   }
-//     constructor(props: number) {
-//         this.total = props;
-//         this.max = props * 2;
-//     }
-// }
+  @Field(() => BigInt)
+  totalVestingTokens: bigint;
 
+  @Field(() => BigInt)
+  totalEscrowTokens: bigint;
 
-// @Resolver()
-// export class MyResolver {
-//   // Set by depenency injection
-//   constructor(private tx: () => Promise<EntityManager>) {}
+  constructor() {
+    this.totalSupply = 0n;
+    this.circulatingSupply = 0n;
+    this.totalVestingTokens = 0n;
+    this.totalEscrowTokens = 0n;
+  }
+}
 
-//   @Query(() => MyQueryResult)
-//   async myQuery(): Promise<MyQueryResult> {
-//     return new MyQueryResult(42);
-//   }
-// }
+// Create an instance of CumulativeSupply to store and manage the supply data for the API
+export let cumulativeSupply = new CumulativeSupply();
+
+// resolver for the cumulative supply query
+
+@Resolver()
+export class MyResolver {
+  @Query(() => CumulativeSupply)
+  async cumulativeSupply(): Promise<CumulativeSupply> {
+    return {
+      totalSupply: cumulativeSupply.totalSupply,
+      circulatingSupply: cumulativeSupply.circulatingSupply,
+      totalVestingTokens: cumulativeSupply.totalVestingTokens,
+      totalEscrowTokens: cumulativeSupply.totalEscrowTokens,
+    };
+  }
+}

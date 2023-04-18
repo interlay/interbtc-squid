@@ -54,7 +54,7 @@ import {
     accrueInterest, 
     liquidateLoan
 } from "./mappings/event/loans";
-// import { TokensTotalIssuanceSetEvent } from "./mappings/event/circulating-supply";
+import { handleTokensTotalIssuanceSetEvent } from "./mappings/event/circulating-supply";
 
 const archive = process.env.ARCHIVE_ENDPOINT;
 assert(!!archive);
@@ -296,11 +296,11 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
             mapping: dexStableCurrencyExchange,
             totalTime: 0
         },
-        // {
-        //     filter: { name: "Tokens.TotalIssuanceSet" },
-        //     mapping: handleTokensTotalIssuanceSetEvent,
-        //     totalTime: 0
-        // },
+        {
+            filter: { name: "Tokens.TotalIssuanceSet" },
+            mapping: handleTokensTotalIssuanceSetEvent,
+            totalTime: 0
+        },
     ]);
 
     // second stage
