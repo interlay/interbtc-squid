@@ -399,14 +399,3 @@ type InterestAccrual @entity {
     timestamp: DateTime!
     comment: String
 }
-
-type Query {
-  cumulativeSupply: CumulativeSupply
-}
-
-type CumulativeSupply {
-  totalSupply: BigInt!
-  circulatingSupply: BigInt!
-  totalVestingTokens: BigInt!
-  totalEscrowTokens: BigInt!
-}
