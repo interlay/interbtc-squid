@@ -31,9 +31,9 @@ const indexToNativeTokenMap: Map<number, Token> = new Map([
 const nativeTokenToIndexMap = invertMap(indexToNativeTokenMap);
 
 // poor man's stable pool id to currencies cache
-const stablePoolCurrenciesCache = new Map<number, Currency[]>();
+const stablePoolCurrenciesCache = new Map<number, [Currency, CurrencyId][]>();
 
-function setPoolCurrencies(poolId: number, currencies: Currency[]) {
+function setPoolCurrencies(poolId: number, currencies: [Currency, CurrencyId][]) {
     stablePoolCurrenciesCache.set(poolId, currencies);
 }
 
@@ -49,7 +49,12 @@ export function isMetaPool(pool: Pool): pool is Pool_Meta {
     return pool.__kind === "Meta";
 }
 
-export async function getStablePoolCurrencyByIndex(ctx: Ctx, block: SubstrateBlock, poolId: number, index: number): Promise<Currency> {
+export async function getStablePoolCurrencyByIndex(
+    ctx: Ctx,
+    block: SubstrateBlock,
+    poolId: number,
+    index: number
+): Promise<[Currency, CurrencyId]> {
     if (stablePoolCurrenciesCache.has(poolId)) {
         const currencies = stablePoolCurrenciesCache.get(poolId)!;
         if (currencies.length > index) {
@@ -63,16 +68,16 @@ export async function getStablePoolCurrencyByIndex(ctx: Ctx, block: SubstrateBlo
         throw Error("getStablePoolCurrencyByIndex: DexStable.Pools storage is not defined for this spec version");
     } else if (rawPoolStorage.isV1021000) {
         const pool = await rawPoolStorage.getAsV1021000(poolId);
-        let currencies: Currency[] = [];
+        let currencies: [Currency, CurrencyId][] = [];
         // check pool is found and as a BasePool
         if (pool == undefined ) {
             throw Error(`getStablePoolCurrencyByIndex: Unable to find stable pool in storage for given poolId [${poolId}]`);
         } else if (isBasePool(pool)) {
             const basePoolCurrencyIds = pool.value.currencyIds;
-            currencies = basePoolCurrencyIds.map(currencyId => currencyEncoder.encode(currencyId));
+            currencies = basePoolCurrencyIds.map(currencyId => [currencyEncoder.encode(currencyId), currencyId]);
         } else if (isMetaPool(pool)) {
             const metaPoolCurrencyIds = pool.value.info.currencyIds;
-            currencies = metaPoolCurrencyIds.map(currencyId => currencyEncoder.encode(currencyId));
+            currencies = metaPoolCurrencyIds.map(currencyId => [currencyEncoder.encode(currencyId), currencyId]);
         } else {
             // use of any to future-proof for if/when pool types are expanded.
             throw Error(`getStablePoolCurrencyByIndex: Found pool for given poolId [${poolId}], but it is an unexpected pool type [${(pool as any).__kind}]`);
@@ -135,7 +140,7 @@ function currencyToIndex(currency: Currency): number {
  *          a positive number if currency1 should be listed before currency0, 
  *          otherwise returns 0
  */
-function compareCurrencies(currency0: Currency, currency1: Currency): number {
+export function compareCurrencies(currency0: Currency, currency1: Currency): number {
     const typeCompare = compareCurrencyType(currency0, currency1);
     if (typeCompare != 0) {
         return typeCompare;
@@ -147,6 +152,26 @@ function compareCurrencies(currency0: Currency, currency1: Currency): number {
 }
 
 /**
+ * Order the given currencies in a consistent manner according to their type and ids / token names.
+ * 
+ * Replicates the parachain's ordering as defined in these two spots: 
+ * https://github.com/interlay/interbtc/blob/4cf80ce563825d28d637067a8a63c1d9825be1f4/primitives/src/lib.rs#L492-L498
+ * and
+ * https://github.com/interlay/interbtc/blob/d48fee47e153291edb92525221545c2f4fa58501/primitives/src/lib.rs#L469-L476
+ * 
+ * @param currency0 One currency
+ * @param currency1 The other currency
+ * @returns A tuple of the two currencies in the same order as the parachain would put them in. 
+ */
+export function orderCurrencies(currency0: Currency, currency1: Currency): [Currency, Currency] {
+    if (compareCurrencies(currency0, currency1) > 0) {
+        return [currency1, currency0];
+    } else {
+        return [currency0, currency1];
+    }
+}
+
+/**
  * Calculate the standard pool's id given 2 currencies.
  * This method will sort the currencies and return their ids/tickers in a specific order.
  * 
@@ -154,17 +179,10 @@ function compareCurrencies(currency0: Currency, currency1: Currency): number {
  * @param currency1 The other currency
  */
 export function inferGeneralPoolId(currency0: Currency, currency1: Currency): string {
-    let firstCurrencyString: string = currencyToString(currency0);
-    let secondCurrencyString: string = currencyToString(currency1);
-    
-    const order: number = compareCurrencies(currency0, currency1);
-    // swap strings around if needed
-    if (order > 0) {
-        // works because strings (ie. not the capitalized String) are passed by value
-        const hold = firstCurrencyString;
-        firstCurrencyString = secondCurrencyString;
-        secondCurrencyString = hold;
-    }
+    const [first, second] = orderCurrencies(currency0, currency1);
 
+    const firstCurrencyString: string = currencyToString(first);
+    const secondCurrencyString: string = currencyToString(second);
+    
     return `(${firstCurrencyString},${secondCurrencyString})`;
 }
