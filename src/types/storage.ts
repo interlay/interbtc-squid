@@ -2,6 +2,51 @@ import assert from 'assert'
 import {Block, Chain, ChainContext, BlockContext, Result, Option} from './support'
 import * as v1021000 from './v1021000'
 
+export class DexGeneralPairStatusesStorage {
+    private readonly _chain: Chain
+    private readonly blockHash: string
+
+    constructor(ctx: BlockContext)
+    constructor(ctx: ChainContext, block: Block)
+    constructor(ctx: BlockContext, block?: Block) {
+        block = block || ctx.block
+        this.blockHash = block.hash
+        this._chain = ctx._chain
+    }
+
+    /**
+     *  (T::AssetId, T::AssetId) -> PairStatus
+     */
+    get isV1021000() {
+        return this._chain.getStorageItemTypeHash('DexGeneral', 'PairStatuses') === '76a1869bbdaab66d28110f9e64b6a17291d90f48aa261faa9ef287897775caa1'
+    }
+
+    /**
+     *  (T::AssetId, T::AssetId) -> PairStatus
+     */
+    async getAsV1021000(key: [v1021000.CurrencyId, v1021000.CurrencyId]): Promise<v1021000.PairStatus> {
+        assert(this.isV1021000)
+        return this._chain.getStorage(this.blockHash, 'DexGeneral', 'PairStatuses', key)
+    }
+
+    async getManyAsV1021000(keys: [v1021000.CurrencyId, v1021000.CurrencyId][]): Promise<(v1021000.PairStatus)[]> {
+        assert(this.isV1021000)
+        return this._chain.queryStorage(this.blockHash, 'DexGeneral', 'PairStatuses', keys.map(k => [k]))
+    }
+
+    async getAllAsV1021000(): Promise<(v1021000.PairStatus)[]> {
+        assert(this.isV1021000)
+        return this._chain.queryStorage(this.blockHash, 'DexGeneral', 'PairStatuses')
+    }
+
+    /**
+     * Checks whether the storage item is defined for the current chain version.
+     */
+    get isExists(): boolean {
+        return this._chain.getStorageItemTypeHash('DexGeneral', 'PairStatuses') != null
+    }
+}
+
 export class DexStablePoolsStorage {
     private readonly _chain: Chain
     private readonly blockHash: string

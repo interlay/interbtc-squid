@@ -411,3 +411,12 @@ type Swap @entity {
     from: PooledAmount!
     to: PooledAmount!
 }
+
+type DexFeeRate @entity {
+    id: ID!
+    poolId: String! @index
+    poolType: PoolType!
+    timestamp: DateTime!
+    feeRate: BigInt!
+    adminFeeRate: BigInt
+}

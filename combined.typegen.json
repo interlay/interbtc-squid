@@ -43,6 +43,7 @@
         "System.set_storage"
     ],
     "storage": [
+        "DexGeneral.PairStatuses",
         "DexStable.Pools",
         "Issue.IssuePeriod",
         "Redeem.RedeemPeriod"
