@@ -183,6 +183,64 @@ export class DexStableCurrencyExchangeEvent {
     }
 }
 
+export class DexStableNewAdminFeeEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'DexStable.NewAdminFee')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * A pool's admin fee parameters was updated
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('DexStable.NewAdminFee') === '354aacd87525ee5edab25bfc7703181a00e6bb535431cf8546eea25c7f0fcf9d'
+    }
+
+    /**
+     * A pool's admin fee parameters was updated
+     */
+    get asV1021000(): {poolId: number, newAdminFee: bigint} {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
+export class DexStableNewSwapFeeEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'DexStable.NewSwapFee')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * A pool's swap fee parameters was updated
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('DexStable.NewSwapFee') === '5a651444f44feda108605f5777f9ad6e8411982c46c30660727dcdc176f49c48'
+    }
+
+    /**
+     * A pool's swap fee parameters was updated
+     */
+    get asV1021000(): {poolId: number, newSwapFee: bigint} {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
 export class EscrowDepositEvent {
     private readonly _chain: Chain
     private readonly event: Event

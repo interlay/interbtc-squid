@@ -1,10 +1,9 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_} from "typeorm"
 import * as marshal from "./marshal"
-import {PoolType} from "./_poolType"
 
 @Entity_()
-export class DexFeeRate {
-    constructor(props?: Partial<DexFeeRate>) {
+export class DexStableFees {
+    constructor(props?: Partial<DexStableFees>) {
         Object.assign(this, props)
     }
 
@@ -15,15 +14,12 @@ export class DexFeeRate {
     @Column_("text", {nullable: false})
     poolId!: string
 
-    @Column_("varchar", {length: 8, nullable: false})
-    poolType!: PoolType
-
     @Column_("timestamp with time zone", {nullable: false})
     timestamp!: Date
 
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-    feeRate!: bigint
+    fee!: bigint
 
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: true})
-    adminFeeRate!: bigint | undefined | null
+    adminFee!: bigint | undefined | null
 }
