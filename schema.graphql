@@ -247,7 +247,6 @@ type PooledAmount {
     amount: BigInt!
     amountHuman: BigDecimal
     token: PooledToken!
-    # TODO: check if this should be Currency?
 }
 
 enum PoolType {
