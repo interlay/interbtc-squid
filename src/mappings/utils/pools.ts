@@ -260,8 +260,8 @@ export async function buildNewSwapEntity(
     // clone from amount, then apply feeRate
     const feeDetails = {...swapDetails.from};
     // round down to get atomic value
-    const adjustedAmount = feeRate.mul(feeDetails.atomicAmount.toString()).toPrecision(0, RoundingMode.RoundDown);
-    feeDetails.atomicAmount = BigInt(adjustedAmount);
+    const adjustedAmount = feeRate.mul(feeDetails.atomicAmount.toString()).round(RoundingMode.RoundDown);
+    feeDetails.atomicAmount = BigInt(adjustedAmount.toString());
 
     const [fromAmount, toAmount, feesAmount] = await Promise.all([
         createPooledAmount(swapDetails.from),
