@@ -1,13 +1,18 @@
 import { BigDecimal } from "@subsquid/big-decimal";
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { Big, RoundingMode } from "big.js";
-import { Currency, Height, PoolType, Swap, Token } from "../../model";
+import { Currency, DexStableFees, Height, PoolType, Swap, Token } from "../../model";
 import { Ctx } from "../../processor";
 import { DexGeneralPairStatusesStorage, DexStablePoolsStorage } from "../../types/storage";
-import { CurrencyId, PairStatus_Trading, Pool, Pool_Base, Pool_Meta } from "../../types/v1021000";
+import { BasePool, CurrencyId, PairStatus_Trading, Pool, Pool_Base, Pool_Meta } from "../../types/v1021000";
 import { invertMap } from "../_utils";
 import { currencyId as currencyEncoder, currencyToString } from "../encoding";
 import { SwapDetails, createPooledAmount } from "./cumulativeVolumes";
+import { LessThanOrEqual } from "typeorm";
+
+// Matching value on parachain
+// See https://github.com/interlay/interbtc/blob/4cf80ce563825d28d637067a8a63c1d9825be1f4/crates/dex-stable/src/primitives.rs#L11
+const DEX_STABLE_FEE_DENOMINATOR: number = 10_000_000_000;
 
 // Replicated order from parachain code. 
 // See https://github.com/interlay/interbtc/blob/4cf80ce563825d28d637067a8a63c1d9825be1f4/primitives/src/lib.rs#L492-L498
@@ -66,10 +71,8 @@ export async function getStablePoolCurrencyByIndex(
     }
 
     // (attempt to) fetch from storage
-    const rawPoolStorage = new DexStablePoolsStorage(ctx, block);
-    if (!rawPoolStorage.isExists) {
-        throw Error("getStablePoolCurrencyByIndex: DexStable.Pools storage is not defined for this spec version");
-    } else if (rawPoolStorage.isV1021000) {
+    const rawPoolStorage = getDexStablePoolsStorage(ctx, block);
+    if (rawPoolStorage.isV1021000) {
         const pool = await rawPoolStorage.getAsV1021000(poolId);
         let currencies: [Currency, CurrencyId][] = [];
         // check pool is found and as a BasePool
@@ -92,7 +95,7 @@ export async function getStablePoolCurrencyByIndex(
             return currencies[index];
         }
     } else {
-        throw Error("getStablePoolCurrencyByIndex: Unknown DexStablePoolsStorage version");
+        ctx.log.warn("UNKOWN STORAGE VERSION: DexStable.PoolsStorage");
     }
 
     throw Error(`getStablePoolCurrencyByIndex: Unable to find currency in DexStablePoolsStorage for given poolId [${poolId}] and currency index [${index}]`);
@@ -190,15 +193,42 @@ export function inferGeneralPoolId(currency0: Currency, currency1: Currency): st
     return `(${firstCurrencyString},${secondCurrencyString})`;
 }
 
+function getDexGeneralPairStatusesStorage(ctx: Ctx, block: SubstrateBlock): DexGeneralPairStatusesStorage {
+    const dexGeneralStorage = new DexGeneralPairStatusesStorage(ctx, block);
+    if (!dexGeneralStorage.isExists) {
+        throw Error("DexGeneral.PairStatuses storage is not defined for this spec version");
+    }
+    return dexGeneralStorage;
+}
+
+function getDexStablePoolsStorage(ctx: Ctx, block: SubstrateBlock): DexStablePoolsStorage {
+    const dexStablePoolStorage = new DexStablePoolsStorage(ctx, block);
+    if (!dexStablePoolStorage.isExists) {
+        throw Error("DexStable.Pools storage is not defined for this spec version");
+    }
+    return dexStablePoolStorage;
+}
+
+function getAsBasePool(pool: Pool): BasePool {
+    if (isBasePool(pool)) {
+        return pool.value;
+    } else if (isMetaPool(pool)) {
+        return pool.value.info;
+    } else {
+        // use of any to future-proof for if/when pool types are expanded.
+        throw Error(`getAsBasePool: Unkown pool type [${(pool as any).__kind}], unable to return BasePool data.`);
+    }
+}
+
 export async function buildNewSwapEntity(
     ctx: Ctx,
     block: SubstrateBlock,
     poolType: PoolType,
     swapDetails: SwapDetails,
     height: Height,
-    blockTimestamp: Date
+    blockTimestamp: Date,
+    poolId?: number
 ): Promise<Swap> {
-    
     let feeRate = Big(0);
 
     if (poolType == PoolType.Standard) {
@@ -207,21 +237,26 @@ export async function buildNewSwapEntity(
             ? [swapDetails.from.currencyId, swapDetails.to.currencyId] 
             : [swapDetails.to.currencyId, swapDetails.from.currencyId];
     
-        const dexGeneralStorage = new DexGeneralPairStatusesStorage(ctx, block);
-        if (!dexGeneralStorage.isExists) {
-            throw Error("buildNewSwapEntity: DexGeneral.PairStatuses storage is not defined for this spec version");
-        } else if (dexGeneralStorage.isV1021000) {
+        const dexGeneralStorage = getDexGeneralPairStatusesStorage(ctx, block);
+        
+        if (dexGeneralStorage.isV1021000) {
             const rawStorage = await dexGeneralStorage.getAsV1021000(currencyPairKey);
             if (rawStorage.__kind === "Trading") {
                 // raw fee rate is in basis points, so times 0.0001 for actual rate
                 feeRate = Big((rawStorage as PairStatus_Trading).value.feeRate.toString()).mul(0.0001);
             }
+        } else {
+            ctx.log.warn("UNKOWN STORAGE VERSION: DexGeneral.PairStatuses");
         }
+    } else if (poolId === undefined) {
+        ctx.log.error("buildNewSwapEntity: no poolId defined, unable to lookup fee rates");
     } else {
-        // TODO: implement fee rate fetching for stable dex
+        const dexStableFees = await getLatestOrCreateDexStableFeesEntity(ctx, block, poolId, blockTimestamp);
+        // raw fee rate is is ratio with custom denomination
+        feeRate = Big(dexStableFees.fee.toString()).div(DEX_STABLE_FEE_DENOMINATOR);
     }
 
-    // clone from amount, fee rate is applied to that for fees
+    // clone from amount, then apply feeRate
     const feeDetails = {...swapDetails.from};
     // round down to get atomic value
     const adjustedAmount = feeRate.mul(feeDetails.atomicAmount.toString()).toPrecision(0, RoundingMode.RoundDown);
@@ -245,5 +280,63 @@ export async function buildNewSwapEntity(
         feeRate: BigDecimal(feeRate.toString())
     });
 
+    return entity;
+}
+
+export function createNewDexStableFeesEntity(
+    poolId: number,
+    fee: bigint,
+    adminFee: bigint,
+    timestamp: Date
+): DexStableFees {
+    const entity = new DexStableFees({
+        id: `poolId_${poolId}_${timestamp.getTime().toString()}`,
+        poolId: BigInt(poolId),
+        timestamp,
+        fee,
+        adminFee
+    });
+    return entity;
+}
+
+async function getLatestOrCreateDexStableFeesEntity(
+    ctx: Ctx,
+    block: SubstrateBlock,
+    poolId: number,
+    timestamp: Date
+): Promise<DexStableFees> {
+    const entityId = `poolId_${poolId}_${timestamp}`;
+    const maybeEntity = await ctx.store.get(DexStableFees, {
+        where: { 
+            poolId: BigInt(poolId),
+            timestamp: LessThanOrEqual(timestamp)
+        },
+        order: { timestamp: "DESC" }
+    });
+
+    if (maybeEntity !== undefined) {
+        return maybeEntity;
+    }
+    
+    // not found, fetch from chain, create and store entity immediately
+    const dexStablePoolsStorage = getDexStablePoolsStorage(ctx, block);
+    let fee = 0n;
+    let adminFee = 0n
+
+    if (dexStablePoolsStorage.isV1021000) {
+        const pool = await dexStablePoolsStorage.getAsV1021000(poolId);
+        if (pool == undefined ) {
+            throw Error(`buildNewSwapEntity: Unable to find stable pool in storage for given poolId [${poolId}]`);
+        }
+
+        const basePool = getAsBasePool(pool);
+        fee = basePool.fee;
+        adminFee = basePool.adminFee;
+    } else {
+        ctx.log.warn("UNKOWN STORAGE VERSION: DexStable.PoolsStorage");
+    }
+
+    const entity = createNewDexStableFeesEntity(poolId, fee, adminFee, timestamp);
+    await ctx.store.save(entity);
     return entity;
 }

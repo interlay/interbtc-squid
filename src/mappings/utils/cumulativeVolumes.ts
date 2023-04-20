@@ -18,7 +18,7 @@ import {
 import { convertAmountToHuman } from "../_utils";
 import EntityBuffer from "./entityBuffer";
 import { inferGeneralPoolId } from "./pools";
-import { CurrencyId as CurrencyId_V1021000 } from "../../types/v1021000";
+import { CurrencyId } from "../../types/v1021000";
 
 function getLatestCurrencyPairCumulativeVolume(
     cumulativeVolumes: CumulativeVolumePerCurrencyPair[],
@@ -216,7 +216,7 @@ export type SwapDetailsAmount = {
     currency: PooledToken,
     atomicAmount: bigint,
     accountId: string,
-    currencyId: CurrencyId_V1021000
+    currencyId: CurrencyId
 };
 
 export type SwapDetails = {

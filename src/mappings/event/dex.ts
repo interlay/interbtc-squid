@@ -271,6 +271,7 @@ export async function dexStableCurrencyExchange(
         return;
     }
 
+    const height = await blockToHeight(ctx, block.height);
     const [outCurrency, outCurrencyId] = await getStablePoolCurrencyByIndex(ctx, block, poolId, outIndex);
     const [inCurrency, inCurrencyId] = await getStablePoolCurrencyByIndex(ctx, block, poolId, inIndex);
     
@@ -300,6 +301,18 @@ export async function dexStableCurrencyExchange(
 
     const amounts = [swapDetails.from, swapDetails.to];
     const blockTimestamp = new Date(block.timestamp);
+
+    const swapEntity = await buildNewSwapEntity(
+        ctx,
+        block,
+        PoolType.Stable,
+        swapDetails,
+        height,
+        blockTimestamp,
+        poolId
+    );
+
+    entityBuffer.pushEntity(Swap.name, swapEntity);
 
     const entity = await updateCumulativeDexVolumesForStablePool(
         ctx.store,

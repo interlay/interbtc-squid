@@ -11,8 +11,8 @@ export class DexStableFees {
     id!: string
 
     @Index_()
-    @Column_("text", {nullable: false})
-    poolId!: string
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    poolId!: bigint
 
     @Column_("timestamp with time zone", {nullable: false})
     timestamp!: Date
