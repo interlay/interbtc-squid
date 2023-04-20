@@ -1,10 +1,13 @@
+import { BigDecimal } from "@subsquid/big-decimal";
 import { SubstrateBlock } from "@subsquid/substrate-processor";
-import { Currency, Token } from "../../model";
+import { Big, RoundingMode } from "big.js";
+import { Currency, Height, PoolType, Swap, Token } from "../../model";
 import { Ctx } from "../../processor";
-import { DexStablePoolsStorage } from "../../types/storage";
-import { CurrencyId, Pool, Pool_Base, Pool_Meta } from "../../types/v1021000";
-import { currencyToString, currencyId as currencyEncoder } from "../encoding";
+import { DexGeneralPairStatusesStorage, DexStablePoolsStorage } from "../../types/storage";
+import { CurrencyId, PairStatus_Trading, Pool, Pool_Base, Pool_Meta } from "../../types/v1021000";
 import { invertMap } from "../_utils";
+import { currencyId as currencyEncoder, currencyToString } from "../encoding";
+import { SwapDetails, createPooledAmount } from "./cumulativeVolumes";
 
 // Replicated order from parachain code. 
 // See https://github.com/interlay/interbtc/blob/4cf80ce563825d28d637067a8a63c1d9825be1f4/primitives/src/lib.rs#L492-L498
@@ -185,4 +188,62 @@ export function inferGeneralPoolId(currency0: Currency, currency1: Currency): st
     const secondCurrencyString: string = currencyToString(second);
     
     return `(${firstCurrencyString},${secondCurrencyString})`;
+}
+
+export async function buildNewSwapEntity(
+    ctx: Ctx,
+    block: SubstrateBlock,
+    poolType: PoolType,
+    swapDetails: SwapDetails,
+    height: Height,
+    blockTimestamp: Date
+): Promise<Swap> {
+    
+    let feeRate = Big(0);
+
+    if (poolType == PoolType.Standard) {
+        const currencyCompareValue = compareCurrencies(swapDetails.from.currency, swapDetails.to.currency);
+        const currencyPairKey: [CurrencyId, CurrencyId] = currencyCompareValue < 0 
+            ? [swapDetails.from.currencyId, swapDetails.to.currencyId] 
+            : [swapDetails.to.currencyId, swapDetails.from.currencyId];
+    
+        const dexGeneralStorage = new DexGeneralPairStatusesStorage(ctx, block);
+        if (!dexGeneralStorage.isExists) {
+            throw Error("buildNewSwapEntity: DexGeneral.PairStatuses storage is not defined for this spec version");
+        } else if (dexGeneralStorage.isV1021000) {
+            const rawStorage = await dexGeneralStorage.getAsV1021000(currencyPairKey);
+            if (rawStorage.__kind === "Trading") {
+                // raw fee rate is in basis points, so times 0.0001 for actual rate
+                feeRate = Big((rawStorage as PairStatus_Trading).value.feeRate.toString()).mul(0.0001);
+            }
+        }
+    } else {
+        // TODO: implement fee rate fetching for stable dex
+    }
+
+    // clone from amount, fee rate is applied to that for fees
+    const feeDetails = {...swapDetails.from};
+    // round down to get atomic value
+    const adjustedAmount = feeRate.mul(feeDetails.atomicAmount.toString()).toPrecision(0, RoundingMode.RoundDown);
+    feeDetails.atomicAmount = BigInt(adjustedAmount);
+
+    const [fromAmount, toAmount, feesAmount] = await Promise.all([
+        createPooledAmount(swapDetails.from),
+        createPooledAmount(swapDetails.to),
+        createPooledAmount(feeDetails),
+    ]);
+
+    const entity = new Swap({
+        id: "abc",
+        height,
+        timestamp: blockTimestamp,
+        fromAccount: swapDetails.from.accountId,
+        toAccount: swapDetails.to.accountId,
+        from: fromAmount,
+        to: toAmount,
+        fees: feesAmount,
+        feeRate: BigDecimal(feeRate.toString())
+    });
+
+    return entity;
 }

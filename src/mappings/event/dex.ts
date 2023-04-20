@@ -1,7 +1,5 @@
-import { BigDecimal } from "@subsquid/big-decimal";
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { Store } from "@subsquid/typeorm-store";
-import { Big, RoundingMode } from "big.js";
 import {
     CumulativeDexTradeCount,
     CumulativeDexTradeCountPerAccount,
@@ -10,18 +8,15 @@ import {
     CumulativeDexTradingVolumePerPool,
     Currency,
     fromJsonPooledToken,
-    Height,
     PooledToken,
     PoolType,
     Swap
 } from "../../model";
 import { Ctx, EventItem } from "../../processor";
 import { DexGeneralAssetSwapEvent, DexStableCurrencyExchangeEvent } from "../../types/events";
-import { DexGeneralPairStatusesStorage } from "../../types/storage";
-import { CurrencyId as CurrencyId_V1021000, PairStatus_Trading } from "../../types/v1021000";
+import { CurrencyId } from "../../types/v1021000";
 import { address, currencyId } from "../encoding";
 import {
-    createPooledAmount,
     SwapDetails,
     SwapDetailsAmount,
     updateCumulativeDexTotalTradeCount,
@@ -33,7 +28,7 @@ import {
 } from "../utils/cumulativeVolumes";
 import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
-import { compareCurrencies, getStablePoolCurrencyByIndex } from "../utils/pools";
+import { buildNewSwapEntity, getStablePoolCurrencyByIndex } from "../utils/pools";
 
 function isPooledToken(currency: Currency): currency is PooledToken {
     try {
@@ -47,6 +42,7 @@ function isPooledToken(currency: Currency): currency is PooledToken {
 /**
  * Combines the given arrays into an array of {@link SwapDetailsAmount}.
  * @param currencies An array of currencies, assumed to be of type {@link PooledToken}
+ * @param currencyIds An array of raw CurrencyIds matching the currencies array 
  * @param atomicBalances An array of bigint atomic balances matching the currencies array
  * @param fromAccountId The sending account id
  * @param toAccountId The receiving account id
@@ -56,7 +52,7 @@ function isPooledToken(currency: Currency): currency is PooledToken {
  */
 function createSwapDetailsAmounts(
     currencies: Currency[],
-    currencyIds: CurrencyId_V1021000[],
+    currencyIds: CurrencyId[],
     atomicBalances: bigint[],
     fromAccountId: string,
     toAccountId: string
@@ -175,7 +171,7 @@ export async function dexGeneralAssetSwap(
 ): Promise<void> {
     const rawEvent = new DexGeneralAssetSwapEvent(ctx, item.event);
     let currencies: Currency[] = [];
-    let currencyIds: CurrencyId_V1021000[] = [];
+    let currencyIds: CurrencyId[] = [];
     let atomicBalances: bigint[] = [];
     let fromAccountId: string;
     let toAccountId: string;
@@ -322,62 +318,4 @@ export async function dexStableCurrencyExchange(
         ctx.store,
         entityBuffer
     );
-}
-
-async function buildNewSwapEntity(
-    ctx: Ctx,
-    block: SubstrateBlock,
-    poolType: PoolType,
-    swapDetails: SwapDetails,
-    height: Height,
-    blockTimestamp: Date
-): Promise<Swap> {
-    
-    let feeRate = Big(0);
-
-    if (poolType == PoolType.Standard) {
-        const currencyCompareValue = compareCurrencies(swapDetails.from.currency, swapDetails.to.currency);
-        const currencyPairKey: [CurrencyId_V1021000, CurrencyId_V1021000] = currencyCompareValue < 0 
-            ? [swapDetails.from.currencyId, swapDetails.to.currencyId] 
-            : [swapDetails.to.currencyId, swapDetails.from.currencyId];
-    
-        const dexGeneralStorage = new DexGeneralPairStatusesStorage(ctx, block);
-        if (!dexGeneralStorage.isExists) {
-            throw Error("buildNewSwapEntity: DexGeneral.PairStatuses storage is not defined for this spec version");
-        } else if (dexGeneralStorage.isV1021000) {
-            const rawStorage = await dexGeneralStorage.getAsV1021000(currencyPairKey);
-            if (rawStorage.__kind === "Trading") {
-                // raw fee rate is in basis points, so times 0.0001 for actual rate
-                feeRate = Big((rawStorage as PairStatus_Trading).value.feeRate.toString()).mul(0.0001);
-            }
-        }
-    } else {
-        // TODO: implement fee rate fetching for stable dex
-    }
-
-    // clone from amount, fee rate is applied to that for fees
-    const feeDetails = {...swapDetails.from};
-    // round down to get atomic value
-    const adjustedAmount = feeRate.mul(feeDetails.atomicAmount.toString()).toPrecision(0, RoundingMode.RoundDown);
-    feeDetails.atomicAmount = BigInt(adjustedAmount);
-
-    const [fromAmount, toAmount, feesAmount] = await Promise.all([
-        createPooledAmount(swapDetails.from),
-        createPooledAmount(swapDetails.to),
-        createPooledAmount(feeDetails),
-    ]);
-
-    const entity = new Swap({
-        id: "abc",
-        height,
-        timestamp: blockTimestamp,
-        fromAccount: swapDetails.from.accountId,
-        toAccount: swapDetails.to.accountId,
-        from: fromAmount,
-        to: toAmount,
-        fees: feesAmount,
-        feeRate: BigDecimal(feeRate.toString())
-    });
-
-    return entity;
 }
