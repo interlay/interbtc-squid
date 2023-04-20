@@ -270,8 +270,10 @@ export async function buildNewSwapEntity(
         createPooledAmount(feeDetails),
     ]);
 
+    const ccyPair = inferGeneralPoolId(swapDetails.from.currency, swapDetails.to.currency);
+
     const entity = new Swap({
-        id: `swap_event_id_${eventId}`,
+        id: `swap_${ccyPair}_${eventId}`,
         height,
         timestamp: blockTimestamp,
         fromAccount: swapDetails.from.accountId,
