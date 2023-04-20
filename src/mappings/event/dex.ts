@@ -32,8 +32,7 @@ import { blockToHeight } from "../utils/heights";
 import {
     buildNewSwapEntity,
     createNewDexStableFeesEntity,
-    deriveDexStableFeesEntityId,
-    getOrCreateDexStableFeesEntityFromStore,
+    getLatestDexStableFeesEntity,
     getStablePoolCurrencyByIndex
 } from "../utils/pools";
 
@@ -340,25 +339,6 @@ export async function dexStableCurrencyExchange(
     );
 }
 
-async function getLatestDexStableFeesEntity(
-    ctx: Ctx,
-    block: SubstrateBlock,
-    poolId: number,
-    entityBuffer: EntityBuffer
-): Promise<DexStableFees> {
-    const blockTimestamp = new Date(block.timestamp);
-    const id = deriveDexStableFeesEntityId(poolId, blockTimestamp);
-
-    const latestEntity =
-        (entityBuffer.getBufferedEntityBy(
-            DexStableFees.name,
-            id
-        ) as DexStableFees) || 
-        (await getOrCreateDexStableFeesEntityFromStore(ctx, block, poolId, blockTimestamp));
-
-    return latestEntity;
-}
-
 export async function dexStableNewAdminFee(
     ctx: Ctx,
     block: SubstrateBlock,
@@ -377,12 +357,13 @@ export async function dexStableNewAdminFee(
         ctx.log.warn("UNKOWN EVENT VERSION: DexStable.NewAdminFee");
         return;
     }
+    const blockTimestamp = new Date(block.timestamp);
 
-    const latestEntity = await getLatestDexStableFeesEntity(ctx, block, poolId, entityBuffer);
+    const latestEntity = await getLatestDexStableFeesEntity(ctx, block, blockTimestamp, poolId, entityBuffer);
     if (latestEntity.adminFee !== newAdminFee) {
         const updatedEntity = createNewDexStableFeesEntity(
             poolId,
-            new Date(block.timestamp),
+            blockTimestamp,
             latestEntity.fee,
             newAdminFee
         );
@@ -409,12 +390,13 @@ export async function dexStableNewSwapFee(
         ctx.log.warn("UNKOWN EVENT VERSION: DexStable.NewSwapFee");
         return;
     }
+    const blockTimestamp = new Date(block.timestamp);
     
-    const latestEntity = await getLatestDexStableFeesEntity(ctx, block, poolId, entityBuffer);
+    const latestEntity = await getLatestDexStableFeesEntity(ctx, block, blockTimestamp, poolId, entityBuffer);
     if (latestEntity.fee !== newFee) {
         const updatedEntity = createNewDexStableFeesEntity(
             poolId,
-            new Date(block.timestamp),
+            blockTimestamp,
             newFee,
             latestEntity.adminFee
         );

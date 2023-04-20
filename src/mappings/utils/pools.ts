@@ -1,14 +1,15 @@
 import { BigDecimal } from "@subsquid/big-decimal";
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { Big, RoundingMode } from "big.js";
+import { LessThanOrEqual } from "typeorm";
 import { Currency, DexStableFees, Height, PoolType, Swap, Token } from "../../model";
 import { Ctx } from "../../processor";
 import { DexGeneralPairStatusesStorage, DexStablePoolsStorage } from "../../types/storage";
 import { BasePool, CurrencyId, PairStatus_Trading, Pool, Pool_Base, Pool_Meta } from "../../types/v1021000";
 import { invertMap } from "../_utils";
 import { currencyId as currencyEncoder, currencyToString } from "../encoding";
+import EntityBuffer from "../utils/entityBuffer";
 import { SwapDetails, createPooledAmount } from "./cumulativeVolumes";
-import { LessThanOrEqual } from "typeorm";
 
 // Matching value on parachain
 // See https://github.com/interlay/interbtc/blob/4cf80ce563825d28d637067a8a63c1d9825be1f4/crates/dex-stable/src/primitives.rs#L11
@@ -303,7 +304,7 @@ export function createNewDexStableFeesEntity(
     return entity;
 }
 
-export async function getOrCreateDexStableFeesEntityFromStore(
+async function getOrCreateDexStableFeesEntityFromStore(
     ctx: Ctx,
     block: SubstrateBlock,
     poolId: number,
@@ -342,4 +343,40 @@ export async function getOrCreateDexStableFeesEntityFromStore(
     const entity = createNewDexStableFeesEntity(poolId, timestamp, fee, adminFee);
     await ctx.store.save(entity);
     return entity;
+}
+
+/**
+ * Tries to find the latest DexStableFees entity, first in the entity buffer if it can find an exact match
+ * by id. If not, it searches in the context store for the latest available entity for the given pool id
+ * with a timestamp at of before the provided timestamp. If still not found, it will fetch the fees from
+ * the parachain's storage and store it to the database before returning the new entity.
+ * 
+ * @param ctx The context with store
+ * @param block The block
+ * @param timestamp The timestamp to use for looking up potentially existing entities
+ * @param poolId The pool id
+ * @param entityBuffer The entitiy buffer to search in
+ * @returns A pre-existing entity, or a newly created (and stored) one.
+ */
+export async function getLatestDexStableFeesEntity(
+    ctx: Ctx,
+    block: SubstrateBlock,
+    timestamp: Date,
+    poolId: number,
+    entityBuffer: EntityBuffer
+): Promise<DexStableFees> {
+    // The id contains pool id and timestamp
+    const id = deriveDexStableFeesEntityId(poolId, timestamp);
+
+    const latestEntity =
+        // the entity buffer only returns an exact poolId and timestamp match or undefined
+        (entityBuffer.getBufferedEntityBy(
+            DexStableFees.name,
+            id
+        ) as DexStableFees) || 
+        // looks in data store for latest entry prior to or at timestamp,
+        // if not found, creates new entity using parachain data and stores before returning
+        (await getOrCreateDexStableFeesEntityFromStore(ctx, block, poolId, timestamp));
+
+    return latestEntity;
 }
