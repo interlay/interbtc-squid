@@ -7,13 +7,14 @@ import {
     CumulativeDexTradingVolumePerAccount,
     CumulativeDexTradingVolumePerPool,
     Currency,
+    DexStableFees,
     fromJsonPooledToken,
     PooledToken,
     PoolType,
     Swap
 } from "../../model";
 import { Ctx, EventItem } from "../../processor";
-import { DexGeneralAssetSwapEvent, DexStableCurrencyExchangeEvent } from "../../types/events";
+import { DexGeneralAssetSwapEvent, DexStableCurrencyExchangeEvent, DexStableNewAdminFeeEvent, DexStableNewSwapFeeEvent } from "../../types/events";
 import { CurrencyId } from "../../types/v1021000";
 import { address, currencyId } from "../encoding";
 import {
@@ -28,7 +29,13 @@ import {
 } from "../utils/cumulativeVolumes";
 import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
-import { buildNewSwapEntity, getStablePoolCurrencyByIndex } from "../utils/pools";
+import {
+    buildNewSwapEntity,
+    createNewDexStableFeesEntity,
+    deriveDexStableFeesEntityId,
+    getOrCreateDexStableFeesEntityFromStore,
+    getStablePoolCurrencyByIndex
+} from "../utils/pools";
 
 function isPooledToken(currency: Currency): currency is PooledToken {
     try {
@@ -331,4 +338,86 @@ export async function dexStableCurrencyExchange(
         ctx.store,
         entityBuffer
     );
+}
+
+async function getLatestDexStableFeesEntity(
+    ctx: Ctx,
+    block: SubstrateBlock,
+    poolId: number,
+    entityBuffer: EntityBuffer
+): Promise<DexStableFees> {
+    const blockTimestamp = new Date(block.timestamp);
+    const id = deriveDexStableFeesEntityId(poolId, blockTimestamp);
+
+    const latestEntity =
+        (entityBuffer.getBufferedEntityBy(
+            DexStableFees.name,
+            id
+        ) as DexStableFees) || 
+        (await getOrCreateDexStableFeesEntityFromStore(ctx, block, poolId, blockTimestamp));
+
+    return latestEntity;
+}
+
+export async function dexStableNewAdminFee(
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem,
+    entityBuffer: EntityBuffer
+): Promise<void> {
+    const rawEvent = new DexStableNewAdminFeeEvent(ctx, item.event);
+    let poolId: number;
+    let newAdminFee: bigint;
+
+    if (rawEvent.isV1021000) {
+        const event = rawEvent.asV1021000;
+        poolId = event.poolId;
+        newAdminFee = event.newAdminFee;
+    } else {
+        ctx.log.warn("UNKOWN EVENT VERSION: DexStable.NewAdminFee");
+        return;
+    }
+
+    const latestEntity = await getLatestDexStableFeesEntity(ctx, block, poolId, entityBuffer);
+    if (latestEntity.adminFee !== newAdminFee) {
+        const updatedEntity = createNewDexStableFeesEntity(
+            poolId,
+            new Date(block.timestamp),
+            latestEntity.fee,
+            newAdminFee
+        );
+
+        entityBuffer.pushEntity(DexStableFees.name, updatedEntity);
+    }
+}
+
+export async function dexStableNewSwapFee(
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem,
+    entityBuffer: EntityBuffer
+): Promise<void> {
+    const rawEvent = new DexStableNewSwapFeeEvent(ctx, item.event);
+    let poolId: number;
+    let newFee: bigint;
+
+    if (rawEvent.isV1021000) {
+        const event = rawEvent.asV1021000;
+        poolId = event.poolId;
+        newFee = event.newSwapFee;
+    } else {
+        ctx.log.warn("UNKOWN EVENT VERSION: DexStable.NewSwapFee");
+        return;
+    }
+    
+    const latestEntity = await getLatestDexStableFeesEntity(ctx, block, poolId, entityBuffer);
+    if (latestEntity.fee !== newFee) {
+        const updatedEntity = createNewDexStableFeesEntity(
+            poolId,
+            new Date(block.timestamp),
+            newFee,
+            latestEntity.adminFee
+        );
+        entityBuffer.pushEntity(DexStableFees.name, updatedEntity);
+    }
 }

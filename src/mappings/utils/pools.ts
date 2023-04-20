@@ -251,7 +251,7 @@ export async function buildNewSwapEntity(
     } else if (poolId === undefined) {
         ctx.log.error("buildNewSwapEntity: no poolId defined, unable to lookup fee rates");
     } else {
-        const dexStableFees = await getLatestOrCreateDexStableFeesEntity(ctx, block, poolId, blockTimestamp);
+        const dexStableFees = await getOrCreateDexStableFeesEntityFromStore(ctx, block, poolId, blockTimestamp);
         // raw fee rate is is ratio with custom denomination
         feeRate = Big(dexStableFees.fee.toString()).div(DEX_STABLE_FEE_DENOMINATOR);
     }
@@ -283,14 +283,18 @@ export async function buildNewSwapEntity(
     return entity;
 }
 
+export function deriveDexStableFeesEntityId(poolId: number, timestamp: Date): string {
+    return `poolId_${poolId}_${timestamp.getTime().toString()}`;
+}
+
 export function createNewDexStableFeesEntity(
     poolId: number,
+    timestamp: Date,
     fee: bigint,
-    adminFee: bigint,
-    timestamp: Date
+    adminFee: bigint | null | undefined,
 ): DexStableFees {
     const entity = new DexStableFees({
-        id: `poolId_${poolId}_${timestamp.getTime().toString()}`,
+        id: deriveDexStableFeesEntityId(poolId, timestamp),
         poolId: BigInt(poolId),
         timestamp,
         fee,
@@ -299,13 +303,12 @@ export function createNewDexStableFeesEntity(
     return entity;
 }
 
-async function getLatestOrCreateDexStableFeesEntity(
+export async function getOrCreateDexStableFeesEntityFromStore(
     ctx: Ctx,
     block: SubstrateBlock,
     poolId: number,
     timestamp: Date
 ): Promise<DexStableFees> {
-    const entityId = `poolId_${poolId}_${timestamp}`;
     const maybeEntity = await ctx.store.get(DexStableFees, {
         where: { 
             poolId: BigInt(poolId),
@@ -336,7 +339,7 @@ async function getLatestOrCreateDexStableFeesEntity(
         ctx.log.warn("UNKOWN STORAGE VERSION: DexStable.PoolsStorage");
     }
 
-    const entity = createNewDexStableFeesEntity(poolId, fee, adminFee, timestamp);
+    const entity = createNewDexStableFeesEntity(poolId, timestamp, fee, adminFee);
     await ctx.store.save(entity);
     return entity;
 }
