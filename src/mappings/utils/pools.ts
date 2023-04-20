@@ -224,6 +224,7 @@ function getAsBasePool(pool: Pool): BasePool {
 export async function buildNewSwapEntity(
     ctx: Ctx,
     block: SubstrateBlock,
+    eventId: string,
     poolType: PoolType,
     swapDetails: SwapDetails,
     height: Height,
@@ -270,7 +271,7 @@ export async function buildNewSwapEntity(
     ]);
 
     const entity = new Swap({
-        id: "abc",
+        id: `swap_event_id_${eventId}`,
         height,
         timestamp: blockTimestamp,
         fromAccount: swapDetails.from.accountId,

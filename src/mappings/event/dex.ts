@@ -222,6 +222,7 @@ export async function dexGeneralAssetSwap(
         const swapEntity = await buildNewSwapEntity(
             ctx,
             block,
+            item.event.id,
             PoolType.Standard,
             swapDetails,
             height,
@@ -311,6 +312,7 @@ export async function dexStableCurrencyExchange(
     const swapEntity = await buildNewSwapEntity(
         ctx,
         block,
+        item.event.id,
         PoolType.Stable,
         swapDetails,
         height,
