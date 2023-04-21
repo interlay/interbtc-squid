@@ -328,7 +328,7 @@ async function getOrCreateDexStableFeesEntityFromStore(
     // not found, fetch from chain, create and store entity immediately
     const dexStablePoolsStorage = getDexStablePoolsStorage(ctx, block);
     let fee = 0n;
-    let adminFee = 0n
+    let adminFee = 0n;
 
     if (dexStablePoolsStorage.isV1021000) {
         const pool = await dexStablePoolsStorage.getAsV1021000(poolId);
