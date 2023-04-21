@@ -18,6 +18,8 @@ import {
     decreaseLockedCollateral,
     dexGeneralAssetSwap,
     dexStableCurrencyExchange,
+    dexStableNewAdminFee,
+    dexStableNewSwapFee,
     executeIssue,
     executeRedeem,
     feedValues,
@@ -281,6 +283,16 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
             filter: { name: "Escrow.Withdraw" },
             mapping: withdraw,
             totalTime: 0,
+        },
+        {
+            filter: { name: "DexStable.NewAdminFee" },
+            mapping: dexStableNewAdminFee,
+            totalTime: 0
+        },
+        {
+            filter: { name: "DexStable.NewSwapFee" },
+            mapping: dexStableNewSwapFee,
+            totalTime: 0
         },
         {
             filter: { name: "DexGeneral.AssetSwap" },

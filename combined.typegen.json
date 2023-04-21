@@ -8,6 +8,8 @@
         "DexGeneral.LiquidityAdded",
         "DexGeneral.LiquidityRemoved",
         "DexStable.CurrencyExchange",
+        "DexStable.NewAdminFee",
+        "DexStable.NewSwapFee",
         "Escrow.Deposit",
         "Escrow.Withdraw",
         "Issue.CancelIssue",
@@ -43,6 +45,7 @@
         "System.set_storage"
     ],
     "storage": [
+        "DexGeneral.PairStatuses",
         "DexStable.Pools",
         "Issue.IssuePeriod",
         "Redeem.RedeemPeriod"

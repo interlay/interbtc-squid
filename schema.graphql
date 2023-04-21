@@ -247,7 +247,6 @@ type PooledAmount {
     amount: BigInt!
     amountHuman: BigDecimal
     token: PooledToken!
-    # TODO: check if this should be Currency?
 }
 
 enum PoolType {
@@ -398,4 +397,24 @@ type InterestAccrual @entity {
     height: Height!
     timestamp: DateTime!
     comment: String
+}
+
+type Swap @entity {
+    id: ID!
+    height: Height!
+    timestamp: DateTime!
+    fromAccount: String! @index
+    toAccount: String!
+    fees: PooledAmount!
+    feeRate: BigDecimal!
+    from: PooledAmount!
+    to: PooledAmount!
+}
+
+type DexStableFees @entity {
+    id: ID!
+    poolId: BigInt! @index
+    timestamp: DateTime!
+    fee: BigInt!
+    adminFee: BigInt
 }
