@@ -254,7 +254,7 @@ export async function buildNewSwapEntity(
             ctx.log.warn("UNKOWN STORAGE VERSION: DexGeneral.PairStatuses");
         }
     } else if (poolId === undefined) {
-        ctx.log.error("buildNewSwapEntity: no poolId defined, unable to lookup fee rates");
+        throw new Error(`buildNewSwapEntity: unable to lookup fee rates; poolType is ${poolType}, but poolId is undefined`);
     } else {
         const dexStableFees = await getOrCreateDexStableFeesEntityFromStore(ctx, block, poolId, blockTimestamp);
         // raw fee rate is is ratio with custom denomination
