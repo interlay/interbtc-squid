@@ -21,7 +21,9 @@ import {
     DexGeneralLiquidityAddedEvent,
     DexGeneralLiquidityRemovedEvent,
     DexStableAddLiquidityEvent,
-    DexStableCurrencyExchangeEvent, DexStableNewAdminFeeEvent, DexStableNewSwapFeeEvent,
+    DexStableCurrencyExchangeEvent,
+    DexStableNewAdminFeeEvent,
+    DexStableNewSwapFeeEvent,
     DexStableRemoveLiquidityEvent
 } from "../../types/events";
 import { CurrencyId } from "../../types/v1021000";
@@ -38,7 +40,6 @@ import {
     updateCumulativeDexVolumesPerAccount
 } from "../utils/cumulativeVolumes";
 import EntityBuffer from "../utils/entityBuffer";
-import { blockToHeight } from "../utils/heights";
 import { blockToHeight } from "../utils/heights";
 import {
     buildNewSwapEntity,
@@ -451,10 +452,12 @@ export async function dexGeneralLiquidityAdded(
     
     if (rawEvent.isV1021000) {
         const [account, asset0, asset1, balance0, balance1, /* ignore minted balance */ ] = rawEvent.asV1021000;
-        const atomicBalances = [balance0, balance1];
-        const currencies = [asset0, asset1].map(currencyId.encode);
-        deposits = createSwapDetailsAmounts(currencies, atomicBalances);
+
         accountId = address.interlay.encode(account);
+        const atomicBalances = [balance0, balance1];
+        const currencyIds = [asset0, asset1];
+        const currencies = currencyIds.map(currencyId.encode);
+        deposits = createSwapDetailsAmounts(currencies, currencyIds, atomicBalances, accountId, accountId);
     } else {
         ctx.log.warn("UNKOWN EVENT VERSION: DexGeneral.LiquidityAdded");
         return;
@@ -485,10 +488,12 @@ export async function dexGeneralLiquidityRemoved(
             balance1,
             /* ignore burned balance */
         ] = rawEvent.asV1021000;
-        const atomicBalances = [balance0, balance1];
-        const currencies = [asset0, asset1].map(currencyId.encode);
-        withdrawals = createSwapDetailsAmounts(currencies, atomicBalances);
+
         accountId = address.interlay.encode(account);
+        const atomicBalances = [balance0, balance1];
+        const currencyIds = [asset0, asset1];
+        const currencies = currencyIds.map(currencyId.encode);
+        withdrawals = createSwapDetailsAmounts(currencies, currencyIds, atomicBalances, accountId, accountId);
     } else {
         ctx.log.warn("UNKOWN EVENT VERSION: DexGeneral.LiquidityRemoved");
         return;
@@ -514,13 +519,15 @@ export async function dexStableLiquidityAdded(
         const poolId = event.poolId;
         const atomicBalances = event.supplyAmounts;
         const currencies: Currency[] = [];
+        const currencyIds: CurrencyId[] = [];
         for (let idx = 0; idx < atomicBalances.length; idx++) {
-            const currency = await getStablePoolCurrencyByIndex(ctx, block, poolId, idx);
+            const [currency, currencyId] = await getStablePoolCurrencyByIndex(ctx, block, poolId, idx);
+            currencyIds.push(currencyId);
             currencies.push(currency);
         }
 
-        deposits = createSwapDetailsAmounts(currencies, atomicBalances);
         accountId = address.interlay.encode(event.who);
+        deposits = createSwapDetailsAmounts(currencies, currencyIds, atomicBalances, accountId, accountId);
     } else {
         ctx.log.warn("UNKOWN EVENT VERSION: DexStable.AddLiquidity");
         return;
@@ -546,13 +553,15 @@ export async function dexStableLiquidityRemoved(
         const poolId = event.poolId;
         const atomicBalances = event.amounts;
         const currencies: Currency[] = [];
+        const currencyIds: CurrencyId[] = [];
         for (let idx = 0; idx < atomicBalances.length; idx++) {
-            const currency = await getStablePoolCurrencyByIndex(ctx, block, poolId, idx);
+            const [currency, currencyId] = await getStablePoolCurrencyByIndex(ctx, block, poolId, idx);
+            currencyIds.push(currencyId);
             currencies.push(currency);
         }
 
-        withdrawals = createSwapDetailsAmounts(currencies, atomicBalances);
         accountId = address.interlay.encode(event.who);
+        withdrawals = createSwapDetailsAmounts(currencies, currencyIds, atomicBalances, accountId, accountId);
     } else {
         ctx.log.warn("UNKOWN EVENT VERSION: DexStable.RemoveLiquidity");
         return;
