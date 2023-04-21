@@ -15,6 +15,9 @@ import { SwapDetails, createPooledAmount } from "./cumulativeVolumes";
 // See https://github.com/interlay/interbtc/blob/4cf80ce563825d28d637067a8a63c1d9825be1f4/crates/dex-stable/src/primitives.rs#L11
 const DEX_STABLE_FEE_DENOMINATOR: number = 10_000_000_000;
 
+// DexGeneral fees are denominated in basis points
+const DEX_GENERAL_FEE_DENOMINATOR: number = 10_000;
+
 // Replicated order from parachain code. 
 // See https://github.com/interlay/interbtc/blob/4cf80ce563825d28d637067a8a63c1d9825be1f4/primitives/src/lib.rs#L492-L498
 const indexToCurrencyTypeMap: Map<number, string> = new Map([
@@ -244,8 +247,8 @@ export async function buildNewSwapEntity(
         if (dexGeneralStorage.isV1021000) {
             const rawStorage = await dexGeneralStorage.getAsV1021000(currencyPairKey);
             if (rawStorage.__kind === "Trading") {
-                // raw fee rate is in basis points, so times 0.0001 for actual rate
-                feeRate = Big((rawStorage as PairStatus_Trading).value.feeRate.toString()).mul(0.0001);
+                // raw fee rate is in basis points, so divide by 10_000 to get the actual rate
+                feeRate = Big((rawStorage as PairStatus_Trading).value.feeRate.toString()).div(DEX_GENERAL_FEE_DENOMINATOR);
             }
         } else {
             ctx.log.warn("UNKOWN STORAGE VERSION: DexGeneral.PairStatuses");
