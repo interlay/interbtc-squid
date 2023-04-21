@@ -2,9 +2,9 @@ import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { Currency, Token } from "../../model";
 import { Ctx } from "../../processor";
 import { DexStablePoolsStorage } from "../../types/storage";
-import { CurrencyId, Pool, Pool_Base, Pool_Meta } from "../../types/v1021000";
-import { currencyToString, currencyId as currencyEncoder } from "../encoding";
+import { Pool, Pool_Base, Pool_Meta } from "../../types/v1021000";
 import { invertMap } from "../_utils";
+import { currencyId as currencyEncoder, currencyToString } from "../encoding";
 
 const indexToCurrencyTypeMap: Map<number, string> = new Map([
     [0, "NativeToken"],

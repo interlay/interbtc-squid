@@ -17,7 +17,11 @@ import {
     cancelRedeem,
     decreaseLockedCollateral,
     dexGeneralAssetSwap,
+    dexGeneralLiquidityAdded,
+    dexGeneralLiquidityRemoved,
     dexStableCurrencyExchange,
+    dexStableLiquidityAdded,
+    dexStableLiquidityRemoved,
     executeIssue,
     executeRedeem,
     feedValues,
@@ -290,6 +294,26 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
         {
             filter: { name: "DexStable.CurrencyExchange" },
             mapping: dexStableCurrencyExchange,
+            totalTime: 0
+        },
+        {
+            filter: { name: "DexGeneral.LiquidityAdded" },
+            mapping: dexGeneralLiquidityAdded,
+            totalTime: 0
+        },
+        {
+            filter: { name: "DexGeneral.LiquidityRemoved" },
+            mapping: dexGeneralLiquidityRemoved,
+            totalTime: 0
+        },
+        {
+            filter: { name: "DexStable.AddLiquidity" },
+            mapping: dexStableLiquidityAdded,
+            totalTime: 0
+        },
+        {
+            filter: { name: "DexStable.RemoveLiquidity" },
+            mapping: dexStableLiquidityRemoved,
             totalTime: 0
         }
     ]);

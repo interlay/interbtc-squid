@@ -221,7 +221,7 @@ export type SwapDetails = {
     to: SwapDetailsAmount
 }
 
-async function createPooledAmount(swapAmount: SwapDetailsAmount): Promise<PooledAmount> {
+export async function createPooledAmount(swapAmount: SwapDetailsAmount): Promise<PooledAmount> {
     const amountHuman = await convertAmountToHuman(swapAmount.currency, swapAmount.atomicAmount);
     return new PooledAmount({
         token: swapAmount.currency,
