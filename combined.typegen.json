@@ -8,6 +8,8 @@
         "DexGeneral.LiquidityAdded",
         "DexGeneral.LiquidityRemoved",
         "DexStable.CurrencyExchange",
+        "DexStable.AddLiquidity",
+        "DexStable.RemoveLiquidity",
         "Escrow.Deposit",
         "Escrow.Withdraw",
         "Issue.CancelIssue",
