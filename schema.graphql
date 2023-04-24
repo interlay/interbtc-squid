@@ -418,3 +418,17 @@ type DexStableFees @entity {
     fee: BigInt!
     adminFee: BigInt
 }
+
+enum LiquidityProvisionType {
+    DEPOSIT,
+    WITHDRAWAL
+}
+
+type AccountLiquidityProvision @entity {
+    id: ID!
+    height: Height!
+    timestamp: DateTime! @index
+    amounts: [PooledAmount!]!
+    accountId: String! @index
+    type: LiquidityProvisionType! @index
+}

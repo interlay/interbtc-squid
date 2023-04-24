@@ -1,6 +1,7 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { Store } from "@subsquid/typeorm-store";
 import {
+    AccountLiquidityProvision,
     CumulativeDexTradeCount,
     CumulativeDexTradeCountPerAccount,
     CumulativeDexTradingVolume,
@@ -9,15 +10,26 @@ import {
     Currency,
     DexStableFees,
     fromJsonPooledToken,
+    LiquidityProvisionType,
     PooledToken,
     PoolType,
     Swap
 } from "../../model";
 import { Ctx, EventItem } from "../../processor";
-import { DexGeneralAssetSwapEvent, DexStableCurrencyExchangeEvent, DexStableNewAdminFeeEvent, DexStableNewSwapFeeEvent } from "../../types/events";
+import {
+    DexGeneralAssetSwapEvent,
+    DexGeneralLiquidityAddedEvent,
+    DexGeneralLiquidityRemovedEvent,
+    DexStableAddLiquidityEvent,
+    DexStableCurrencyExchangeEvent,
+    DexStableNewAdminFeeEvent,
+    DexStableNewSwapFeeEvent,
+    DexStableRemoveLiquidityEvent
+} from "../../types/events";
 import { CurrencyId } from "../../types/v1021000";
 import { address, currencyId } from "../encoding";
 import {
+    createPooledAmount,
     SwapDetails,
     SwapDetailsAmount,
     updateCumulativeDexTotalTradeCount,
@@ -91,7 +103,7 @@ function createSwapDetailsAmounts(
         if (!isPooledToken(currency)) {
             throw new Error(`Cannot create SwapDetailsAmounts; unexpected currency type found (${
                 currency.isTypeOf
-            }), skip processing of DexGeneralAssetSwapEvent`);
+            }`);
         }
 
         amounts.push({
@@ -404,4 +416,158 @@ export async function dexStableNewSwapFee(
         );
         entityBuffer.pushEntity(DexStableFees.name, updatedEntity);
     }
+}
+
+async function buildNewAccountLPEntity(
+    ctx: Ctx,
+    block: SubstrateBlock,
+    accountId: string,
+    type: LiquidityProvisionType,
+    swapDetailsAmounts: SwapDetailsAmount[]
+): Promise<AccountLiquidityProvision> {
+    const id = block.id;
+    const height = await blockToHeight(ctx, block.height);
+    const timestamp = new Date(block.timestamp);
+    const amounts = await Promise.all(swapDetailsAmounts.map(createPooledAmount));
+
+    return new AccountLiquidityProvision({
+        id,
+        accountId,
+        timestamp,
+        height,
+        type,
+        amounts
+    });
+}
+
+export async function dexGeneralLiquidityAdded(
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem,
+    entityBuffer: EntityBuffer
+): Promise<void> {
+    const rawEvent = new DexGeneralLiquidityAddedEvent(ctx, item.event);
+    let accountId: string;
+    let deposits: SwapDetailsAmount[];
+    
+    if (rawEvent.isV1021000) {
+        const [account, asset0, asset1, balance0, balance1, /* ignore minted balance */ ] = rawEvent.asV1021000;
+
+        accountId = address.interlay.encode(account);
+        const atomicBalances = [balance0, balance1];
+        const currencyIds = [asset0, asset1];
+        const currencies = currencyIds.map(currencyId.encode);
+        deposits = createSwapDetailsAmounts(currencies, currencyIds, atomicBalances, accountId, accountId);
+    } else {
+        ctx.log.warn("UNKOWN EVENT VERSION: DexGeneral.LiquidityAdded");
+        return;
+    }
+
+    const entity = await buildNewAccountLPEntity(ctx, block, accountId, LiquidityProvisionType.DEPOSIT, deposits);
+
+    entityBuffer.pushEntity(AccountLiquidityProvision.name, entity);
+}
+
+export async function dexGeneralLiquidityRemoved(
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem,
+    entityBuffer: EntityBuffer
+): Promise<void> {
+    const rawEvent = new DexGeneralLiquidityRemovedEvent(ctx, item.event);
+    let accountId: string;
+    let withdrawals: SwapDetailsAmount[];
+    
+    if (rawEvent.isV1021000) {
+        const [
+            account, 
+            /* ignore recipient */,
+            asset0,
+            asset1,
+            balance0,
+            balance1,
+            /* ignore burned balance */
+        ] = rawEvent.asV1021000;
+
+        accountId = address.interlay.encode(account);
+        const atomicBalances = [balance0, balance1];
+        const currencyIds = [asset0, asset1];
+        const currencies = currencyIds.map(currencyId.encode);
+        withdrawals = createSwapDetailsAmounts(currencies, currencyIds, atomicBalances, accountId, accountId);
+    } else {
+        ctx.log.warn("UNKOWN EVENT VERSION: DexGeneral.LiquidityRemoved");
+        return;
+    }
+
+    const entity = await buildNewAccountLPEntity(ctx, block, accountId, LiquidityProvisionType.WITHDRAWAL, withdrawals);
+
+    entityBuffer.pushEntity(AccountLiquidityProvision.name, entity);
+}
+
+export async function dexStableLiquidityAdded(
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem,
+    entityBuffer: EntityBuffer
+): Promise<void> {
+    const rawEvent = new DexStableAddLiquidityEvent(ctx, item.event);
+    let accountId: string;
+    let deposits: SwapDetailsAmount[];
+    
+    if (rawEvent.isV1021000) {
+        const event = rawEvent.asV1021000;
+        const poolId = event.poolId;
+        const atomicBalances = event.supplyAmounts;
+        const currencies: Currency[] = [];
+        const currencyIds: CurrencyId[] = [];
+        for (let idx = 0; idx < atomicBalances.length; idx++) {
+            const [currency, currencyId] = await getStablePoolCurrencyByIndex(ctx, block, poolId, idx);
+            currencyIds.push(currencyId);
+            currencies.push(currency);
+        }
+
+        accountId = address.interlay.encode(event.who);
+        deposits = createSwapDetailsAmounts(currencies, currencyIds, atomicBalances, accountId, accountId);
+    } else {
+        ctx.log.warn("UNKOWN EVENT VERSION: DexStable.AddLiquidity");
+        return;
+    }
+
+    const entity = await buildNewAccountLPEntity(ctx, block, accountId, LiquidityProvisionType.DEPOSIT, deposits);
+
+    entityBuffer.pushEntity(AccountLiquidityProvision.name, entity);
+}
+
+export async function dexStableLiquidityRemoved(
+    ctx: Ctx,
+    block: SubstrateBlock,
+    item: EventItem,
+    entityBuffer: EntityBuffer
+): Promise<void> {
+    const rawEvent = new DexStableRemoveLiquidityEvent(ctx, item.event);
+    let accountId: string;
+    let withdrawals: SwapDetailsAmount[];
+    
+    if (rawEvent.isV1021000) {
+        const event = rawEvent.asV1021000;
+        const poolId = event.poolId;
+        const atomicBalances = event.amounts;
+        const currencies: Currency[] = [];
+        const currencyIds: CurrencyId[] = [];
+        for (let idx = 0; idx < atomicBalances.length; idx++) {
+            const [currency, currencyId] = await getStablePoolCurrencyByIndex(ctx, block, poolId, idx);
+            currencyIds.push(currencyId);
+            currencies.push(currency);
+        }
+
+        accountId = address.interlay.encode(event.who);
+        withdrawals = createSwapDetailsAmounts(currencies, currencyIds, atomicBalances, accountId, accountId);
+    } else {
+        ctx.log.warn("UNKOWN EVENT VERSION: DexStable.RemoveLiquidity");
+        return;
+    }
+
+    const entity = await buildNewAccountLPEntity(ctx, block, accountId, LiquidityProvisionType.WITHDRAWAL, withdrawals);
+
+    entityBuffer.pushEntity(AccountLiquidityProvision.name, entity);
 }

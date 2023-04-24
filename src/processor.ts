@@ -17,9 +17,13 @@ import {
     cancelRedeem,
     decreaseLockedCollateral,
     dexGeneralAssetSwap,
+    dexGeneralLiquidityAdded,
+    dexGeneralLiquidityRemoved,
     dexStableCurrencyExchange,
     dexStableNewAdminFee,
     dexStableNewSwapFee,
+    dexStableLiquidityAdded,
+    dexStableLiquidityRemoved,
     executeIssue,
     executeRedeem,
     feedValues,
@@ -79,7 +83,11 @@ const processor = new SubstrateBatchProcessor()
     .setBlockRange({ from: processFrom })
     .addEvent("BTCRelay.StoreMainChainHeader", eventArgsData)
     .addEvent("DexGeneral.AssetSwap", eventArgsData)
+    .addEvent("DexGeneral.LiquidityAdded", eventArgsData)
+    .addEvent("DexGeneral.LiquidityRemoved", eventArgsData)
+    .addEvent("DexStable.AddLiquidity", eventArgsData)
     .addEvent("DexStable.CurrencyExchange", eventArgsData)
+    .addEvent("DexStable.RemoveLiquidity", eventArgsData)
     .addEvent("Escrow.Deposit", eventArgsData)
     .addEvent("Escrow.Withdraw", eventArgsData)
     .addEvent("Issue.CancelIssue", eventArgsData)
@@ -302,6 +310,26 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
         {
             filter: { name: "DexStable.CurrencyExchange" },
             mapping: dexStableCurrencyExchange,
+            totalTime: 0
+        },
+        {
+            filter: { name: "DexGeneral.LiquidityAdded" },
+            mapping: dexGeneralLiquidityAdded,
+            totalTime: 0
+        },
+        {
+            filter: { name: "DexGeneral.LiquidityRemoved" },
+            mapping: dexGeneralLiquidityRemoved,
+            totalTime: 0
+        },
+        {
+            filter: { name: "DexStable.AddLiquidity" },
+            mapping: dexStableLiquidityAdded,
+            totalTime: 0
+        },
+        {
+            filter: { name: "DexStable.RemoveLiquidity" },
+            mapping: dexStableLiquidityRemoved,
             totalTime: 0
         }
     ]);
