@@ -103,7 +103,7 @@ function createSwapDetailsAmounts(
         if (!isPooledToken(currency)) {
             throw new Error(`Cannot create SwapDetailsAmounts; unexpected currency type found (${
                 currency.isTypeOf
-            }`);
+            })`);
         }
 
         amounts.push({
