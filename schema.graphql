@@ -45,7 +45,7 @@ type StableLpToken {
     poolId: Int!
 }
 
-union PooledToken = NativeToken | ForeignAsset | StableLpToken
+union PooledToken = NativeToken | ForeignAsset | StableLpToken | LendToken
 
 type LpToken {
     token0: PooledToken!
