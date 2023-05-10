@@ -60,7 +60,11 @@ import {
     accrueInterest, 
     liquidateLoan
 } from "./mappings/event/loans";
-import { handleTokensTotalIssuanceSetEvent } from "./mappings/event/circulating-supply";
+import { 
+    handleTokensTotalIssuanceSetEvent, 
+    handleTokensReservedEvent,
+    handleTokensUnreservedEvent
+} from "./mappings/event/circulating-supply";
 
 const archive = process.env.ARCHIVE_ENDPOINT;
 assert(!!archive);
@@ -137,7 +141,10 @@ let processor = new SubstrateBatchProcessor()
     });
 
 //We have reached the max amount of type instatiations above, add new events here
-processor.addEvent("Tokens.TotalIssuanceSet", eventArgsData);
+processor
+    .addEvent("Tokens.TotalIssuanceSet", eventArgsData)
+    .addEvent("Tokens.Reserved", eventArgsData)
+    .addEvent("Tokens.Unreserved", eventArgsData);
 
 export type Item = BatchProcessorItem<typeof processor>;
 export type EventItem = Exclude<
@@ -341,6 +348,16 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
             mapping: handleTokensTotalIssuanceSetEvent,
             totalTime: 0
         },
+        {
+            filter: { name: "Tokens.Reserved" },
+            mapping: handleTokensReservedEvent,
+            totalTime: 0
+        },
+        {
+            filter: { name: "Tokens.Unreserved" },
+            mapping: handleTokensUnreservedEvent,
+            totalTime: 0
+        }
    ]);
 
     // second stage

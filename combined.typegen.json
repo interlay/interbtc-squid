@@ -41,7 +41,9 @@
         "VaultRegistry.DecreaseLockedCollateral",
         "VaultRegistry.IncreaseLockedCollateral",
         "VaultRegistry.RegisterVault",
-        "Tokens.TotalIssuanceSet"
+        "Tokens.TotalIssuanceSet", 
+        "Tokens.Reserved", 
+        "Tokens.Unreserved"
     ],
     "calls": [
         "BTCRelay.store_block_header",

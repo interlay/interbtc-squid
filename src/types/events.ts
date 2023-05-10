@@ -1381,6 +1381,129 @@ export class SecurityUpdateActiveBlockEvent {
     }
 }
 
+export class TokensReservedEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'Tokens.Reserved')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     *  Some balance was reserved (moved from free to reserved).
+     *  \[currency_id, who, value\]
+     */
+    get isV1(): boolean {
+        return this._chain.getEventHash('Tokens.Reserved') === '8547814e6cc47673e07ca89868d801c00ee1a56488c68183d05a8d13d56061cd'
+    }
+
+    /**
+     *  Some balance was reserved (moved from free to reserved).
+     *  \[currency_id, who, value\]
+     */
+    get asV1(): [v1.CurrencyId, Uint8Array, bigint] {
+        assert(this.isV1)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Some balance was reserved (moved from free to reserved).
+     * \[currency_id, who, value\]
+     */
+    get isV6(): boolean {
+        return this._chain.getEventHash('Tokens.Reserved') === 'cdf07ef0ad061b705e0f246b72335315a5fa0c4224efd090fb96ca389f51ac4f'
+    }
+
+    /**
+     * Some balance was reserved (moved from free to reserved).
+     * \[currency_id, who, value\]
+     */
+    get asV6(): [v6.CurrencyId, Uint8Array, bigint] {
+        assert(this.isV6)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Some balance was reserved (moved from free to reserved).
+     */
+    get isV10(): boolean {
+        return this._chain.getEventHash('Tokens.Reserved') === 'd7b8b47209ccf72d495276c7463ae263ffd9c1398f6561f3ed5749dc99eeea3a'
+    }
+
+    /**
+     * Some balance was reserved (moved from free to reserved).
+     */
+    get asV10(): {currencyId: v10.CurrencyId, who: Uint8Array, amount: bigint} {
+        assert(this.isV10)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Some balance was reserved (moved from free to reserved).
+     */
+    get isV15(): boolean {
+        return this._chain.getEventHash('Tokens.Reserved') === '901f2d69c6cf459e8fcf000cdf5bba720cf4670c919905e1df09424ec42c1298'
+    }
+
+    /**
+     * Some balance was reserved (moved from free to reserved).
+     */
+    get asV15(): {currencyId: v15.CurrencyId, who: Uint8Array, amount: bigint} {
+        assert(this.isV15)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Some balance was reserved (moved from free to reserved).
+     */
+    get isV17(): boolean {
+        return this._chain.getEventHash('Tokens.Reserved') === 'aa32a1b3b1d017039a927cf6080daa860061773198b0e814f2624169a0cf6241'
+    }
+
+    /**
+     * Some balance was reserved (moved from free to reserved).
+     */
+    get asV17(): {currencyId: v17.CurrencyId, who: Uint8Array, amount: bigint} {
+        assert(this.isV17)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Some balance was reserved (moved from free to reserved).
+     */
+    get isV1020000(): boolean {
+        return this._chain.getEventHash('Tokens.Reserved') === '510a19171aa1f589f2b6f0e5f0acd535a8effd895a1e715af35f4ec7baf2a428'
+    }
+
+    /**
+     * Some balance was reserved (moved from free to reserved).
+     */
+    get asV1020000(): {currencyId: v1020000.CurrencyId, who: Uint8Array, amount: bigint} {
+        assert(this.isV1020000)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Some balance was reserved (moved from free to reserved).
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Tokens.Reserved') === '33084fa970b28430437a706c1b3e57e4a1a1f2ec53411288d3cec096fd75c0cc'
+    }
+
+    /**
+     * Some balance was reserved (moved from free to reserved).
+     */
+    get asV1021000(): {currencyId: v1021000.CurrencyId, who: Uint8Array, amount: bigint} {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
 export class TokensTotalIssuanceSetEvent {
     private readonly _chain: Chain
     private readonly event: Event
@@ -1554,6 +1677,129 @@ export class TokensTransferEvent {
      * Transfer succeeded.
      */
     get asV1021000(): {currencyId: v1021000.CurrencyId, from: Uint8Array, to: Uint8Array, amount: bigint} {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
+export class TokensUnreservedEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'Tokens.Unreserved')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     *  Some balance was unreserved (moved from reserved to free).
+     *  \[currency_id, who, value\]
+     */
+    get isV1(): boolean {
+        return this._chain.getEventHash('Tokens.Unreserved') === '8547814e6cc47673e07ca89868d801c00ee1a56488c68183d05a8d13d56061cd'
+    }
+
+    /**
+     *  Some balance was unreserved (moved from reserved to free).
+     *  \[currency_id, who, value\]
+     */
+    get asV1(): [v1.CurrencyId, Uint8Array, bigint] {
+        assert(this.isV1)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Some balance was unreserved (moved from reserved to free).
+     * \[currency_id, who, value\]
+     */
+    get isV6(): boolean {
+        return this._chain.getEventHash('Tokens.Unreserved') === 'cdf07ef0ad061b705e0f246b72335315a5fa0c4224efd090fb96ca389f51ac4f'
+    }
+
+    /**
+     * Some balance was unreserved (moved from reserved to free).
+     * \[currency_id, who, value\]
+     */
+    get asV6(): [v6.CurrencyId, Uint8Array, bigint] {
+        assert(this.isV6)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Some balance was unreserved (moved from reserved to free).
+     */
+    get isV10(): boolean {
+        return this._chain.getEventHash('Tokens.Unreserved') === 'd7b8b47209ccf72d495276c7463ae263ffd9c1398f6561f3ed5749dc99eeea3a'
+    }
+
+    /**
+     * Some balance was unreserved (moved from reserved to free).
+     */
+    get asV10(): {currencyId: v10.CurrencyId, who: Uint8Array, amount: bigint} {
+        assert(this.isV10)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Some balance was unreserved (moved from reserved to free).
+     */
+    get isV15(): boolean {
+        return this._chain.getEventHash('Tokens.Unreserved') === '901f2d69c6cf459e8fcf000cdf5bba720cf4670c919905e1df09424ec42c1298'
+    }
+
+    /**
+     * Some balance was unreserved (moved from reserved to free).
+     */
+    get asV15(): {currencyId: v15.CurrencyId, who: Uint8Array, amount: bigint} {
+        assert(this.isV15)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Some balance was unreserved (moved from reserved to free).
+     */
+    get isV17(): boolean {
+        return this._chain.getEventHash('Tokens.Unreserved') === 'aa32a1b3b1d017039a927cf6080daa860061773198b0e814f2624169a0cf6241'
+    }
+
+    /**
+     * Some balance was unreserved (moved from reserved to free).
+     */
+    get asV17(): {currencyId: v17.CurrencyId, who: Uint8Array, amount: bigint} {
+        assert(this.isV17)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Some balance was unreserved (moved from reserved to free).
+     */
+    get isV1020000(): boolean {
+        return this._chain.getEventHash('Tokens.Unreserved') === '510a19171aa1f589f2b6f0e5f0acd535a8effd895a1e715af35f4ec7baf2a428'
+    }
+
+    /**
+     * Some balance was unreserved (moved from reserved to free).
+     */
+    get asV1020000(): {currencyId: v1020000.CurrencyId, who: Uint8Array, amount: bigint} {
+        assert(this.isV1020000)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Some balance was unreserved (moved from reserved to free).
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Tokens.Unreserved') === '33084fa970b28430437a706c1b3e57e4a1a1f2ec53411288d3cec096fd75c0cc'
+    }
+
+    /**
+     * Some balance was unreserved (moved from reserved to free).
+     */
+    get asV1021000(): {currencyId: v1021000.CurrencyId, who: Uint8Array, amount: bigint} {
         assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
