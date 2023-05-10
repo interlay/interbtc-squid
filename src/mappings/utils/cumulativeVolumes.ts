@@ -18,6 +18,7 @@ import {
 import { convertAmountToHuman } from "../_utils";
 import EntityBuffer from "./entityBuffer";
 import { inferGeneralPoolId } from "./pools";
+import { CurrencyId } from "../../types/v1021000";
 
 function getLatestCurrencyPairCumulativeVolume(
     cumulativeVolumes: CumulativeVolumePerCurrencyPair[],
@@ -213,7 +214,9 @@ export async function updateCumulativeVolumesForCurrencyPair(
 
 export type SwapDetailsAmount = {
     currency: PooledToken,
-    atomicAmount: bigint
+    atomicAmount: bigint,
+    accountId: string,
+    currencyId: CurrencyId
 };
 
 export type SwapDetails = {
@@ -221,7 +224,7 @@ export type SwapDetails = {
     to: SwapDetailsAmount
 }
 
-async function createPooledAmount(swapAmount: SwapDetailsAmount): Promise<PooledAmount> {
+export async function createPooledAmount(swapAmount: SwapDetailsAmount): Promise<PooledAmount> {
     const amountHuman = await convertAmountToHuman(swapAmount.currency, swapAmount.atomicAmount);
     return new PooledAmount({
         token: swapAmount.currency,

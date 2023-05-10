@@ -103,6 +103,22 @@ export interface VaultCurrencyPair {
     wrapped: CurrencyId
 }
 
+export type PairStatus = PairStatus_Trading | PairStatus_Bootstrap | PairStatus_Disable
+
+export interface PairStatus_Trading {
+    __kind: 'Trading'
+    value: PairMetadata
+}
+
+export interface PairStatus_Bootstrap {
+    __kind: 'Bootstrap'
+    value: BootstrapParameter
+}
+
+export interface PairStatus_Disable {
+    __kind: 'Disable'
+}
+
 export type Pool = Pool_Base | Pool_Meta
 
 export interface Pool_Base {
@@ -182,6 +198,20 @@ export interface MarketState_Pending {
 
 export interface MarketState_Supervision {
     __kind: 'Supervision'
+}
+
+export interface PairMetadata {
+    pairAccount: Uint8Array
+    totalSupply: bigint
+    feeRate: bigint
+}
+
+export interface BootstrapParameter {
+    targetSupply: [bigint, bigint]
+    capacitySupply: [bigint, bigint]
+    accumulatedSupply: [bigint, bigint]
+    endBlockNumber: number
+    pairAccount: Uint8Array
 }
 
 export interface BasePool {
