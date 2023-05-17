@@ -50,7 +50,7 @@ export class Deposit {
     timestamp!: Date
 
     @Column_("timestamp with time zone", {nullable: false})
-    day!: Date
+    date!: Date
 
     @Column_("text", {nullable: true})
     comment!: string | undefined | null

@@ -353,7 +353,7 @@ type Loan @entity {
     amountRepaidBtc: Float
     height: Height!
     timestamp: DateTime!
-    day: DateTime!
+    date: DateTime!
     comment: String
     currencySymbol: String!
 }
@@ -372,7 +372,7 @@ type Deposit @entity {
     amountWithdrawnBtc: Float
     height: Height!
     timestamp: DateTime!
-    day: DateTime!
+    date: DateTime!
     comment: String
     currencySymbol: String!
 }
@@ -399,6 +399,6 @@ type InterestAccrual @entity {
     exchangeRateFloat: Float!
     height: Height!
     timestamp: DateTime!
-    day: DateTime!
+    date: DateTime!
     comment: String
 }
