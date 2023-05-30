@@ -154,6 +154,35 @@ export class DexGeneralLiquidityRemovedEvent {
     }
 }
 
+export class DexStableAddLiquidityEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'DexStable.AddLiquidity')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * Supply some liquidity to a pool.
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('DexStable.AddLiquidity') === 'a13771fa4a43699908fd74b590a40e3758df36687bc93151bb61c4d8276f23d5'
+    }
+
+    /**
+     * Supply some liquidity to a pool.
+     */
+    get asV1021000(): {poolId: number, who: Uint8Array, to: Uint8Array, supplyAmounts: bigint[], fees: bigint[], newD: bigint, mintAmount: bigint} {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
 export class DexStableCurrencyExchangeEvent {
     private readonly _chain: Chain
     private readonly event: Event
@@ -178,6 +207,93 @@ export class DexStableCurrencyExchangeEvent {
      * Swap a amounts of currency to get other.
      */
     get asV1021000(): {poolId: number, who: Uint8Array, to: Uint8Array, inIndex: number, inAmount: bigint, outIndex: number, outAmount: bigint} {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
+export class DexStableNewAdminFeeEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'DexStable.NewAdminFee')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * A pool's admin fee parameters was updated
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('DexStable.NewAdminFee') === '354aacd87525ee5edab25bfc7703181a00e6bb535431cf8546eea25c7f0fcf9d'
+    }
+
+    /**
+     * A pool's admin fee parameters was updated
+     */
+    get asV1021000(): {poolId: number, newAdminFee: bigint} {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
+export class DexStableNewSwapFeeEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'DexStable.NewSwapFee')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * A pool's swap fee parameters was updated
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('DexStable.NewSwapFee') === '5a651444f44feda108605f5777f9ad6e8411982c46c30660727dcdc176f49c48'
+    }
+
+    /**
+     * A pool's swap fee parameters was updated
+     */
+    get asV1021000(): {poolId: number, newSwapFee: bigint} {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
+export class DexStableRemoveLiquidityEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'DexStable.RemoveLiquidity')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * Remove some liquidity from a pool.
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('DexStable.RemoveLiquidity') === 'dfcb09ba3f04d8111a917fe1f5c015f63a37a2fad3f099a51c4e4d6947e2897a'
+    }
+
+    /**
+     * Remove some liquidity from a pool.
+     */
+    get asV1021000(): {poolId: number, who: Uint8Array, to: Uint8Array, amounts: bigint[], fees: bigint[], newTotalSupply: bigint} {
         assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
