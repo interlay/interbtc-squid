@@ -55,6 +55,7 @@ export async function requestIssue(
         if (rawEvent.isV17) e = rawEvent.asV17;
         else if (rawEvent.isV1020000) e = rawEvent.asV1020000;
         else if (rawEvent.isV1021000) e = rawEvent.asV1021000;
+        else if (rawEvent.isV1024000) e = rawEvent.asV1024000;
         else {
             ctx.log.warn(`UNKOWN EVENT VERSION: Issue.requestIssue`);
             return;

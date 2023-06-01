@@ -1,5 +1,6 @@
 import assert from 'assert'
 import {Chain, ChainContext, CallContext, Call, Result, Option} from './support'
+import * as v1024000 from './v1024000'
 
 export class BtcRelayStoreBlockHeaderCall {
     private readonly _chain: Chain
@@ -84,6 +85,35 @@ export class BtcRelayStoreBlockHeaderCall {
      */
     get asV1018000(): {rawBlockHeader: Uint8Array} {
         assert(this.isV1018000)
+        return this._chain.decodeCall(this.call)
+    }
+
+    /**
+     * Stores a single new block header
+     * 
+     * # Arguments
+     * 
+     * * `block_header` - Bitcoin block header.
+     * 
+     * ## Complexity
+     * - `O(F)` where `F` is the number of forks
+     */
+    get isV1024000(): boolean {
+        return this._chain.getCallHash('BTCRelay.store_block_header') === '369166deb91fc258ebb26e7128eab72d375a317a3ce5aaa0548e86ace5c1ffd1'
+    }
+
+    /**
+     * Stores a single new block header
+     * 
+     * # Arguments
+     * 
+     * * `block_header` - Bitcoin block header.
+     * 
+     * ## Complexity
+     * - `O(F)` where `F` is the number of forks
+     */
+    get asV1024000(): {blockHeader: v1024000.BlockHeader, forkBound: number} {
+        assert(this.isV1024000)
         return this._chain.decodeCall(this.call)
     }
 }
