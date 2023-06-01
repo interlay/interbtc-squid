@@ -41,6 +41,11 @@ import {
 } from "../_utils";
 import { address, currencyId, currencyToString, rateModel } from "../encoding";
 
+// https://github.com/paritytech/substrate/blob/8ae4738bd7ee57556ea42c33600dc95488b58db6/primitives/arithmetic/src/fixed_point.rs#L2200
+const FIXEDI128_SCALING_FACTOR = 18;
+// https://github.com/paritytech/substrate/blob/8ae4738bd7ee57556ea42c33600dc95488b58db6/primitives/arithmetic/src/per_things.rs#L1881
+const PERMILL_BASE = 1000000;
+
 type Rate = {
     block: number;
     symbol: string;
@@ -105,14 +110,14 @@ export async function newMarket(
         borrowCap: divideByTenToTheNth(market.borrowCap, decimals),
         supplyCap: divideByTenToTheNth(market.supplyCap, decimals),
         rateModel: InterestRateModel,
-        closeFactor: market.closeFactor / 10**6,
+        closeFactor: market.closeFactor / PERMILL_BASE,
         lendTokenId: lendTokenIdNo,
         state: MarketState.Pending,
-        reserveFactor: market.reserveFactor / 10**6,
-        collateralFactor: market.collateralFactor / 10**6,
-        liquidateIncentive: divideByTenToTheNth(market.liquidateIncentive, 18),
-        liquidationThreshold: market.liquidationThreshold / 10**6,
-        liquidateIncentiveReservedFactor: market.liquidateIncentiveReservedFactor / 10**6,
+        reserveFactor: market.reserveFactor / PERMILL_BASE,
+        collateralFactor: market.collateralFactor / PERMILL_BASE,
+        liquidateIncentive: divideByTenToTheNth(market.liquidateIncentive, FIXEDI128_SCALING_FACTOR),
+        liquidationThreshold: market.liquidationThreshold / PERMILL_BASE,
+        liquidateIncentiveReservedFactor: market.liquidateIncentiveReservedFactor / PERMILL_BASE,
         currencySymbol: await symbolFromCurrency(currency)
     });
     // console.log(JSON.stringify(my_market));
@@ -156,13 +161,13 @@ export async function updatedMarket(
         borrowCap: divideByTenToTheNth(market.borrowCap, decimals),
         supplyCap: divideByTenToTheNth(market.supplyCap, decimals),
         rateModel: InterestRateModel,
-        closeFactor: market.closeFactor / 10**6,
+        closeFactor: market.closeFactor / PERMILL_BASE,
         lendTokenId: lendTokenIdNo,
-        reserveFactor: market.reserveFactor / 10**6,
-        collateralFactor: market.collateralFactor / 10**6,
+        reserveFactor: market.reserveFactor / PERMILL_BASE,
+        collateralFactor: market.collateralFactor / PERMILL_BASE,
         liquidateIncentive: divideByTenToTheNth(market.liquidateIncentive, decimals),
-        liquidationThreshold: market.liquidationThreshold / 10**6,
-        liquidateIncentiveReservedFactor: market.liquidateIncentiveReservedFactor / 10**6,
+        liquidationThreshold: market.liquidationThreshold / PERMILL_BASE,
+        liquidateIncentiveReservedFactor: market.liquidateIncentiveReservedFactor / PERMILL_BASE,
         currencySymbol: await symbolFromCurrency(currency)
     });
 
@@ -611,8 +616,7 @@ export async function accrueInterest(
     const rawEvent = new LoansInterestAccruedEvent(ctx, item.event);
     const interestAccrued = rawEvent.asV1021000;
     const { exchangeRate: exchangeRate} = interestAccrued;
-    //const ex = Number(exchangeRate) / 10 ** 18;
-    const ex = divideByTenToTheNth(exchangeRate, 18)
+    const ex = divideByTenToTheNth(exchangeRate, FIXEDI128_SCALING_FACTOR)
 
     const currency = currencyId.encode(interestAccrued.underlyingCurrencyId);
     const height = await blockToHeight(ctx, block.height, "Interest Accrued");
@@ -646,11 +650,11 @@ export async function accrueInterest(
             totalBorrowsUsdt: totalBorrowsUsdtAndBtc.usdt.toNumber(),
             totalReservesUsdt: totalReservesUsdtAndBtc.usdt.toNumber(),
             borrowIndexUsdt: borrowIndexUsdtAndBtc.usdt.toNumber(),
-            utilizationRatio: interestAccrued.utilizationRatio / 1e6,
+            utilizationRatio: interestAccrued.utilizationRatio / PERMILL_BASE,
             borrowRate: interestAccrued.borrowRate,
             supplyRate: interestAccrued.supplyRate,
-            borrowRatePct: divideByTenToTheNth(interestAccrued.borrowRate, 18-2),
-            supplyRatePct: divideByTenToTheNth(interestAccrued.supplyRate, 18-2),
+            borrowRatePct: divideByTenToTheNth(interestAccrued.borrowRate, FIXEDI128_SCALING_FACTOR) * 100,
+            supplyRatePct: divideByTenToTheNth(interestAccrued.supplyRate, FIXEDI128_SCALING_FACTOR) * 100,
             exchangeRate: interestAccrued.exchangeRate,
             exchangeRateFloat: ex,
             comment: `Exchange rate for ${symbol} now ${ex}`
