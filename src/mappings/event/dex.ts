@@ -188,23 +188,27 @@ export async function dexGeneralAssetSwap(
     entityBuffer: EntityBuffer
 ): Promise<void> {
     const rawEvent = new DexGeneralAssetSwapEvent(ctx, item.event);
-    let currencies: Currency[] = [];
     let currencyIds: CurrencyId[] = [];
     let atomicBalances: bigint[] = [];
-    let fromAccountId: string;
-    let toAccountId: string;
+    let fromAccountIdRaw: Uint8Array;
+    let toAccountIdRaw: Uint8Array;
 
     if (rawEvent.isV1021000) {
-        const [fromAccountIdRaw, toAccountIdRaw, swapPath, balances] = rawEvent.asV1021000;
-        currencyIds = swapPath;
-        currencies = swapPath.map(currencyId.encode);
-        atomicBalances = balances;
-        fromAccountId = address.interlay.encode(fromAccountIdRaw);
-        toAccountId = address.interlay.encode(toAccountIdRaw);
+        [fromAccountIdRaw, toAccountIdRaw, currencyIds, atomicBalances] = rawEvent.asV1021000;
+    } else if(rawEvent.isV1024000) {
+        const e = rawEvent.asV1024000;
+        fromAccountIdRaw = e.owner;
+        toAccountIdRaw = e.recipient;
+        currencyIds = e.swapPath;
+        atomicBalances = e.balances;
     } else {
         ctx.log.warn("UNKOWN EVENT VERSION: DexGeneral.AssetSwap");
         return;
     }
+    
+    const currencies = currencyIds.map(currencyId.encode);
+    const fromAccountId = address.interlay.encode(fromAccountIdRaw);
+    const toAccountId = address.interlay.encode(toAccountIdRaw);
 
     const height = await blockToHeight(ctx, block.height);
 
@@ -447,21 +451,31 @@ export async function dexGeneralLiquidityAdded(
     entityBuffer: EntityBuffer
 ): Promise<void> {
     const rawEvent = new DexGeneralLiquidityAddedEvent(ctx, item.event);
-    let accountId: string;
-    let deposits: SwapDetailsAmount[];
+    let account: Uint8Array;
+    let asset0: CurrencyId;
+    let asset1: CurrencyId;
+    let balance0: bigint;
+    let balance1: bigint;
     
     if (rawEvent.isV1021000) {
-        const [account, asset0, asset1, balance0, balance1, /* ignore minted balance */ ] = rawEvent.asV1021000;
-
-        accountId = address.interlay.encode(account);
-        const atomicBalances = [balance0, balance1];
-        const currencyIds = [asset0, asset1];
-        const currencies = currencyIds.map(currencyId.encode);
-        deposits = createSwapDetailsAmounts(currencies, currencyIds, atomicBalances, accountId, accountId);
+        [account, asset0, asset1, balance0, balance1, /* ignore minted balance */ ] = rawEvent.asV1021000;
+    } else if (rawEvent.isV1024000) {
+        const e = rawEvent.asV1024000;
+        account = e.owner;
+        asset0 = e.asset0;
+        asset1 = e.asset1;
+        balance0 = e.addBalance0;
+        balance1 = e.addBalance1;
     } else {
         ctx.log.warn("UNKOWN EVENT VERSION: DexGeneral.LiquidityAdded");
         return;
     }
+    
+    const accountId = address.interlay.encode(account);
+    const atomicBalances = [balance0, balance1];
+    const currencyIds = [asset0, asset1];
+    const currencies = currencyIds.map(currencyId.encode);
+    const deposits = createSwapDetailsAmounts(currencies, currencyIds, atomicBalances, accountId, accountId);
 
     const entity = await buildNewAccountLPEntity(ctx, block, accountId, LiquidityProvisionType.DEPOSIT, deposits);
 
@@ -475,11 +489,15 @@ export async function dexGeneralLiquidityRemoved(
     entityBuffer: EntityBuffer
 ): Promise<void> {
     const rawEvent = new DexGeneralLiquidityRemovedEvent(ctx, item.event);
-    let accountId: string;
-    let withdrawals: SwapDetailsAmount[];
-    
+
+    let account: Uint8Array;
+    let asset0: CurrencyId;
+    let asset1: CurrencyId;
+    let balance0: bigint;
+    let balance1: bigint;
+
     if (rawEvent.isV1021000) {
-        const [
+        [
             account, 
             /* ignore recipient */,
             asset0,
@@ -488,17 +506,24 @@ export async function dexGeneralLiquidityRemoved(
             balance1,
             /* ignore burned balance */
         ] = rawEvent.asV1021000;
-
-        accountId = address.interlay.encode(account);
-        const atomicBalances = [balance0, balance1];
-        const currencyIds = [asset0, asset1];
-        const currencies = currencyIds.map(currencyId.encode);
-        withdrawals = createSwapDetailsAmounts(currencies, currencyIds, atomicBalances, accountId, accountId);
+    } else if (rawEvent.isV1024000) {
+        const e = rawEvent.asV1024000
+        account = e.owner;
+        asset0 = e.asset0;
+        asset1 = e.asset1;
+        balance0 = e.rmBalance0;
+        balance1 = e.rmBalance1;
     } else {
         ctx.log.warn("UNKOWN EVENT VERSION: DexGeneral.LiquidityRemoved");
         return;
     }
 
+    const accountId = address.interlay.encode(account);
+    const atomicBalances = [balance0, balance1];
+    const currencyIds = [asset0, asset1];
+    const currencies = currencyIds.map(currencyId.encode);
+    const withdrawals = createSwapDetailsAmounts(currencies, currencyIds, atomicBalances, accountId, accountId);
+    
     const entity = await buildNewAccountLPEntity(ctx, block, accountId, LiquidityProvisionType.WITHDRAWAL, withdrawals);
 
     entityBuffer.pushEntity(AccountLiquidityProvision.name, entity);

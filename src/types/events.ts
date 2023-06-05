@@ -9,6 +9,7 @@ import * as v15 from './v15'
 import * as v17 from './v17'
 import * as v1020000 from './v1020000'
 import * as v1021000 from './v1021000'
+import * as v1024000 from './v1024000'
 
 export class BtcRelayStoreMainChainHeaderEvent {
     private readonly _chain: Chain
@@ -90,6 +91,21 @@ export class DexGeneralAssetSwapEvent {
         assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
+
+    /**
+     * Transact in trading.
+     */
+    get isV1024000(): boolean {
+        return this._chain.getEventHash('DexGeneral.AssetSwap') === '6c586339ab99ae31190991efaf9a56982e4a2be251466afaca6c729ce706fa0b'
+    }
+
+    /**
+     * Transact in trading.
+     */
+    get asV1024000(): {owner: Uint8Array, recipient: Uint8Array, swapPath: v1024000.CurrencyId[], balances: bigint[]} {
+        assert(this.isV1024000)
+        return this._chain.decodeEvent(this.event)
+    }
 }
 
 export class DexGeneralLiquidityAddedEvent {
@@ -121,6 +137,21 @@ export class DexGeneralLiquidityAddedEvent {
         assert(this.isV1021000)
         return this._chain.decodeEvent(this.event)
     }
+
+    /**
+     * Add liquidity.
+     */
+    get isV1024000(): boolean {
+        return this._chain.getEventHash('DexGeneral.LiquidityAdded') === '9331c3f59c45eb8ba87d015e601294936ad085ec6be3166afd1d8543da983156'
+    }
+
+    /**
+     * Add liquidity.
+     */
+    get asV1024000(): {owner: Uint8Array, asset0: v1024000.CurrencyId, asset1: v1024000.CurrencyId, addBalance0: bigint, addBalance1: bigint, mintBalanceLp: bigint} {
+        assert(this.isV1024000)
+        return this._chain.decodeEvent(this.event)
+    }
 }
 
 export class DexGeneralLiquidityRemovedEvent {
@@ -150,6 +181,21 @@ export class DexGeneralLiquidityRemovedEvent {
      */
     get asV1021000(): [Uint8Array, Uint8Array, v1021000.CurrencyId, v1021000.CurrencyId, bigint, bigint, bigint] {
         assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Remove liquidity.
+     */
+    get isV1024000(): boolean {
+        return this._chain.getEventHash('DexGeneral.LiquidityRemoved') === 'df1c6545e59415b3acb3f3bb001e028ebb634ab8a711316da5213d2bb1a89cdb'
+    }
+
+    /**
+     * Remove liquidity.
+     */
+    get asV1024000(): {owner: Uint8Array, recipient: Uint8Array, asset0: v1024000.CurrencyId, asset1: v1024000.CurrencyId, rmBalance0: bigint, rmBalance1: bigint, burnBalanceLp: bigint} {
+        assert(this.isV1024000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -568,6 +614,15 @@ export class IssueRequestIssueEvent {
 
     get asV1021000(): {issueId: Uint8Array, requester: Uint8Array, amount: bigint, fee: bigint, griefingCollateral: bigint, vaultId: v1021000.VaultId, vaultAddress: v1021000.Address, vaultPublicKey: Uint8Array} {
         assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    get isV1024000(): boolean {
+        return this._chain.getEventHash('Issue.RequestIssue') === 'a547fdfc2088759cf9da85388a8cc43d65ee4e3da1b57cf5549151dc7e84f216'
+    }
+
+    get asV1024000(): {issueId: Uint8Array, requester: Uint8Array, amount: bigint, fee: bigint, griefingCollateral: bigint, griefingCurrency: v1024000.CurrencyId, vaultId: v1024000.VaultId, vaultAddress: v1024000.Address, vaultPublicKey: Uint8Array} {
+        assert(this.isV1024000)
         return this._chain.decodeEvent(this.event)
     }
 }
