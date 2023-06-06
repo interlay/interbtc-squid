@@ -25,16 +25,16 @@ export class LoanMarket {
     @Column_("timestamp with time zone", {nullable: false})
     timestamp!: Date
 
-    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-    borrowCap!: bigint
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: false})
+    borrowCap!: number
 
-    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-    supplyCap!: bigint
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: false})
+    supplyCap!: number
 
     @Column_("jsonb", {transformer: {to: obj => obj.toJSON(), from: obj => obj == null ? undefined : fromJsonRateModel(obj)}, nullable: false})
     rateModel!: RateModel
 
-    @Column_("int4", {nullable: false})
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: false})
     closeFactor!: number
 
     @Index_({unique: true})
@@ -44,19 +44,19 @@ export class LoanMarket {
     @Column_("varchar", {length: 11, nullable: false})
     state!: MarketState
 
-    @Column_("int4", {nullable: false})
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: false})
     reserveFactor!: number
 
-    @Column_("int4", {nullable: false})
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: false})
     collateralFactor!: number
 
-    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-    liquidateIncentive!: bigint
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: false})
+    liquidateIncentive!: number
 
-    @Column_("int4", {nullable: false})
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: false})
     liquidationThreshold!: number
 
-    @Column_("int4", {nullable: false})
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: false})
     liquidateIncentiveReservedFactor!: number
 
     @OneToOne_(() => LoanMarketActivation)

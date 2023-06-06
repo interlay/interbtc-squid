@@ -36,9 +36,15 @@ import {
     friendlyAmount,
     getExchangeRate,
     getFirstAndLastFour,
-    symbolFromCurrency
+    symbolFromCurrency,
+    truncateTimestampToDate
 } from "../_utils";
 import { address, currencyId, currencyToString, rateModel } from "../encoding";
+
+// https://github.com/paritytech/substrate/blob/8ae4738bd7ee57556ea42c33600dc95488b58db6/primitives/arithmetic/src/fixed_point.rs#L2200
+const FIXEDI128_SCALING_FACTOR = 18;
+// https://github.com/paritytech/substrate/blob/8ae4738bd7ee57556ea42c33600dc95488b58db6/primitives/arithmetic/src/per_things.rs#L1881
+const PERMILL_BASE = 1000000;
 
 type Rate = {
     block: number;
@@ -88,6 +94,7 @@ export async function newMarket(
     }
 
     const currency = currencyId.encode(underlyingCurrencyId);
+    const decimals = await decimalsFromCurrency(currency);
     const id = currencyToString(currency);
     const InterestRateModel = rateModel.encode(market.rateModel)
 
@@ -100,17 +107,17 @@ export async function newMarket(
         token: currency,
         height: height,
         timestamp: timestamp,
-        borrowCap: market.borrowCap,
-        supplyCap: market.supplyCap,
+        borrowCap: divideByTenToTheNth(market.borrowCap, decimals),
+        supplyCap: divideByTenToTheNth(market.supplyCap, decimals),
         rateModel: InterestRateModel,
-        closeFactor: market.closeFactor,
+        closeFactor: market.closeFactor / PERMILL_BASE,
         lendTokenId: lendTokenIdNo,
         state: MarketState.Pending,
-        reserveFactor: market.reserveFactor,
-        collateralFactor: market.collateralFactor,
-        liquidateIncentive: market.liquidateIncentive,
-        liquidationThreshold: market.liquidationThreshold,
-        liquidateIncentiveReservedFactor: market.liquidateIncentiveReservedFactor,
+        reserveFactor: market.reserveFactor / PERMILL_BASE,
+        collateralFactor: market.collateralFactor / PERMILL_BASE,
+        liquidateIncentive: divideByTenToTheNth(market.liquidateIncentive, FIXEDI128_SCALING_FACTOR),
+        liquidationThreshold: market.liquidationThreshold / PERMILL_BASE,
+        liquidateIncentiveReservedFactor: market.liquidateIncentiveReservedFactor / PERMILL_BASE,
         currencySymbol: await symbolFromCurrency(currency)
     });
     // console.log(JSON.stringify(my_market));
@@ -138,6 +145,7 @@ export async function updatedMarket(
     }
 
     const currency = currencyId.encode(underlyingCurrencyId);
+    const decimals = await decimalsFromCurrency(currency);
     const id = currencyToString(currency);
     const InterestRateModel = rateModel.encode(market.rateModel)
 
@@ -146,32 +154,37 @@ export async function updatedMarket(
     const lendTokenIdNo = (market.lendTokenId as CurrencyId_LendToken).value;
 
     const my_market = new LoanMarket({
-        id: `loanMarket_` + id, //lendTokenId.toString(),
+        id: `loanMarket_` + id,
         token: currency,
         height: height,
         timestamp: timestamp,
-        borrowCap: market.borrowCap,
-        supplyCap: market.supplyCap,
+        borrowCap: divideByTenToTheNth(market.borrowCap, decimals),
+        supplyCap: divideByTenToTheNth(market.supplyCap, decimals),
         rateModel: InterestRateModel,
-        closeFactor: market.closeFactor,
+        closeFactor: market.closeFactor / PERMILL_BASE,
         lendTokenId: lendTokenIdNo,
-        reserveFactor: market.reserveFactor,
-        collateralFactor: market.collateralFactor,
-        liquidateIncentive: market.liquidateIncentive,
-        liquidationThreshold: market.liquidationThreshold,
-        liquidateIncentiveReservedFactor: market.liquidateIncentiveReservedFactor,
+        reserveFactor: market.reserveFactor / PERMILL_BASE,
+        collateralFactor: market.collateralFactor / PERMILL_BASE,
+        liquidateIncentive: divideByTenToTheNth(market.liquidateIncentive, decimals),
+        liquidationThreshold: market.liquidationThreshold / PERMILL_BASE,
+        liquidateIncentiveReservedFactor: market.liquidateIncentiveReservedFactor / PERMILL_BASE,
         currencySymbol: await symbolFromCurrency(currency)
     });
 
-    my_market.state =
-        market.state.__kind === "Supervision"
-            ? MarketState.Supervision
-            : MarketState.Pending;
-
-    // console.log(JSON.stringify(my_market));
-    await entityBuffer.pushEntity(LoanMarket.name, my_market);
-
-    // console.log(`Updated ${my_market.id}`);
+    switch(market.state.__kind){
+        case 'Active':
+            my_market.state = MarketState.Active;
+            break;
+        case 'Pending':
+            my_market.state = MarketState.Pending;
+            break;
+        case 'Supervision':
+            my_market.state = MarketState.Supervision;
+            break;
+        default:
+            throw new Error(`Unsupported market state: ${market.state}`);
+    }
+    entityBuffer.pushEntity(LoanMarket.name, my_market);
 }
 
 export async function activatedMarket(
@@ -213,8 +226,8 @@ export async function activatedMarket(
     });
     marketDb.state = MarketState.Active
     marketDb.activation = activation;
-    await entityBuffer.pushEntity(LoanMarketActivation.name, activation);
-    await entityBuffer.pushEntity(LoanMarket.name, marketDb);
+    entityBuffer.pushEntity(LoanMarketActivation.name, activation);
+    entityBuffer.pushEntity(LoanMarket.name, marketDb);
 }
 
 export async function borrow(
@@ -250,6 +263,7 @@ export async function borrow(
             id: item.event.id,
             height: height,
             timestamp: new Date(block.timestamp),
+            date: truncateTimestampToDate(block.timestamp),
             userParachainAddress: account,
             token: currency,
             amountBorrowed: amount,
@@ -311,6 +325,7 @@ export async function depositCollateral(
             id: item.event.id,
             height: height,
             timestamp: new Date(block.timestamp),
+            date: truncateTimestampToDate(block.timestamp),
             userParachainAddress: account,
             type: `collateral`,
             token: currency,
@@ -372,6 +387,7 @@ export async function withdrawCollateral(
         new Deposit({
             id: item.event.id,
             height: height,
+            date: truncateTimestampToDate(block.timestamp),
             timestamp: new Date(block.timestamp),
             userParachainAddress: account,
             token: currency,
@@ -418,6 +434,7 @@ export async function depositForLending(
             id: item.event.id,
             height: height,
             timestamp: new Date(block.timestamp),
+            date: truncateTimestampToDate(block.timestamp),
             userParachainAddress: account,
             token: currency,
             symbol: symbol,
@@ -482,6 +499,7 @@ export async function repay(
             id: item.event.id,
             height: height,
             timestamp: new Date(block.timestamp),
+            date: truncateTimestampToDate(block.timestamp),
             userParachainAddress: account,
             token: currency,
             amountRepaid: amount,
@@ -525,6 +543,7 @@ export async function withdrawDeposit(
             id: item.event.id,
             height: height,
             timestamp: new Date(block.timestamp),
+            date: truncateTimestampToDate(block.timestamp),
             userParachainAddress: account,
             token: currency,
             symbol: symbol,
@@ -597,8 +616,7 @@ export async function accrueInterest(
     const rawEvent = new LoansInterestAccruedEvent(ctx, item.event);
     const interestAccrued = rawEvent.asV1021000;
     const { exchangeRate: exchangeRate} = interestAccrued;
-    //const ex = Number(exchangeRate) / 10 ** 18;
-    const ex = divideByTenToTheNth(exchangeRate, 18)
+    const ex = divideByTenToTheNth(exchangeRate, FIXEDI128_SCALING_FACTOR)
 
     const currency = currencyId.encode(interestAccrued.underlyingCurrencyId);
     const height = await blockToHeight(ctx, block.height, "Interest Accrued");
@@ -613,13 +631,14 @@ export async function accrueInterest(
     const totalBorrowsUsdtAndBtc = await getExchangeRate(ctx, block.timestamp, currency, Number(interestAccrued.totalBorrows));
     const totalReservesUsdtAndBtc = await getExchangeRate(ctx, block.timestamp, currency, Number(interestAccrued.totalReserves));
     const borrowIndexUsdtAndBtc = await getExchangeRate(ctx, block.timestamp, currency, Number(interestAccrued.borrowIndex));
-
+    
     await entityBuffer.pushEntity(
         InterestAccrual.name,
         new InterestAccrual({
             id: item.event.id,
             height: height,
             timestamp: new Date(block.timestamp),
+            date: truncateTimestampToDate(block.timestamp),
             underlyingCurrency: currency,
             currencySymbol: symbol,
             totalBorrows: interestAccrued.totalBorrows,
@@ -631,14 +650,14 @@ export async function accrueInterest(
             totalBorrowsUsdt: totalBorrowsUsdtAndBtc.usdt.toNumber(),
             totalReservesUsdt: totalReservesUsdtAndBtc.usdt.toNumber(),
             borrowIndexUsdt: borrowIndexUsdtAndBtc.usdt.toNumber(),
-            utilizationRatio: interestAccrued.utilizationRatio / 1e6,
+            utilizationRatio: interestAccrued.utilizationRatio / PERMILL_BASE,
             borrowRate: interestAccrued.borrowRate,
             supplyRate: interestAccrued.supplyRate,
-            borrowRatePct: divideByTenToTheNth(interestAccrued.borrowRate, 18-2),
-            supplyRatePct: divideByTenToTheNth(interestAccrued.supplyRate, 18-2),
+            borrowRatePct: divideByTenToTheNth(interestAccrued.borrowRate, FIXEDI128_SCALING_FACTOR) * 100,
+            supplyRatePct: divideByTenToTheNth(interestAccrued.supplyRate, FIXEDI128_SCALING_FACTOR) * 100,
             exchangeRate: interestAccrued.exchangeRate,
             exchangeRateFloat: ex,
-            comment: `Exchange rate for ${symbol} now ${ex}...v3`
+            comment: `Exchange rate for ${symbol} now ${ex}`
         })
     );
 }

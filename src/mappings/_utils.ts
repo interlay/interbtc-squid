@@ -350,3 +350,11 @@ export async function convertAmountToHuman(currency: Currency, amount: bigint ) 
 export function invertMap<K extends Object, V extends Object>(map: Map<K, V>): Map<V, K> {
     return new Map(Array.from(map, ([key, value]) => [value, key]));
 }
+
+// truncate a date
+export function truncateTimestampToDate(timestamp: number): Date {
+    const date = new Date(timestamp);
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }
+    

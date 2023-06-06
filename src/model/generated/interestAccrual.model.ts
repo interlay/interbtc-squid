@@ -73,6 +73,9 @@ export class InterestAccrual {
     @Column_("timestamp with time zone", {nullable: false})
     timestamp!: Date
 
+    @Column_("timestamp with time zone", {nullable: false})
+    date!: Date
+
     @Column_("text", {nullable: true})
     comment!: string | undefined | null
 }
