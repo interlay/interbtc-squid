@@ -302,9 +302,7 @@ export async function getExchangeRate(
         btc: baseAmt.eq(0)
             ? Big(0)
             : monetaryAmount.toBig().div(baseAmt),
-        usdt: exchangeRate.eq(0)
-            ? Big(0)
-            : monetaryAmount.toBig().mul(exchangeRate)
+        usdt: monetaryAmount.toBig().mul(exchangeRate)
     };
 }
 
