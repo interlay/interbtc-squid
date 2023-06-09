@@ -210,7 +210,7 @@ function mapCurrencyType(currency: Currency): CurrencyType {
                     return Polkadot;
                 case 'KBTC':
                     return KBtc;
-                case 'INTR':
+                case 'IBTC':
                     return InterBtc;
             }
         case 'ForeignAsset':
@@ -292,12 +292,19 @@ export async function getExchangeRate(
     // there are 8 digits in BTC
     const btcMonetaryAmount = newMonetaryAmount(btcPrice, Bitcoin);
 
-    const exchangeRate = btcMonetaryAmount.toBig().div(baseMonetaryAmount.toBig());
+    const baseAmt = baseMonetaryAmount.toBig();
+    const exchangeRate = baseAmt.eq(0)
+        ? Big(0)
+        : btcMonetaryAmount.toBig().div(baseAmt);
     const monetaryAmount = newMonetaryAmount(Big(amount), mappedCurrency);
 
     return {
-        btc: monetaryAmount.toBig().div(baseMonetaryAmount.toBig()), 
-        usdt: monetaryAmount.toBig().mul(exchangeRate)
+        btc: baseAmt.eq(0)
+            ? Big(0)
+            : monetaryAmount.toBig().div(baseAmt),
+        usdt: exchangeRate.eq(0)
+            ? Big(0)
+            : monetaryAmount.toBig().mul(exchangeRate)
     };
 }
 
