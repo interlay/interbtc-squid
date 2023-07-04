@@ -198,12 +198,12 @@ export function ss58AddressToString(ss58Address: string, ss58Prefix?: number): s
 }
 
 /**
- * Tells us if a given ss58 encoded address is a system account or not.
+ * Tells us if a given ss58 encoded address is a system address or not.
  * @param ss58Address Address in ss58 encoded format
  * @param ss58Prefix (Optional) ss58 prefix to use in decoding, defaults to Interlay/Kintsugi prefix value
  * @returns true if the address is a system address, false otherwise
  */
-export function isSystemAccount(ss58Address: string, ss58Prefix?: number): boolean {
+export function isSystemAddress(ss58Address: string, ss58Prefix?: number): boolean {
     const prefix = ss58Prefix !== undefined ? ss58Prefix : address.interlay.prefix;
     const decodedAddress = ss58AddressToString(ss58Address, prefix);
     return String(decodeAddress).startsWith(MODL_PREFIX);
