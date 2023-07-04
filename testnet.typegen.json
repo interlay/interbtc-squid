@@ -56,5 +56,8 @@
         "Issue.IssuePeriod",
         "Redeem.RedeemPeriod",
         "Tokens.TotalIssuance"
+    ],
+    "constants": [
+        "Currency.GetNativeCurrencyId"
     ]
 }
