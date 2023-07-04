@@ -185,12 +185,26 @@ export function encodeVaultId(vaultId: VaultIdV1021000) {
     )}`;
 }
 
-export function decodeAccountAddress(ss58Address: string, ss58Prefix: number): string {
-    const decodedArray = decodeAddress(ss58Address, false, ss58Prefix);
+/**
+ * Decodes a given ss58 encoded address, then returns the string representation of the decoded array.
+ * @param ss58Address Address in ss58 encoded format
+ * @param ss58Prefix (Optional) ss58 prefix to use in decoding, defaults to Interlay/Kintsugi prefix value
+ * @returns The decoded address as string.
+ */
+export function ss58AddressToString(ss58Address: string, ss58Prefix?: number): string {
+    const prefix = ss58Prefix !== undefined ? ss58Prefix : address.interlay.prefix;
+    const decodedArray = decodeAddress(ss58Address, false, prefix);
     return u8aToString(decodedArray);
 }
 
-export function isSystemAccount(ss58Address: string, ss58Prefix: number): boolean {
-    const decodedAddress = decodeAccountAddress(ss58Address, ss58Prefix);
+/**
+ * Tells us if a given ss58 encoded address is a system account or not.
+ * @param ss58Address Address in ss58 encoded format
+ * @param ss58Prefix (Optional) ss58 prefix to use in decoding, defaults to Interlay/Kintsugi prefix value
+ * @returns true if the address is a system address, false otherwise
+ */
+export function isSystemAccount(ss58Address: string, ss58Prefix?: number): boolean {
+    const prefix = ss58Prefix !== undefined ? ss58Prefix : address.interlay.prefix;
+    const decodedAddress = ss58AddressToString(ss58Address, prefix);
     return String(decodeAddress).startsWith(MODL_PREFIX);
 }
