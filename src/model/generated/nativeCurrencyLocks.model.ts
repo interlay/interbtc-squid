@@ -3,7 +3,7 @@ import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, M
 import * as marshal from "./marshal"
 import {Height} from "./height.model"
 import {NativeCurrencyLockType} from "./_nativeCurrencyLockType"
-import {NativeToken} from "./_nativeToken"
+import {Token} from "./_token"
 
 @Entity_()
 export class NativeCurrencyLocks {
@@ -38,6 +38,6 @@ export class NativeCurrencyLocks {
     @Column_("text", {nullable: false})
     symbol!: string
 
-    @Column_("jsonb", {transformer: {to: obj => obj.toJSON(), from: obj => obj == null ? undefined : new NativeToken(undefined, obj)}, nullable: false})
-    token!: NativeToken
+    @Column_("varchar", {length: 4, nullable: false})
+    token!: Token
 }

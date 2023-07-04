@@ -452,5 +452,5 @@ type NativeCurrencyLocks @entity {
     amountHuman: BigDecimal!
     accountId: String!
     symbol: String!
-    token: NativeToken!
+    token: Token!
 }
