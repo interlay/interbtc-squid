@@ -38,9 +38,13 @@ import {
 
 import { CurrencyId_Token as CurrencyId_TokenV10 } from "../types/v10";
 import { encodeBtcAddress, getBtcNetwork } from "./bitcoinUtils";
+import { u8aToString } from "@polkadot/util";
+import { decodeAddress } from "@polkadot/util-crypto";
 
 const bitcoinNetwork: Network = getBtcNetwork(process.env.BITCOIN_NETWORK);
 const ss58format = process.env.SS58_CODEC || "substrate";
+
+const MODL_PREFIX = "modl";
 
 export const address = {
     interlay: ss58.codec(ss58format),
@@ -179,4 +183,14 @@ export function encodeVaultId(vaultId: VaultIdV1021000) {
     return `${addressStr}-${currencyToString(wrapped)}-${currencyToString(
         collateral
     )}`;
+}
+
+export function decodeAccountAddress(ss58Address: string, ss58Prefix: number): string {
+    const decodedArray = decodeAddress(ss58Address, false, ss58Prefix);
+    return u8aToString(decodedArray);
+}
+
+export function isSystemAccount(ss58Address: string, ss58Prefix: number): boolean {
+    const decodedAddress = decodeAccountAddress(ss58Address, ss58Prefix);
+    return String(decodeAddress).startsWith(MODL_PREFIX);
 }
