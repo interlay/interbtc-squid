@@ -435,3 +435,22 @@ type AccountLiquidityProvision @entity {
     accountId: String! @index
     type: LiquidityProvisionType! @index
 }
+
+enum NativeCurrencyLockType {
+    Locked,
+    Unlocked,
+    Reserved,
+    Unreserved
+}
+
+type NativeCurrencyLocks @entity {
+    id: ID!
+    height: Height!
+    timestamp: DateTime! @index
+    type: NativeCurrencyLockType! @index
+    amount: BigInt!
+    amountHuman: BigDecimal!
+    accountId: String!
+    symbol: String!
+    token: NativeToken!
+}
