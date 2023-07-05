@@ -449,5 +449,7 @@ type CumulativeCirculatingSupply @entity {
     amountLockedHuman: BigDecimal!
     amountReserved: BigInt!
     amountReservedHuman: BigDecimal!
+    amountSystemAccounts: BigInt!
+    amountSystemAccountsHuman: BigDecimal!
     currency: Currency!
 }

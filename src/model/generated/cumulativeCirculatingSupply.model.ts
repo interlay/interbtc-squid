@@ -48,6 +48,12 @@ export class CumulativeCirculatingSupply {
     @Column_("numeric", {transformer: marshal.bigdecimalTransformer, nullable: false})
     amountReservedHuman!: BigDecimal
 
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    amountSystemAccounts!: bigint
+
+    @Column_("numeric", {transformer: marshal.bigdecimalTransformer, nullable: false})
+    amountSystemAccountsHuman!: BigDecimal
+
     @Column_("jsonb", {transformer: {to: obj => obj.toJSON(), from: obj => obj == null ? undefined : fromJsonCurrency(obj)}, nullable: false})
     currency!: Currency
 }

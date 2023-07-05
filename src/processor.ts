@@ -41,6 +41,12 @@ import {
 } from "./mappings";
 import { deposit, withdraw } from "./mappings/event/escrow";
 import { tokensTransfer } from "./mappings/event/transfer";
+import { 
+    tokensLocked,
+    tokensUnlocked,
+    tokensReserved,
+    tokensUnreserved 
+} from "./mappings/event/tokens";
 import * as heights from "./mappings/utils/heights";
 import EntityBuffer from "./mappings/utils/entityBuffer";
 import { eventArgsData, cacheForeignAsset } from "./mappings/_utils";
@@ -101,6 +107,10 @@ const processor = new SubstrateBatchProcessor()
     .addEvent("Redeem.RedeemPeriodChange", eventArgsData)
     .addEvent("Security.UpdateActiveBlock", eventArgsData)
     .addEvent("Tokens.Transfer", eventArgsData)
+    .addEvent("Tokens.Locked", eventArgsData)
+    .addEvent("Tokens.Unlocked", eventArgsData)
+    .addEvent("Tokens.Reserved", eventArgsData)
+    .addEvent("Tokens.Unreserved", eventArgsData)
     .addEvent("Loans.WithdrawCollateral", eventArgsData)
     .addEvent("Loans.DepositCollateral", eventArgsData)
     .addEvent("Loans.DistributedSupplierReward", eventArgsData)
@@ -245,6 +255,26 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
         {
             filter: { name: "Tokens.Transfer" },
             mapping: tokensTransfer,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Tokens.Locked" },
+            mapping: tokensLocked,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Tokens.Unlocked" },
+            mapping: tokensUnlocked,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Tokens.Reserved" },
+            mapping: tokensReserved,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Tokens.Unreserved" },
+            mapping: tokensUnreserved,
             totalTime: 0,
         },
         {

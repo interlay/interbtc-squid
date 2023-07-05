@@ -5,6 +5,8 @@ import { LessThan } from "typeorm";
 import { cloneTimestampedEntity } from "./cloneHelpers";
 import { convertAmountToHuman } from "../_utils";
 import { BigDecimal } from "@subsquid/big-decimal";
+import { SubstrateBlock } from "@subsquid/substrate-processor";
+import { Ctx } from "../../processor";
 
 const INITIAL_SUPPLY = {
     INTR: 1_000_000_000n,
@@ -43,11 +45,12 @@ function findEntityBefore(
 async function calculateAndSetCirculatingSupply(
     entity: CumulativeCirculatingSupply
 ): Promise<CumulativeCirculatingSupply> {
+    const issued = entity.amountIssued;
     const locked = entity.amountLocked;
     const reserved = entity.amountReserved;
-    const issued = entity.amountIssued;
+    const system = entity.amountSystemAccounts;
 
-    const circulating = issued - locked - reserved;
+    const circulating = issued - locked - reserved - system;
     const circulatingHuman = await convertAmountToHuman(entity.currency, circulating);
 
     entity.amountCirculating = circulating;
@@ -120,6 +123,74 @@ async function fetchOrCreateCirculatingSupplyEntity(
         amountLocked: 0n,
         amountLockedHuman: BigDecimal(0.0),
         amountReserved: 0n,
-        amountReservedHuman: BigDecimal(0.0)
+        amountReservedHuman: BigDecimal(0.0),
+        amountSystemAccounts: 0n,
+        amountSystemAccountsHuman: BigDecimal(0.0)
     });
+}
+
+export enum UpdateType {
+    Locked,
+    Unlocked,
+    Reserved,
+    Unreserved,
+    SystemSupplyIncrease,
+    SystemSupplyDecrease
+}
+
+export async function updateCumulativeCirculatingSupply(
+    ctx: Ctx,
+    block: SubstrateBlock,
+    height: Height,
+    nativeToken: Token.KINT | Token.INTR,
+    amount: bigint,
+    type: UpdateType,
+    entityBuffer: EntityBuffer
+): Promise<CumulativeCirculatingSupply> {
+    const blockTimestamp = new Date(block.timestamp);
+
+    const entityId = `${nativeToken}_${blockTimestamp.getTime().toString()}`;
+
+    // fetch latest cumulative supply entity
+    const entity = await fetchOrCreateCirculatingSupplyEntity(
+        entityId,
+        nativeToken,
+        blockTimestamp,
+        height,
+        ctx.store,
+        entityBuffer
+    );
+
+    const nativeCurrency = new NativeToken({token: nativeToken});
+
+    switch(type) {
+        case UpdateType.Locked:
+            entity.amountLocked += amount;
+            entity.amountLockedHuman = await convertAmountToHuman(nativeCurrency, entity.amountLocked);
+            break;
+        case UpdateType.Unlocked:
+            entity.amountLocked -= amount;
+            entity.amountLockedHuman = await convertAmountToHuman(nativeCurrency, entity.amountLocked);
+            break;
+        case UpdateType.Reserved:
+            entity.amountReserved += amount;
+            entity.amountReservedHuman = await convertAmountToHuman(nativeCurrency, entity.amountReserved);
+            break;
+        case UpdateType.Unreserved:
+            entity.amountReserved -= amount;
+            entity.amountReservedHuman = await convertAmountToHuman(nativeCurrency, entity.amountReserved);
+            break;
+        case UpdateType.SystemSupplyIncrease:
+            entity.amountSystemAccounts += amount;
+            entity.amountSystemAccountsHuman = await convertAmountToHuman(nativeCurrency, entity.amountSystemAccounts);
+            break;
+        case UpdateType.SystemSupplyDecrease:
+            entity.amountSystemAccounts -= amount;
+            entity.amountSystemAccountsHuman = await convertAmountToHuman(nativeCurrency, entity.amountSystemAccounts);
+            break;
+        default:
+            ctx.log.warn(`Unhandled update type in updateCumulativeCirculatingSupply: ${type}`);
+    }
+
+    return calculateAndSetCirculatingSupply(entity);
 }
