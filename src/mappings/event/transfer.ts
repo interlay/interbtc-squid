@@ -1,5 +1,5 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
-import { Currency, Transfer } from "../../model";
+import { CumulativeCirculatingSupply, Currency, Transfer } from "../../model";
 import { Ctx, EventItem } from "../../processor";
 import { TokensTransferEvent } from "../../types/events";
 import { CurrencyId_Token as CurrencyId_Token_V6 } from "../../types/v6";
@@ -8,10 +8,12 @@ import { CurrencyId_Token as CurrencyId_Token_V15 } from "../../types/v15";
 import { CurrencyId as CurrencyId_V17 } from "../../types/v17";
 import { CurrencyId as CurrencyId_V1020000 } from "../../types/v1020000";
 import { CurrencyId as CurrencyId_V1021000 } from "../../types/v1021000";
-import { address, currencyId, legacyCurrencyId } from "../encoding";
+import { address, currencyId, isSystemAddress, legacyCurrencyId } from "../encoding";
 import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
 import { convertAmountToHuman } from "../_utils";
+import { getNativeCurrency } from "../utils/nativeCurrency";
+import { UpdateType, updateCumulativeCirculatingSupply } from "../utils/cumulativeCirculatingSupply";
 
 export async function tokensTransfer(
     ctx: Ctx,
@@ -68,17 +70,54 @@ export async function tokensTransfer(
     const height = await blockToHeight(ctx, block.height, "TokensTransfer");
     const amountHuman = await convertAmountToHuman(currency, amount);
 
+    const fromAccount = address.interlay.encode(from);
+    const toAccount = address.interlay.encode(to);
+
     entityBuffer.pushEntity(
         Transfer.name,
         new Transfer({
             id: item.event.id,
             height,
             timestamp: new Date(block.timestamp),
-            from: address.interlay.encode(from),
-            to: address.interlay.encode(to),
+            from: fromAccount,
+            to: toAccount,
             token: currency,
             amount,
             amountHuman,
         })
     );
+
+    // if the transfer is in the native currency and to/from a system account, 
+    // we also want to update circulating supply counters
+    const nativeCurrency = getNativeCurrency();
+    const eventIsInNativeCurrency = eventCcyId.__kind === "Token" && eventCcyId.value.__kind === nativeCurrency;
+
+    if (!eventIsInNativeCurrency) {
+        return;
+    }
+
+    const isFromSysAccount = isSystemAddress(fromAccount);
+    const isToSysAccount = isSystemAddress(toAccount);
+    
+    if (isFromSysAccount === isToSysAccount) {
+        // poor man's !XOR:
+        // true === true: both to and from are system accounts, 
+        // false === false: neither is a system account
+        // in either case, nothing else to do because circulating supply doesn't change
+        return;
+    }
+        
+    const updateType = isFromSysAccount ? UpdateType.SystemSupplyDecrease : UpdateType.SystemSupplyIncrease;
+
+    const circulatingSupplyEntity = await updateCumulativeCirculatingSupply(
+        ctx,
+        block,
+        height,
+        nativeCurrency,
+        amount,
+        updateType,
+        entityBuffer
+    );
+
+    entityBuffer.pushEntity(CumulativeCirculatingSupply.name, circulatingSupplyEntity)
 }
