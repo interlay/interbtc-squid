@@ -54,10 +54,6 @@
         "DexGeneral.PairStatuses",
         "DexStable.Pools",
         "Issue.IssuePeriod",
-        "Redeem.RedeemPeriod",
-        "Tokens.TotalIssuance"
-    ],
-    "constants": [
-        "Currency.GetNativeCurrencyId"
+        "Redeem.RedeemPeriod"
     ]
 }
