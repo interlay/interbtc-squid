@@ -436,21 +436,18 @@ type AccountLiquidityProvision @entity {
     type: LiquidityProvisionType! @index
 }
 
-enum NativeCurrencyLockType {
-    Locked,
-    Unlocked,
-    Reserved,
-    Unreserved
-}
-
-type NativeCurrencyLocks @entity {
+type CumulativeCirculatingSupply @entity {
     id: ID!
     height: Height!
-    timestamp: DateTime! @index
-    type: NativeCurrencyLockType! @index
-    amount: BigInt!
-    amountHuman: BigDecimal!
-    accountId: String!
+    tillTimestamp: DateTime! @index
     symbol: String!
-    token: Token!
+    amountCirculating: BigInt!
+    amountCirculatingHuman: BigDecimal!
+    amountIssued: BigInt!
+    amountIssuedHuman: BigDecimal!
+    amountLocked: BigInt!
+    amountLockedHuman: BigDecimal!
+    amountReserved: BigInt!
+    amountReservedHuman: BigDecimal!
+    currency: Currency!
 }
