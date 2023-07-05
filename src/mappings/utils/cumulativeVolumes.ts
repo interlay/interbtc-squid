@@ -1,5 +1,5 @@
 import { Store } from "@subsquid/typeorm-store";
-import { isEqual, cloneDeep } from "lodash";
+import { isEqual } from "lodash";
 import { Equal, LessThan, LessThanOrEqual } from "typeorm";
 import {
     CumulativeDexTradeCount,
@@ -19,6 +19,7 @@ import { convertAmountToHuman } from "../_utils";
 import EntityBuffer from "./entityBuffer";
 import { inferGeneralPoolId } from "./pools";
 import { CurrencyId } from "../../types/v1021000";
+import { cloneTimestampedEntity } from "./cloneHelpers";
 
 function getLatestCurrencyPairCumulativeVolume(
     cumulativeVolumes: CumulativeVolumePerCurrencyPair[],
@@ -299,25 +300,6 @@ function findLatestTimestampedEntityBefore<
             : current;
     },
     undefined);
-}
-
-function cloneTimestampedEntity<
-    T extends CumulativeDexTradingVolume | 
-    CumulativeDexTradingVolumePerPool | 
-    CumulativeDexTradingVolumePerAccount |
-    CumulativeDexTradeCount |
-    CumulativeDexTradeCountPerAccount
->(
-    entity: T,
-    entityId: string,
-    tillTimestamp: Date
-): T {
-    // deep clone to preserve existing amounts
-    const clone = cloneDeep(entity);
-    // change id and tillTimestamp
-    clone.id = entityId;
-    clone.tillTimestamp = tillTimestamp;
-    return clone;
 }
 
 async function fetchOrCreateTotalVolumeEntity(
