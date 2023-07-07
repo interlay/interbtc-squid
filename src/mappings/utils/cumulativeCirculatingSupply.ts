@@ -8,9 +8,10 @@ import { BigDecimal } from "@subsquid/big-decimal";
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { Ctx } from "../../processor";
 
+// initial supply in atomic units
 const INITIAL_SUPPLY = {
-    INTR: 1_000_000_000n,
-    KINT: 10_000_000n
+    INTR: 10_000_000_000_000_000_000n,
+    KINT: 10_000_000_000_000_000_000n
 }
 
 function findEntityBefore(
