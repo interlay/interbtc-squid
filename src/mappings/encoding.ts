@@ -206,5 +206,5 @@ export function ss58AddressToString(ss58Address: string, ss58Prefix?: number): s
 export function isSystemAddress(ss58Address: string, ss58Prefix?: number): boolean {
     const prefix = ss58Prefix !== undefined ? ss58Prefix : address.interlay.prefix;
     const decodedAddress = ss58AddressToString(ss58Address, prefix);
-    return String(decodeAddress).startsWith(MODL_PREFIX);
+    return String(decodedAddress).startsWith(MODL_PREFIX);
 }
