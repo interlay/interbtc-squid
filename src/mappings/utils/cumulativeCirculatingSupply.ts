@@ -43,15 +43,16 @@ function findEntityBefore(
     undefined);
 }
 
-async function calculateAndSetCirculatingSupply(
+async function recalculateAndSetCirculatingSupply(
     entity: CumulativeCirculatingSupply
 ): Promise<CumulativeCirculatingSupply> {
+    const prevCirculating = entity.amountCirculating;
     const issued = entity.amountIssued;
     const locked = entity.amountLocked;
     const reserved = entity.amountReserved;
     const system = entity.amountSystemAccounts;
 
-    const circulating = issued - locked - reserved - system;
+    const circulating = prevCirculating - locked - reserved - system;
     const circulatingHuman = await convertAmountToHuman(entity.currency, circulating);
 
     entity.amountCirculating = circulating;
@@ -193,5 +194,5 @@ export async function updateCumulativeCirculatingSupply(
             ctx.log.warn(`Unhandled update type in updateCumulativeCirculatingSupply: ${type}`);
     }
 
-    return calculateAndSetCirculatingSupply(entity);
+    return recalculateAndSetCirculatingSupply(entity);
 }
