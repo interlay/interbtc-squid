@@ -46,12 +46,11 @@ function findEntityBefore(
 async function recalculateAndSetCirculatingSupply(
     entity: CumulativeCirculatingSupply
 ): Promise<CumulativeCirculatingSupply> {
-    const prevCirculating = entity.amountCirculating;
     const locked = entity.amountLocked;
     const reserved = entity.amountReserved;
     const system = entity.amountSystemAccounts;
 
-    const circulating = prevCirculating - locked - reserved - system;
+    const circulating = 0n - locked - reserved - system;
     const circulatingHuman = await convertAmountToHuman(entity.currency, circulating);
 
     entity.amountCirculating = circulating;
