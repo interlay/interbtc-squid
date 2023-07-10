@@ -39,12 +39,20 @@ import {
 import { CurrencyId_Token as CurrencyId_TokenV10 } from "../types/v10";
 import { encodeBtcAddress, getBtcNetwork } from "./bitcoinUtils";
 import { u8aToString } from "@polkadot/util";
-import { decodeAddress } from "@polkadot/util-crypto";
+import { decodeAddress, encodeAddress } from "@polkadot/util-crypto";
 
 const bitcoinNetwork: Network = getBtcNetwork(process.env.BITCOIN_NETWORK);
 const ss58format = process.env.SS58_CODEC || "substrate";
 
 const MODL_PREFIX = "modl";
+
+// multi-sig accounts to be considered as system accounts, in substrate native format
+const SYSTEM_MULTISIG_ACCOUNTS = [
+    "5Fhn5mX4JGeDxikaxkJZYRYjxxbZ7DjxS5f9hsAVAzGXUNyG",
+    "5GgS9vsF77Y7p2wZLEW1CW7vZpq8DSoXCf2sTdBoB51jpuan",
+    "5GDzXqLxGiJV6A7mDp1SGRV6DB8xnnwauMEwR7PL4PW122FM",
+    "5FgimgwW2s4V14NniQ6Nt145Sksb83xohW5LkMXYnMw3Racp",
+];
 
 export const address = {
     interlay: ss58.codec(ss58format),
@@ -205,6 +213,15 @@ export function ss58AddressToString(ss58Address: string, ss58Prefix?: number): s
  */
 export function isSystemAddress(ss58Address: string, ss58Prefix?: number): boolean {
     const prefix = ss58Prefix !== undefined ? ss58Prefix : address.interlay.prefix;
-    const decodedAddress = ss58AddressToString(ss58Address, prefix);
-    return String(decodedAddress).startsWith(MODL_PREFIX);
+
+    const decodedArray = decodeAddress(ss58Address, false, prefix);
+    const decodedAddress = u8aToString(decodedArray);
+    const isModlAccount = String(decodedAddress).startsWith(MODL_PREFIX);
+    if (isModlAccount) {
+        return true;
+    }
+
+    // reencode to substrate native format
+    const substrateNativeAddress = encodeAddress(decodedArray);
+    return SYSTEM_MULTISIG_ACCOUNTS.includes(substrateNativeAddress);
 }
