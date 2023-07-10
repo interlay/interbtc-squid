@@ -47,7 +47,6 @@ async function recalculateAndSetCirculatingSupply(
     entity: CumulativeCirculatingSupply
 ): Promise<CumulativeCirculatingSupply> {
     const prevCirculating = entity.amountCirculating;
-    const issued = entity.amountIssued;
     const locked = entity.amountLocked;
     const reserved = entity.amountReserved;
     const system = entity.amountSystemAccounts;
