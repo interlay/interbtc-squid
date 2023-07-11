@@ -45,7 +45,9 @@ import {
     tokensLocked,
     tokensUnlocked,
     tokensReserved,
-    tokensUnreserved 
+    tokensUnreserved, 
+    tokensLockRemoved,
+    tokensLockSet
 } from "./mappings/event/tokens";
 import * as heights from "./mappings/utils/heights";
 import EntityBuffer from "./mappings/utils/entityBuffer";
@@ -109,6 +111,8 @@ const processor = new SubstrateBatchProcessor()
     .addEvent("Tokens.Transfer", eventArgsData)
     .addEvent("Tokens.Locked", eventArgsData)
     .addEvent("Tokens.Unlocked", eventArgsData)
+    .addEvent("Tokens.LockSet", eventArgsData)
+    .addEvent("Tokens.LockRemoved", eventArgsData)
     .addEvent("Tokens.Reserved", eventArgsData)
     .addEvent("Tokens.Unreserved", eventArgsData)
     .addEvent("Loans.WithdrawCollateral", eventArgsData)
@@ -265,6 +269,16 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
         {
             filter: { name: "Tokens.Unlocked" },
             mapping: tokensUnlocked,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Tokens.LockSet" },
+            mapping: tokensLockSet,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Tokens.LockRemoved" },
+            mapping: tokensLockRemoved,
             totalTime: 0,
         },
         {

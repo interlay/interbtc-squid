@@ -40,6 +40,8 @@
         "Tokens.Transfer",
         "Tokens.Locked",
         "Tokens.Unlocked",
+        "Tokens.LockSet",
+        "Tokens.LockRemoved",
         "Tokens.Reserved",
         "Tokens.Unreserved",
         "VaultRegistry.DecreaseLockedCollateral",
