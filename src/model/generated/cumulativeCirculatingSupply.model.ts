@@ -31,10 +31,10 @@ export class CumulativeCirculatingSupply {
     amountCirculatingHuman!: BigDecimal
 
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-    amountIssued!: bigint
+    totalSupply!: bigint
 
     @Column_("numeric", {transformer: marshal.bigdecimalTransformer, nullable: false})
-    amountIssuedHuman!: BigDecimal
+    totalSupplyHuman!: BigDecimal
 
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
     amountLocked!: bigint

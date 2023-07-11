@@ -443,8 +443,8 @@ type CumulativeCirculatingSupply @entity {
     symbol: String!
     amountCirculating: BigInt!
     amountCirculatingHuman: BigDecimal!
-    amountIssued: BigInt!
-    amountIssuedHuman: BigDecimal!
+    totalSupply: BigInt!
+    totalSupplyHuman: BigDecimal!
     amountLocked: BigInt!
     amountLockedHuman: BigDecimal!
     amountReserved: BigInt!

@@ -103,11 +103,11 @@ async function fetchOrCreateCirculatingSupplyEntity(
     }
 
     // not found in buffer or store, create new empty one, with only initialized issued amounts set
-    const amountIssued = nativeToken === Token.KINT ? INITIAL_SUPPLY.KINT : INITIAL_SUPPLY.INTR;
+    const totalSupply = nativeToken === Token.KINT ? INITIAL_SUPPLY.KINT : INITIAL_SUPPLY.INTR;
 
     // convert Token to NativeToken for convertAmountToHuman helper method
     const tokenAsCurrency = new NativeToken({token: nativeToken});
-    const amountIssuedHuman = await convertAmountToHuman(tokenAsCurrency, amountIssued);
+    const totalSupplyHuman = await convertAmountToHuman(tokenAsCurrency, totalSupply);
 
     return new CumulativeCirculatingSupply({
         id: entityId,
@@ -118,8 +118,8 @@ async function fetchOrCreateCirculatingSupplyEntity(
         // the caller needs to recalculate circulating supply
         amountCirculating: 0n,
         amountCirculatingHuman: BigDecimal(0.0),
-        amountIssued,
-        amountIssuedHuman,
+        totalSupply,
+        totalSupplyHuman,
         amountLocked: 0n,
         amountLockedHuman: BigDecimal(0.0),
         amountReserved: 0n,
