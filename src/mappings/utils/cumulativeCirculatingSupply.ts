@@ -1,6 +1,6 @@
 import { Store } from "@subsquid/typeorm-store";
 import EntityBuffer from "./entityBuffer";
-import { CumulativeCirculatingSupply, Height, NativeToken, Token } from "../../model";
+import { CumulativeCirculatingSupply, Height, NativeToken, Token, TokenLock } from "../../model";
 import { LessThan } from "typeorm";
 import { cloneTimestampedEntity } from "./cloneHelpers";
 import { convertAmountToHuman } from "../_utils";
@@ -127,6 +127,22 @@ async function fetchOrCreateCirculatingSupplyEntity(
         amountSystemAccounts: 0n,
         amountSystemAccountsHuman: BigDecimal(0.0)
     });
+}
+
+export async function fetchTokenLockIfExists(
+    entityBuffer: EntityBuffer,
+    store: Store,
+    id: string
+): Promise<TokenLock | undefined> {
+    // first: look in entity buffer for locked entity
+    const maybeEntity = entityBuffer.getBufferedEntityBy(TokenLock.name, id);
+
+    if (maybeEntity !== undefined) {
+        return maybeEntity as TokenLock;
+    }
+
+    // if not found in buffer, try to find it in the data store
+    return await store.get(TokenLock, id);
 }
 
 export enum UpdateType {

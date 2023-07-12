@@ -1554,35 +1554,6 @@ export class TokensLockSetEvent {
     }
 }
 
-export class TokensLockedEvent {
-    private readonly _chain: Chain
-    private readonly event: Event
-
-    constructor(ctx: EventContext)
-    constructor(ctx: ChainContext, event: Event)
-    constructor(ctx: EventContext, event?: Event) {
-        event = event || ctx.event
-        assert(event.name === 'Tokens.Locked')
-        this._chain = ctx._chain
-        this.event = event
-    }
-
-    /**
-     * Some free balance was locked.
-     */
-    get isV1024000(): boolean {
-        return this._chain.getEventHash('Tokens.Locked') === '33084fa970b28430437a706c1b3e57e4a1a1f2ec53411288d3cec096fd75c0cc'
-    }
-
-    /**
-     * Some free balance was locked.
-     */
-    get asV1024000(): {currencyId: v1024000.CurrencyId, who: Uint8Array, amount: bigint} {
-        assert(this.isV1024000)
-        return this._chain.decodeEvent(this.event)
-    }
-}
-
 export class TokensReservedEvent {
     private readonly _chain: Chain
     private readonly event: Event
@@ -1821,35 +1792,6 @@ export class TokensTransferEvent {
      */
     get asV1021000(): {currencyId: v1021000.CurrencyId, from: Uint8Array, to: Uint8Array, amount: bigint} {
         assert(this.isV1021000)
-        return this._chain.decodeEvent(this.event)
-    }
-}
-
-export class TokensUnlockedEvent {
-    private readonly _chain: Chain
-    private readonly event: Event
-
-    constructor(ctx: EventContext)
-    constructor(ctx: ChainContext, event: Event)
-    constructor(ctx: EventContext, event?: Event) {
-        event = event || ctx.event
-        assert(event.name === 'Tokens.Unlocked')
-        this._chain = ctx._chain
-        this.event = event
-    }
-
-    /**
-     * Some locked balance was freed.
-     */
-    get isV1024000(): boolean {
-        return this._chain.getEventHash('Tokens.Unlocked') === '33084fa970b28430437a706c1b3e57e4a1a1f2ec53411288d3cec096fd75c0cc'
-    }
-
-    /**
-     * Some locked balance was freed.
-     */
-    get asV1024000(): {currencyId: v1024000.CurrencyId, who: Uint8Array, amount: bigint} {
-        assert(this.isV1024000)
         return this._chain.decodeEvent(this.event)
     }
 }

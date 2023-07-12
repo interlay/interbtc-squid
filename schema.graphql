@@ -454,21 +454,13 @@ type CumulativeCirculatingSupply @entity {
     currency: Currency!
 }
 
-enum TokenLockType {
-    Locked,
-    Removed
-}
-
-type TokenLock @entity @index(fields: ["account", "lockId", "status"]) {
+type TokenLock @entity {
     id: ID!
     account: String!
     lockId: String!
-    status: TokenLockType!
     amount: BigInt!
     currency: Currency!
     symbol: String!
     heightSet: Height!
-    heightRemoved: Height
     timestampSet: DateTime!
-    timestampRemoved: DateTime
 }

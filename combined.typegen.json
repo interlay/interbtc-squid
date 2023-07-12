@@ -38,8 +38,6 @@
         "Redeem.RequestRedeem",
         "Security.UpdateActiveBlock",
         "Tokens.Transfer",
-        "Tokens.Locked",
-        "Tokens.Unlocked",
         "Tokens.LockSet",
         "Tokens.LockRemoved",
         "Tokens.Reserved",

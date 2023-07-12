@@ -42,8 +42,6 @@ import {
 import { deposit, withdraw } from "./mappings/event/escrow";
 import { tokensTransfer } from "./mappings/event/transfer";
 import { 
-    tokensLocked,
-    tokensUnlocked,
     tokensReserved,
     tokensUnreserved, 
     tokensLockRemoved,
@@ -109,8 +107,6 @@ const processor = new SubstrateBatchProcessor()
     .addEvent("Redeem.RedeemPeriodChange", eventArgsData)
     .addEvent("Security.UpdateActiveBlock", eventArgsData)
     .addEvent("Tokens.Transfer", eventArgsData)
-    .addEvent("Tokens.Locked", eventArgsData)
-    .addEvent("Tokens.Unlocked", eventArgsData)
     .addEvent("Tokens.LockSet", eventArgsData)
     .addEvent("Tokens.LockRemoved", eventArgsData)
     .addEvent("Tokens.Reserved", eventArgsData)
@@ -259,16 +255,6 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
         {
             filter: { name: "Tokens.Transfer" },
             mapping: tokensTransfer,
-            totalTime: 0,
-        },
-        {
-            filter: { name: "Tokens.Locked" },
-            mapping: tokensLocked,
-            totalTime: 0,
-        },
-        {
-            filter: { name: "Tokens.Unlocked" },
-            mapping: tokensUnlocked,
             totalTime: 0,
         },
         {
