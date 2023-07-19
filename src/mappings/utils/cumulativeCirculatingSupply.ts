@@ -1,6 +1,6 @@
 import { Store } from "@subsquid/typeorm-store";
 import EntityBuffer from "./entityBuffer";
-import { CumulativeCirculatingSupply, Height, NativeToken, Token, TokenLock } from "../../model";
+import { CumulativeCirculatingSupply, Height, NativeToken, Token } from "../../model";
 import { LessThan } from "typeorm";
 import { cloneTimestampedEntity } from "./cloneHelpers";
 import { convertAmountToHuman } from "../_utils";
@@ -81,7 +81,9 @@ async function fetchOrCreateCirculatingSupplyEntity(
     maybeEntity = findEntityBefore(bufferedEntities, tillTimestamp);
 
     if (maybeEntity !== undefined) {
-        return cloneTimestampedEntity(maybeEntity, entityId, tillTimestamp);
+        const clone = cloneTimestampedEntity(maybeEntity, entityId, tillTimestamp);
+        clone.height = height;
+        return clone;
     }
 
     // not found in buffer, try store next
@@ -99,7 +101,9 @@ async function fetchOrCreateCirculatingSupplyEntity(
     });
 
     if (maybeEntity) {
-        return cloneTimestampedEntity(maybeEntity, entityId, tillTimestamp);
+        const clone = cloneTimestampedEntity(maybeEntity, entityId, tillTimestamp);
+        clone.height = height;
+        return clone;
     }
 
     // not found in buffer or store, create new empty one, with only initialized issued amounts set
@@ -129,22 +133,6 @@ async function fetchOrCreateCirculatingSupplyEntity(
     });
 }
 
-export async function fetchTokenLockIfExists(
-    entityBuffer: EntityBuffer,
-    store: Store,
-    id: string
-): Promise<TokenLock | undefined> {
-    // first: look in entity buffer for locked entity
-    const maybeEntity = entityBuffer.getBufferedEntityBy(TokenLock.name, id);
-
-    if (maybeEntity !== undefined) {
-        return maybeEntity as TokenLock;
-    }
-
-    // if not found in buffer, try to find it in the data store
-    return await store.get(TokenLock, id);
-}
-
 export enum UpdateType {
     Locked,
     Unlocked,
@@ -165,7 +153,7 @@ export async function updateCumulativeCirculatingSupply(
 ): Promise<CumulativeCirculatingSupply> {
     const blockTimestamp = new Date(block.timestamp);
 
-    const entityId = `${nativeToken}_${blockTimestamp.getTime().toString()}`;
+    const entityId = `${nativeToken}_${block.height}`;
 
     // fetch latest cumulative supply entity
     const entity = await fetchOrCreateCirculatingSupplyEntity(

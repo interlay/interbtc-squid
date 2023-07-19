@@ -453,14 +453,3 @@ type CumulativeCirculatingSupply @entity {
     amountSystemAccountsHuman: BigDecimal!
     currency: Currency!
 }
-
-type TokenLock @entity {
-    id: ID!
-    account: String!
-    lockId: String!
-    amount: BigInt!
-    currency: Currency!
-    symbol: String!
-    heightSet: Height!
-    timestampSet: DateTime!
-}

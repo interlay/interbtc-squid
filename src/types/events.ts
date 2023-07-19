@@ -1436,7 +1436,7 @@ export class SecurityUpdateActiveBlockEvent {
     }
 }
 
-export class TokensLockRemovedEvent {
+export class TokensLockedEvent {
     private readonly _chain: Chain
     private readonly event: Event
 
@@ -1444,112 +1444,23 @@ export class TokensLockRemovedEvent {
     constructor(ctx: ChainContext, event: Event)
     constructor(ctx: EventContext, event?: Event) {
         event = event || ctx.event
-        assert(event.name === 'Tokens.LockRemoved')
+        assert(event.name === 'Tokens.Locked')
         this._chain = ctx._chain
         this.event = event
     }
 
     /**
-     * Some locked funds were unlocked
+     * Some free balance was locked.
      */
-    get isV17(): boolean {
-        return this._chain.getEventHash('Tokens.LockRemoved') === 'f2bcc98a209bc97d939581920a46a1f39f872e507aa6f1bdf009e7bc4a1bd379'
+    get isV1024000(): boolean {
+        return this._chain.getEventHash('Tokens.Locked') === '33084fa970b28430437a706c1b3e57e4a1a1f2ec53411288d3cec096fd75c0cc'
     }
 
     /**
-     * Some locked funds were unlocked
+     * Some free balance was locked.
      */
-    get asV17(): {lockId: Uint8Array, currencyId: v17.CurrencyId, who: Uint8Array} {
-        assert(this.isV17)
-        return this._chain.decodeEvent(this.event)
-    }
-
-    /**
-     * Some locked funds were unlocked
-     */
-    get isV1020000(): boolean {
-        return this._chain.getEventHash('Tokens.LockRemoved') === '13b80ee804bf88c26486bdd390764aae416b4f3561ec9136a50f5884e33c88da'
-    }
-
-    /**
-     * Some locked funds were unlocked
-     */
-    get asV1020000(): {lockId: Uint8Array, currencyId: v1020000.CurrencyId, who: Uint8Array} {
-        assert(this.isV1020000)
-        return this._chain.decodeEvent(this.event)
-    }
-
-    /**
-     * Some locked funds were unlocked
-     */
-    get isV1021000(): boolean {
-        return this._chain.getEventHash('Tokens.LockRemoved') === '3f11c481701c6c93fb32b004e7662fe17a3dfb6fb57de6df7bcafa7955fba259'
-    }
-
-    /**
-     * Some locked funds were unlocked
-     */
-    get asV1021000(): {lockId: Uint8Array, currencyId: v1021000.CurrencyId, who: Uint8Array} {
-        assert(this.isV1021000)
-        return this._chain.decodeEvent(this.event)
-    }
-}
-
-export class TokensLockSetEvent {
-    private readonly _chain: Chain
-    private readonly event: Event
-
-    constructor(ctx: EventContext)
-    constructor(ctx: ChainContext, event: Event)
-    constructor(ctx: EventContext, event?: Event) {
-        event = event || ctx.event
-        assert(event.name === 'Tokens.LockSet')
-        this._chain = ctx._chain
-        this.event = event
-    }
-
-    /**
-     * Some funds are locked
-     */
-    get isV17(): boolean {
-        return this._chain.getEventHash('Tokens.LockSet') === 'b171497cb444cbc254408ea1be3655888c51e065ed2aea68efba775ca61a9fb3'
-    }
-
-    /**
-     * Some funds are locked
-     */
-    get asV17(): {lockId: Uint8Array, currencyId: v17.CurrencyId, who: Uint8Array, amount: bigint} {
-        assert(this.isV17)
-        return this._chain.decodeEvent(this.event)
-    }
-
-    /**
-     * Some funds are locked
-     */
-    get isV1020000(): boolean {
-        return this._chain.getEventHash('Tokens.LockSet') === '55ac214418d37fbd6ec876f94f3a4969ab4aae27ea7b18504a33fb882189d7da'
-    }
-
-    /**
-     * Some funds are locked
-     */
-    get asV1020000(): {lockId: Uint8Array, currencyId: v1020000.CurrencyId, who: Uint8Array, amount: bigint} {
-        assert(this.isV1020000)
-        return this._chain.decodeEvent(this.event)
-    }
-
-    /**
-     * Some funds are locked
-     */
-    get isV1021000(): boolean {
-        return this._chain.getEventHash('Tokens.LockSet') === '0c733ae58c4dbda61c9e2b472b25bc2b93280395c6f4ba7c88e1bf6e0b7ee962'
-    }
-
-    /**
-     * Some funds are locked
-     */
-    get asV1021000(): {lockId: Uint8Array, currencyId: v1021000.CurrencyId, who: Uint8Array, amount: bigint} {
-        assert(this.isV1021000)
+    get asV1024000(): {currencyId: v1024000.CurrencyId, who: Uint8Array, amount: bigint} {
+        assert(this.isV1024000)
         return this._chain.decodeEvent(this.event)
     }
 }
@@ -1792,6 +1703,35 @@ export class TokensTransferEvent {
      */
     get asV1021000(): {currencyId: v1021000.CurrencyId, from: Uint8Array, to: Uint8Array, amount: bigint} {
         assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
+export class TokensUnlockedEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'Tokens.Unlocked')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * Some locked balance was freed.
+     */
+    get isV1024000(): boolean {
+        return this._chain.getEventHash('Tokens.Unlocked') === '33084fa970b28430437a706c1b3e57e4a1a1f2ec53411288d3cec096fd75c0cc'
+    }
+
+    /**
+     * Some locked balance was freed.
+     */
+    get asV1024000(): {currencyId: v1024000.CurrencyId, who: Uint8Array, amount: bigint} {
+        assert(this.isV1024000)
         return this._chain.decodeEvent(this.event)
     }
 }
