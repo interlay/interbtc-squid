@@ -3,6 +3,7 @@ import {
     BatchProcessorCallItem,
     BatchProcessorEventItem,
     BatchProcessorItem,
+    BlockRangeOption,
     SubstrateBatchProcessor,
     SubstrateBlock,
 } from "@subsquid/substrate-processor";
@@ -66,6 +67,8 @@ import {
     accrueInterest, 
     liquidateLoan
 } from "./mappings/event/loans";
+import { getNativeCurrency } from "./mappings/utils/nativeCurrency";
+import { Token } from "./model";
 
 const archive = process.env.ARCHIVE_ENDPOINT;
 assert(!!archive);
@@ -79,6 +82,24 @@ const eventArgsData: eventArgsData = {
         event: { args: true },
     },
 };
+
+const getCirculatingSupplyProcessRange = (): BlockRangeOption => {
+    const isTestnet = process.env.BITCOIN_NETWORK?.toLowerCase() !== "mainnet";
+    if (isTestnet) {
+        return {};
+    }
+    
+    const nativeCurrency = getNativeCurrency();
+    return {
+        range: {
+            from: nativeCurrency === Token.KINT ? 3250849 : 2959964,
+        },
+    };
+};
+
+// some ciculating supply values are hardcoded for a specific starting point (height),
+// only process events after that point.
+const circulatingSupplyArgs = {...eventArgsData, ...getCirculatingSupplyProcessRange()};
 
 // initialise a cache with all the foreign assets
 cacheForeignAsset();
@@ -106,11 +127,11 @@ const processor = new SubstrateBatchProcessor()
     .addEvent("Redeem.RequestRedeem", eventArgsData)
     .addEvent("Redeem.RedeemPeriodChange", eventArgsData)
     .addEvent("Security.UpdateActiveBlock", eventArgsData)
-    .addEvent("Tokens.Transfer", eventArgsData)
-    .addEvent("Tokens.Locked", eventArgsData)
-    .addEvent("Tokens.Unlocked", eventArgsData)
-    .addEvent("Tokens.Reserved", eventArgsData)
-    .addEvent("Tokens.Unreserved", eventArgsData)
+    .addEvent("Tokens.Transfer", circulatingSupplyArgs)
+    .addEvent("Tokens.Locked", circulatingSupplyArgs)
+    .addEvent("Tokens.Unlocked", circulatingSupplyArgs)
+    .addEvent("Tokens.Reserved", circulatingSupplyArgs)
+    .addEvent("Tokens.Unreserved", circulatingSupplyArgs)
     .addEvent("Loans.WithdrawCollateral", eventArgsData)
     .addEvent("Loans.DepositCollateral", eventArgsData)
     .addEvent("Loans.DistributedSupplierReward", eventArgsData)
