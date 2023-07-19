@@ -144,7 +144,7 @@ export async function tokensUnreserved(
         height,
         nativeCurrency,
         amount,
-        UpdateType.Reserved,
+        UpdateType.Unreserved,
         entityBuffer
     );
 
