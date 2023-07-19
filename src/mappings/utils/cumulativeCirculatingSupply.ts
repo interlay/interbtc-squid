@@ -10,8 +10,12 @@ import { Ctx } from "../../processor";
 
 // initial supply in atomic units
 const INITIAL_SUPPLY = {
-    INTR: 10_000_000_000_000_000_000n,
-    KINT: 10_000_000_000_000_000_000n
+    INTR: 9_999_999_890_005_921_599n,
+    KINT: 9_999_748_814_073_161_340n
+};
+
+function isMainnet(): boolean {
+    return process.env.BITCOIN_NETWORK?.toLowerCase() === "mainnet";
 }
 
 function findEntityBefore(
@@ -46,17 +50,81 @@ function findEntityBefore(
 async function recalculateAndSetCirculatingSupply(
     entity: CumulativeCirculatingSupply
 ): Promise<CumulativeCirculatingSupply> {
+    const issuance = entity.totalSupply;
     const locked = entity.amountLocked;
     const reserved = entity.amountReserved;
     const system = entity.amountSystemAccounts;
 
-    const circulating = 0n - locked - reserved - system;
+    const circulating = issuance - locked - reserved - system;
     const circulatingHuman = await convertAmountToHuman(entity.currency, circulating);
 
     entity.amountCirculating = circulating;
     entity.amountCirculatingHuman = circulatingHuman;
     return entity;
 }
+
+async function getInitialSupplyValues(
+    nativeToken: Token.KINT | Token.INTR,
+): Promise<Partial<CumulativeCirculatingSupply>> {
+    const totalSupply = nativeToken === Token.KINT ? INITIAL_SUPPLY.KINT : INITIAL_SUPPLY.INTR;
+    // convert Token to NativeToken for convertAmountToHuman helper method
+    const currency = new NativeToken({token: nativeToken});
+    const totalSupplyHuman = await convertAmountToHuman(currency, totalSupply);
+
+    const baseInfo = {
+        symbol: nativeToken,
+        currency,
+    };
+    
+    if (!isMainnet()) {
+        // testnet values, just initialize all at zero
+        return {
+            ...baseInfo,
+            amountCirculating: 0n,
+            amountCirculatingHuman: BigDecimal(0.0),
+            totalSupply,
+            totalSupplyHuman,
+            amountLocked: 0n,
+            amountLockedHuman: BigDecimal(0.0),
+            amountReserved: 0n,
+            amountReservedHuman: BigDecimal(0.0),
+            amountSystemAccounts: 0n,
+            amountSystemAccountsHuman: BigDecimal(0.0),
+        };
+    } else if (nativeToken == Token.KINT) {
+        // Kintsugi mainnet
+        // based on values at height 3250848
+        return {
+            ...baseInfo,
+            amountCirculating: 1726786192496544711n,
+            amountCirculatingHuman: BigDecimal("1726786.192496544711"),
+            totalSupply,
+            totalSupplyHuman,
+            amountLocked: 2427708919077633982n,
+            amountLockedHuman: BigDecimal("2427708.919077633982"),
+            amountReserved: 139573468643652n,
+            amountReservedHuman: BigDecimal("139.573468643652"),
+            amountSystemAccounts: 5845114129130438735n,
+            amountSystemAccountsHuman: BigDecimal("5845114.129130438735"),
+        }
+    } else {
+        // Interlay mainnet
+        // based on values at height 2959963
+        return {
+            ...baseInfo,
+            amountCirculating: 990095390736555899n,
+            amountCirculatingHuman: BigDecimal("99009539.0736555899"),
+            totalSupply,
+            totalSupplyHuman,
+            amountLocked: 1259736843162855811n,
+            amountLockedHuman: BigDecimal("125973684.3162855811"),
+            amountReserved: 21376357616400n,
+            amountReservedHuman: BigDecimal("2137.63576164"),
+            amountSystemAccounts: 7750146279748893489n,
+            amountSystemAccountsHuman: BigDecimal("775014627.9748893489"),
+        };
+    }
+};
 
 async function fetchOrCreateCirculatingSupplyEntity(
     entityId: string,
@@ -106,30 +174,13 @@ async function fetchOrCreateCirculatingSupplyEntity(
         return clone;
     }
 
-    // not found in buffer or store, create new empty one, with only initialized issued amounts set
-    const totalSupply = nativeToken === Token.KINT ? INITIAL_SUPPLY.KINT : INITIAL_SUPPLY.INTR;
-
-    // convert Token to NativeToken for convertAmountToHuman helper method
-    const tokenAsCurrency = new NativeToken({token: nativeToken});
-    const totalSupplyHuman = await convertAmountToHuman(tokenAsCurrency, totalSupply);
+    const initialSupplyValues = await getInitialSupplyValues(nativeToken);
 
     return new CumulativeCirculatingSupply({
+        ...initialSupplyValues,
         id: entityId,
         tillTimestamp,
         height,
-        symbol: nativeToken,
-        currency: tokenAsCurrency,
-        // the caller needs to recalculate circulating supply
-        amountCirculating: 0n,
-        amountCirculatingHuman: BigDecimal(0.0),
-        totalSupply,
-        totalSupplyHuman,
-        amountLocked: 0n,
-        amountLockedHuman: BigDecimal(0.0),
-        amountReserved: 0n,
-        amountReservedHuman: BigDecimal(0.0),
-        amountSystemAccounts: 0n,
-        amountSystemAccountsHuman: BigDecimal(0.0)
     });
 }
 
