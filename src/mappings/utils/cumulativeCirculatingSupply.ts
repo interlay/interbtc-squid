@@ -108,7 +108,7 @@ function findEntityBefore(
 async function recalculateAndSetCirculatingSupply(
     entity: CumulativeCirculatingSupply
 ): Promise<CumulativeCirculatingSupply> {
-    const issuance = entity.totalSupply;
+    const issuance = entity.totalIssuance;
     const locked = entity.amountLocked;
     const reserved = entity.amountReserved;
     const system = entity.amountSystemAccounts;
@@ -124,10 +124,10 @@ async function recalculateAndSetCirculatingSupply(
 async function getInitialSupplyValues(
     nativeToken: Token.KINT | Token.INTR,
 ): Promise<Partial<CumulativeCirculatingSupply>> {
-    const totalSupply = nativeToken === Token.KINT ? INITIAL_SUPPLY.KINT : INITIAL_SUPPLY.INTR;
+    const totalIssuance = nativeToken === Token.KINT ? INITIAL_SUPPLY.KINT : INITIAL_SUPPLY.INTR;
     // convert Token to NativeToken for convertAmountToHuman helper method
     const currency = new NativeToken({token: nativeToken});
-    const totalSupplyHuman = await convertAmountToHuman(currency, totalSupply);
+    const totalIssuanceHuman = await convertAmountToHuman(currency, totalIssuance);
 
     const baseInfo = {
         symbol: nativeToken,
@@ -140,8 +140,8 @@ async function getInitialSupplyValues(
             ...baseInfo,
             amountCirculating: 0n,
             amountCirculatingHuman: BigDecimal(0.0),
-            totalSupply,
-            totalSupplyHuman,
+            totalIssuance,
+            totalIssuanceHuman,
             amountLocked: 0n,
             amountLockedHuman: BigDecimal(0.0),
             amountReserved: 0n,
@@ -156,8 +156,8 @@ async function getInitialSupplyValues(
             ...baseInfo,
             amountCirculating: 1726786192496544711n,
             amountCirculatingHuman: BigDecimal("1726786.192496544711"),
-            totalSupply,
-            totalSupplyHuman,
+            totalIssuance,
+            totalIssuanceHuman,
             amountLocked: 2427708919077633982n,
             amountLockedHuman: BigDecimal("2427708.919077633982"),
             amountReserved: 139573468643652n,
@@ -172,8 +172,8 @@ async function getInitialSupplyValues(
             ...baseInfo,
             amountCirculating: 990095390736555899n,
             amountCirculatingHuman: BigDecimal("99009539.0736555899"),
-            totalSupply,
-            totalSupplyHuman,
+            totalIssuance,
+            totalIssuanceHuman,
             amountLocked: 1259736843162855811n,
             amountLockedHuman: BigDecimal("125973684.3162855811"),
             amountReserved: 21376357616400n,
@@ -189,18 +189,18 @@ function cloneCirculatingSupplyEntity(
     entityId: string,
     tillTimestamp: Date,
     height: Height,
-    totalSupply: bigint | undefined,
-    totalSupplyHuman: BigDecimal | undefined
+    totalIssuance: bigint | undefined,
+    totalIssuanceHuman: BigDecimal | undefined
 ): CumulativeCirculatingSupply {
     const clone = cloneTimestampedEntity(entity, entityId, tillTimestamp);
     clone.height = height;
 
-    if (totalSupply !== undefined) {
-        clone.totalSupply = totalSupply;
+    if (totalIssuance !== undefined) {
+        clone.totalIssuance = totalIssuance;
     }
 
-    if (totalSupplyHuman !== undefined) {   
-        clone.totalSupplyHuman = totalSupplyHuman;    
+    if (totalIssuanceHuman !== undefined) {   
+        clone.totalIssuanceHuman = totalIssuanceHuman;    
     }
 
     return clone;
