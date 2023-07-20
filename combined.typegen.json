@@ -54,6 +54,7 @@
         "DexGeneral.PairStatuses",
         "DexStable.Pools",
         "Issue.IssuePeriod",
-        "Redeem.RedeemPeriod"
+        "Redeem.RedeemPeriod",
+        "Tokens.TotalIssuance"
     ]
 }

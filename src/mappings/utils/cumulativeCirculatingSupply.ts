@@ -1,4 +1,3 @@
-import { Store } from "@subsquid/typeorm-store";
 import EntityBuffer from "./entityBuffer";
 import { CumulativeCirculatingSupply, Height, NativeToken, Token } from "../../model";
 import { LessThan } from "typeorm";
@@ -7,6 +6,18 @@ import { convertAmountToHuman } from "../_utils";
 import { BigDecimal } from "@subsquid/big-decimal";
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { Ctx } from "../../processor";
+import { TokensTotalIssuanceStorage } from "../../types/storage";
+import { CurrencyId as CurrencyId_V6 } from "../../types/v6";
+import { CurrencyId as CurrencyId_V15 } from "../../types/v15";
+import { CurrencyId as CurrencyId_V17 } from "../../types/v17";
+import { CurrencyId as CurrencyId_V1020000 } from "../../types/v1020000";
+import { CurrencyId as CurrencyId_V1021000 } from "../../types/v1021000";
+
+// temp storage for latest total issuance number by block height
+const totalIssuanceLatest = {
+    height: 0,
+    value: 0n,
+};
 
 // initial supply in atomic units
 const INITIAL_SUPPLY = {
@@ -16,6 +27,53 @@ const INITIAL_SUPPLY = {
 
 function isMainnet(): boolean {
     return process.env.BITCOIN_NETWORK?.toLowerCase() === "mainnet";
+}
+
+async function getTotalIssuanceForHeight(
+    ctx: Ctx,
+    block: SubstrateBlock,
+    nativeToken: Token.INTR | Token.KINT
+): Promise<bigint | undefined> {
+    if (totalIssuanceLatest.height === block.height) {
+        return totalIssuanceLatest.value;
+    }
+
+    const totalIssuanceStorage = new TokensTotalIssuanceStorage(ctx, block);
+
+    let totalIssuance: bigint;
+    if (totalIssuanceStorage.isV1) {
+        totalIssuance = await totalIssuanceStorage.getAsV1({ __kind: nativeToken});
+    } else {
+        const param = {
+            __kind: "Token",
+            value: {
+                __kind: nativeToken as string,
+            },
+        }
+
+        if (totalIssuanceStorage.isV6) {
+            totalIssuance = await totalIssuanceStorage.getAsV6(param as CurrencyId_V6);
+        } else if (totalIssuanceStorage.isV15) {
+            totalIssuance = await totalIssuanceStorage.getAsV15(param as CurrencyId_V15);
+        } else if (totalIssuanceStorage.isV17) {
+            totalIssuance = await totalIssuanceStorage.getAsV17(param as CurrencyId_V17);
+        } else if (totalIssuanceStorage.isV1020000) {
+            totalIssuance = await totalIssuanceStorage.getAsV1020000(param as CurrencyId_V1020000);
+        } else if (totalIssuanceStorage.isV1021000) {
+            totalIssuance = await totalIssuanceStorage.getAsV1021000(param as CurrencyId_V1021000);
+        } else {
+            ctx.log.warn("UNKOWN STORAGE VERSION: tokens.totalIssuance`");
+            // update height, to avoid more failed lookups for same height
+            totalIssuanceLatest.height = block.height;
+            // return last known value
+            return totalIssuanceLatest.value;
+        }
+    }
+
+    totalIssuanceLatest.height = block.height;
+    totalIssuanceLatest.value = totalIssuance;
+
+    return totalIssuance;
 }
 
 function findEntityBefore(
@@ -126,12 +184,35 @@ async function getInitialSupplyValues(
     }
 };
 
+function cloneCirculatingSupplyEntity(
+    entity: CumulativeCirculatingSupply,
+    entityId: string,
+    tillTimestamp: Date,
+    height: Height,
+    totalSupply: bigint | undefined,
+    totalSupplyHuman: BigDecimal | undefined
+): CumulativeCirculatingSupply {
+    const clone = cloneTimestampedEntity(entity, entityId, tillTimestamp);
+    clone.height = height;
+
+    if (totalSupply !== undefined) {
+        clone.totalSupply = totalSupply;
+    }
+
+    if (totalSupplyHuman !== undefined) {   
+        clone.totalSupplyHuman = totalSupplyHuman;    
+    }
+
+    return clone;
+}
+
 async function fetchOrCreateCirculatingSupplyEntity(
+    ctx: Ctx,
+    block: SubstrateBlock,
     entityId: string,
     nativeToken: Token.KINT | Token.INTR,
     tillTimestamp: Date,
     height: Height,
-    store: Store,
     entityBuffer: EntityBuffer
 ): Promise<CumulativeCirculatingSupply> {
     // first try to find by id
@@ -144,24 +225,29 @@ async function fetchOrCreateCirculatingSupplyEntity(
         return maybeEntity;
     }
 
+    // fetch latest total issuance
+    const totalIssuance = await getTotalIssuanceForHeight(ctx, block, nativeToken);
+    const nativeCurrency = new NativeToken({token: nativeToken});
+    const totalIssuanceHuman = totalIssuance !== undefined 
+        ? await convertAmountToHuman(nativeCurrency, totalIssuance) 
+        : undefined;
+
     // next, try to find latest matching entity in buffer to copy values from
     const bufferedEntities = entityBuffer.getBufferedEntities(CumulativeCirculatingSupply.name) as CumulativeCirculatingSupply[];
     maybeEntity = findEntityBefore(bufferedEntities, tillTimestamp);
 
     if (maybeEntity !== undefined) {
-        const clone = cloneTimestampedEntity(maybeEntity, entityId, tillTimestamp);
-        clone.height = height;
-        return clone;
+        return cloneCirculatingSupplyEntity(maybeEntity, entityId, tillTimestamp, height, totalIssuance, totalIssuanceHuman);
     }
 
     // not found in buffer, try store next
-    maybeEntity = await store.get(CumulativeCirculatingSupply, entityId);
+    maybeEntity = await ctx.store.get(CumulativeCirculatingSupply, entityId);
     if (maybeEntity !== undefined) {
         return maybeEntity;
     }
 
     // try to find latest matching entity before tillTimestamp
-    maybeEntity = await store.get(CumulativeCirculatingSupply, {
+    maybeEntity = await ctx.store.get(CumulativeCirculatingSupply, {
         where: { 
             tillTimestamp: LessThan(tillTimestamp),
         },
@@ -169,9 +255,7 @@ async function fetchOrCreateCirculatingSupplyEntity(
     });
 
     if (maybeEntity) {
-        const clone = cloneTimestampedEntity(maybeEntity, entityId, tillTimestamp);
-        clone.height = height;
-        return clone;
+        return cloneCirculatingSupplyEntity(maybeEntity, entityId, tillTimestamp, height, totalIssuance, totalIssuanceHuman);
     }
 
     const initialSupplyValues = await getInitialSupplyValues(nativeToken);
@@ -208,11 +292,12 @@ export async function updateCumulativeCirculatingSupply(
 
     // fetch latest cumulative supply entity
     const entity = await fetchOrCreateCirculatingSupplyEntity(
+        ctx,
+        block,
         entityId,
         nativeToken,
         blockTimestamp,
         height,
-        ctx.store,
         entityBuffer
     );
 
