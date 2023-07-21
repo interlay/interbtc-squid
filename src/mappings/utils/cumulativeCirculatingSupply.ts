@@ -13,16 +13,10 @@ import { CurrencyId as CurrencyId_V17 } from "../../types/v17";
 import { CurrencyId as CurrencyId_V1020000 } from "../../types/v1020000";
 import { CurrencyId as CurrencyId_V1021000 } from "../../types/v1021000";
 
-// temp storage for latest total issuance number by block height
+// in-mem storage for latest total issuance number by block height
 const totalIssuanceLatest = {
     height: 0,
     value: 0n,
-};
-
-// initial supply in atomic units
-const INITIAL_SUPPLY = {
-    INTR: 9_999_999_890_005_921_599n,
-    KINT: 9_999_748_814_073_161_340n
 };
 
 function isMainnet(): boolean {
@@ -124,18 +118,17 @@ async function recalculateAndSetCirculatingSupply(
 async function getInitialSupplyValues(
     nativeToken: Token.KINT | Token.INTR,
 ): Promise<Partial<CumulativeCirculatingSupply>> {
-    const totalIssuance = nativeToken === Token.KINT ? INITIAL_SUPPLY.KINT : INITIAL_SUPPLY.INTR;
-    // convert Token to NativeToken for convertAmountToHuman helper method
     const currency = new NativeToken({token: nativeToken});
-    const totalIssuanceHuman = await convertAmountToHuman(currency, totalIssuance);
-
     const baseInfo = {
         symbol: nativeToken,
         currency,
     };
     
     if (!isMainnet()) {
-        // testnet values, just initialize all at zero
+        // testnet values, just initialize all at zero, set starting issuance
+        const totalIssuance = 10000000000000000000n;
+        const totalIssuanceHuman = await convertAmountToHuman(currency, totalIssuance);
+
         return {
             ...baseInfo,
             amountCirculating: 0n,
@@ -156,8 +149,8 @@ async function getInitialSupplyValues(
             ...baseInfo,
             amountCirculating: 1726786192496544711n,
             amountCirculatingHuman: BigDecimal("1726786.192496544711"),
-            totalIssuance,
-            totalIssuanceHuman,
+            totalIssuance: 9999748814173261080n,
+            totalIssuanceHuman: BigDecimal("9999748.814173261080"),
             amountLocked: 2427708919077633982n,
             amountLockedHuman: BigDecimal("2427708.919077633982"),
             amountReserved: 139573468643652n,
@@ -172,8 +165,8 @@ async function getInitialSupplyValues(
             ...baseInfo,
             amountCirculating: 990095390736555899n,
             amountCirculatingHuman: BigDecimal("99009539.0736555899"),
-            totalIssuance,
-            totalIssuanceHuman,
+            totalIssuance: 9_999_999_890_005_921_599n,
+            totalIssuanceHuman: BigDecimal("999999989.0005921599"),
             amountLocked: 1259736843162855811n,
             amountLockedHuman: BigDecimal("125973684.3162855811"),
             amountReserved: 21376357616400n,
