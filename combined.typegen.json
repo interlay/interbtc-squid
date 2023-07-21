@@ -38,6 +38,8 @@
         "Redeem.RequestRedeem",
         "Security.UpdateActiveBlock",
         "Tokens.Transfer",
+        "Tokens.Deposited",
+        "Tokens.Withdrawn",
         "Tokens.Locked",
         "Tokens.Unlocked",
         "Tokens.Reserved",

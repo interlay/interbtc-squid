@@ -41,8 +41,10 @@ import {
     updateVaultActivity,
 } from "./mappings";
 import { deposit, withdraw } from "./mappings/event/escrow";
-import { tokensTransfer } from "./mappings/event/transfer";
 import { 
+    tokensTransfer,
+    tokensDeposited,
+    tokensWithdrawn,
     tokensReserved,
     tokensUnreserved, 
     tokensUnlocked,
@@ -83,7 +85,7 @@ const eventArgsData: eventArgsData = {
     },
 };
 
-const getCirculatingSupplyProcessRange = (): BlockRangeOption => {
+export const getCirculatingSupplyProcessRange = (): BlockRangeOption => {
     const isTestnet = process.env.BITCOIN_NETWORK?.toLowerCase() !== "mainnet";
     if (isTestnet) {
         return {};
@@ -127,7 +129,9 @@ const processor = new SubstrateBatchProcessor()
     .addEvent("Redeem.RequestRedeem", eventArgsData)
     .addEvent("Redeem.RedeemPeriodChange", eventArgsData)
     .addEvent("Security.UpdateActiveBlock", eventArgsData)
-    .addEvent("Tokens.Transfer", circulatingSupplyArgs)
+    .addEvent("Tokens.Transfer", eventArgsData)
+    .addEvent("Tokens.Deposited", circulatingSupplyArgs)
+    .addEvent("Tokens.Withdrawn", circulatingSupplyArgs)
     .addEvent("Tokens.Locked", circulatingSupplyArgs)
     .addEvent("Tokens.Unlocked", circulatingSupplyArgs)
     .addEvent("Tokens.Reserved", circulatingSupplyArgs)
@@ -276,6 +280,16 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
         {
             filter: { name: "Tokens.Transfer" },
             mapping: tokensTransfer,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Tokens.Deposited" },
+            mapping: tokensDeposited,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Tokens.Withdrawn" },
+            mapping: tokensWithdrawn,
             totalTime: 0,
         },
         {

@@ -1436,6 +1436,65 @@ export class SecurityUpdateActiveBlockEvent {
     }
 }
 
+export class TokensDepositedEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'Tokens.Deposited')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * Deposited some balance into an account
+     */
+    get isV17(): boolean {
+        return this._chain.getEventHash('Tokens.Deposited') === 'aa32a1b3b1d017039a927cf6080daa860061773198b0e814f2624169a0cf6241'
+    }
+
+    /**
+     * Deposited some balance into an account
+     */
+    get asV17(): {currencyId: v17.CurrencyId, who: Uint8Array, amount: bigint} {
+        assert(this.isV17)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Deposited some balance into an account
+     */
+    get isV1020000(): boolean {
+        return this._chain.getEventHash('Tokens.Deposited') === '510a19171aa1f589f2b6f0e5f0acd535a8effd895a1e715af35f4ec7baf2a428'
+    }
+
+    /**
+     * Deposited some balance into an account
+     */
+    get asV1020000(): {currencyId: v1020000.CurrencyId, who: Uint8Array, amount: bigint} {
+        assert(this.isV1020000)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Deposited some balance into an account
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Tokens.Deposited') === '33084fa970b28430437a706c1b3e57e4a1a1f2ec53411288d3cec096fd75c0cc'
+    }
+
+    /**
+     * Deposited some balance into an account
+     */
+    get asV1021000(): {currencyId: v1021000.CurrencyId, who: Uint8Array, amount: bigint} {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
 export class TokensLockedEvent {
     private readonly _chain: Chain
     private readonly event: Event
@@ -1852,6 +1911,65 @@ export class TokensUnreservedEvent {
 
     /**
      * Some balance was unreserved (moved from reserved to free).
+     */
+    get asV1021000(): {currencyId: v1021000.CurrencyId, who: Uint8Array, amount: bigint} {
+        assert(this.isV1021000)
+        return this._chain.decodeEvent(this.event)
+    }
+}
+
+export class TokensWithdrawnEvent {
+    private readonly _chain: Chain
+    private readonly event: Event
+
+    constructor(ctx: EventContext)
+    constructor(ctx: ChainContext, event: Event)
+    constructor(ctx: EventContext, event?: Event) {
+        event = event || ctx.event
+        assert(event.name === 'Tokens.Withdrawn')
+        this._chain = ctx._chain
+        this.event = event
+    }
+
+    /**
+     * Some balances were withdrawn (e.g. pay for transaction fee)
+     */
+    get isV17(): boolean {
+        return this._chain.getEventHash('Tokens.Withdrawn') === 'aa32a1b3b1d017039a927cf6080daa860061773198b0e814f2624169a0cf6241'
+    }
+
+    /**
+     * Some balances were withdrawn (e.g. pay for transaction fee)
+     */
+    get asV17(): {currencyId: v17.CurrencyId, who: Uint8Array, amount: bigint} {
+        assert(this.isV17)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Some balances were withdrawn (e.g. pay for transaction fee)
+     */
+    get isV1020000(): boolean {
+        return this._chain.getEventHash('Tokens.Withdrawn') === '510a19171aa1f589f2b6f0e5f0acd535a8effd895a1e715af35f4ec7baf2a428'
+    }
+
+    /**
+     * Some balances were withdrawn (e.g. pay for transaction fee)
+     */
+    get asV1020000(): {currencyId: v1020000.CurrencyId, who: Uint8Array, amount: bigint} {
+        assert(this.isV1020000)
+        return this._chain.decodeEvent(this.event)
+    }
+
+    /**
+     * Some balances were withdrawn (e.g. pay for transaction fee)
+     */
+    get isV1021000(): boolean {
+        return this._chain.getEventHash('Tokens.Withdrawn') === '33084fa970b28430437a706c1b3e57e4a1a1f2ec53411288d3cec096fd75c0cc'
+    }
+
+    /**
+     * Some balances were withdrawn (e.g. pay for transaction fee)
      */
     get asV1021000(): {currencyId: v1021000.CurrencyId, who: Uint8Array, amount: bigint} {
         assert(this.isV1021000)
