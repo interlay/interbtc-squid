@@ -115,11 +115,11 @@ async function recalculateAndSetCirculatingSupply(
     return entity;
 }
 
-async function getInitialSupplyValues(
+function getInitialSupplyValues(
     nativeToken: Token.KINT | Token.INTR,
     totalIssuance: bigint,
     totalIssuanceHuman: BigDecimal
-): Promise<Partial<CumulativeCirculatingSupply>> {
+): Partial<CumulativeCirculatingSupply> {
     const currency = new NativeToken({token: nativeToken});
     const baseInfo = {
         symbol: nativeToken,
@@ -248,7 +248,7 @@ async function fetchOrCreateCirculatingSupplyEntity(
         return cloneCirculatingSupplyEntity(maybeEntity, entityId, tillTimestamp, height, totalIssuance, totalIssuanceHuman);
     }
 
-    const initialSupplyValues = await getInitialSupplyValues(nativeToken, totalIssuance, totalIssuanceHuman);
+    const initialSupplyValues = getInitialSupplyValues(nativeToken, totalIssuance, totalIssuanceHuman);
 
     return new CumulativeCirculatingSupply({
         ...initialSupplyValues,
