@@ -27,7 +27,7 @@ async function getTotalIssuanceForHeight(
     ctx: Ctx,
     block: SubstrateBlock,
     nativeToken: Token.INTR | Token.KINT
-): Promise<bigint | undefined> {
+): Promise<bigint> {
     if (totalIssuanceLatest.height === block.height) {
         return totalIssuanceLatest.value;
     }
@@ -117,6 +117,8 @@ async function recalculateAndSetCirculatingSupply(
 
 async function getInitialSupplyValues(
     nativeToken: Token.KINT | Token.INTR,
+    totalIssuance: bigint,
+    totalIssuanceHuman: BigDecimal
 ): Promise<Partial<CumulativeCirculatingSupply>> {
     const currency = new NativeToken({token: nativeToken});
     const baseInfo = {
@@ -125,10 +127,7 @@ async function getInitialSupplyValues(
     };
     
     if (!isMainnet()) {
-        // testnet values, just initialize all at zero, set starting issuance
-        const totalIssuance = 10000000000000000000n;
-        const totalIssuanceHuman = await convertAmountToHuman(currency, totalIssuance);
-
+        // testnet values: set all to zero except totalIssuance
         return {
             ...baseInfo,
             amountCirculating: 0n,
@@ -221,9 +220,7 @@ async function fetchOrCreateCirculatingSupplyEntity(
     // fetch latest total issuance
     const totalIssuance = await getTotalIssuanceForHeight(ctx, block, nativeToken);
     const nativeCurrency = new NativeToken({token: nativeToken});
-    const totalIssuanceHuman = totalIssuance !== undefined 
-        ? await convertAmountToHuman(nativeCurrency, totalIssuance) 
-        : undefined;
+    const totalIssuanceHuman = await convertAmountToHuman(nativeCurrency, totalIssuance);
 
     // next, try to find latest matching entity in buffer to copy values from
     const bufferedEntities = entityBuffer.getBufferedEntities(CumulativeCirculatingSupply.name) as CumulativeCirculatingSupply[];
@@ -251,7 +248,7 @@ async function fetchOrCreateCirculatingSupplyEntity(
         return cloneCirculatingSupplyEntity(maybeEntity, entityId, tillTimestamp, height, totalIssuance, totalIssuanceHuman);
     }
 
-    const initialSupplyValues = await getInitialSupplyValues(nativeToken);
+    const initialSupplyValues = await getInitialSupplyValues(nativeToken, totalIssuance, totalIssuanceHuman);
 
     return new CumulativeCirculatingSupply({
         ...initialSupplyValues,
