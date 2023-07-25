@@ -435,3 +435,21 @@ type AccountLiquidityProvision @entity {
     accountId: String! @index
     type: LiquidityProvisionType! @index
 }
+
+type CumulativeCirculatingSupply @entity {
+    id: ID!
+    height: Height!
+    tillTimestamp: DateTime! @index
+    symbol: String!
+    amountCirculating: BigInt!
+    amountCirculatingHuman: BigDecimal!
+    totalIssuance: BigInt!
+    totalIssuanceHuman: BigDecimal!
+    amountLocked: BigInt!
+    amountLockedHuman: BigDecimal!
+    amountReserved: BigInt!
+    amountReservedHuman: BigDecimal!
+    amountSystemAccounts: BigInt!
+    amountSystemAccountsHuman: BigDecimal!
+    currency: Currency!
+}

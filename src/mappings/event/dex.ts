@@ -207,8 +207,8 @@ export async function dexGeneralAssetSwap(
     }
     
     const currencies = currencyIds.map(currencyId.encode);
-    const fromAccountId = address.interlay.encode(fromAccountIdRaw);
-    const toAccountId = address.interlay.encode(toAccountIdRaw);
+    const fromAccountId = address.parachain.encode(fromAccountIdRaw);
+    const toAccountId = address.parachain.encode(toAccountIdRaw);
 
     const height = await blockToHeight(ctx, block.height);
 
@@ -287,8 +287,8 @@ export async function dexStableCurrencyExchange(
         outIndex = event.outIndex;
         inAmount = event.inAmount;
         outAmount = event.outAmount;
-        fromAccountId = address.interlay.encode(event.who);
-        toAccountId = address.interlay.encode(event.to);
+        fromAccountId = address.parachain.encode(event.who);
+        toAccountId = address.parachain.encode(event.to);
     } else {
         ctx.log.warn("UNKOWN EVENT VERSION: DexStable.CurrencyExchange");
         return;
@@ -471,7 +471,7 @@ export async function dexGeneralLiquidityAdded(
         return;
     }
     
-    const accountId = address.interlay.encode(account);
+    const accountId = address.parachain.encode(account);
     const atomicBalances = [balance0, balance1];
     const currencyIds = [asset0, asset1];
     const currencies = currencyIds.map(currencyId.encode);
@@ -518,7 +518,7 @@ export async function dexGeneralLiquidityRemoved(
         return;
     }
 
-    const accountId = address.interlay.encode(account);
+    const accountId = address.parachain.encode(account);
     const atomicBalances = [balance0, balance1];
     const currencyIds = [asset0, asset1];
     const currencies = currencyIds.map(currencyId.encode);
@@ -551,7 +551,7 @@ export async function dexStableLiquidityAdded(
             currencies.push(currency);
         }
 
-        accountId = address.interlay.encode(event.who);
+        accountId = address.parachain.encode(event.who);
         deposits = createSwapDetailsAmounts(currencies, currencyIds, atomicBalances, accountId, accountId);
     } else {
         ctx.log.warn("UNKOWN EVENT VERSION: DexStable.AddLiquidity");
@@ -585,7 +585,7 @@ export async function dexStableLiquidityRemoved(
             currencies.push(currency);
         }
 
-        accountId = address.interlay.encode(event.who);
+        accountId = address.parachain.encode(event.who);
         withdrawals = createSwapDetailsAmounts(currencies, currencyIds, atomicBalances, accountId, accountId);
     } else {
         ctx.log.warn("UNKOWN EVENT VERSION: DexStable.RemoveLiquidity");

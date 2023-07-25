@@ -36,7 +36,7 @@ export async function storeMainChainHeader(
             timestamp: new Date(block.timestamp),
             blockHash: reverseEndiannessHex(toHex(e.blockHash.content)),
             backingHeight: e.blockHeight,
-            relayer: address.interlay.encode(e.relayerId),
+            relayer: address.parachain.encode(e.relayerId),
         })
     );
 }

@@ -38,12 +38,26 @@ import {
 
 import { CurrencyId_Token as CurrencyId_TokenV10 } from "../types/v10";
 import { encodeBtcAddress, getBtcNetwork } from "./bitcoinUtils";
+import { u8aToString } from "@polkadot/util";
+import { decodeAddress, encodeAddress } from "@polkadot/util-crypto";
 
 const bitcoinNetwork: Network = getBtcNetwork(process.env.BITCOIN_NETWORK);
 const ss58format = process.env.SS58_CODEC || "substrate";
 
+const MODL_PREFIX = "modl";
+const MODL_EXCLUDE = "modldex/";
+const MODL_BOOTSTRAP = "modldex/genrboot";
+
+// multi-sig accounts to be considered as system accounts, in substrate native format
+const SYSTEM_MULTISIG_ACCOUNTS = [
+    "5Fhn5mX4JGeDxikaxkJZYRYjxxbZ7DjxS5f9hsAVAzGXUNyG",
+    "5GgS9vsF77Y7p2wZLEW1CW7vZpq8DSoXCf2sTdBoB51jpuan",
+    "5GDzXqLxGiJV6A7mDp1SGRV6DB8xnnwauMEwR7PL4PW122FM",
+    "5FgimgwW2s4V14NniQ6Nt145Sksb83xohW5LkMXYnMw3Racp",
+];
+
 export const address = {
-    interlay: ss58.codec(ss58format),
+    parachain: ss58.codec(ss58format),
     btc: {
         encode(address: AddressV6 | AddressV15): string | undefined {
             return encodeBtcAddress(address, bitcoinNetwork);
@@ -164,7 +178,7 @@ export function currencyToString(currency: Currency): string {
 }
 
 export function encodeLegacyVaultId(vaultId: VaultIdV6 | VaultIdV15) {
-    const addressStr = address.interlay.encode(vaultId.accountId).toString();
+    const addressStr = address.parachain.encode(vaultId.accountId).toString();
     const wrapped = legacyCurrencyId.encode(vaultId.currencies.wrapped);
     const collateral = legacyCurrencyId.encode(vaultId.currencies.collateral);
     return `${addressStr}-${currencyToString(wrapped)}-${currencyToString(
@@ -173,10 +187,49 @@ export function encodeLegacyVaultId(vaultId: VaultIdV6 | VaultIdV15) {
 }
 
 export function encodeVaultId(vaultId: VaultIdV1021000) {
-    const addressStr = address.interlay.encode(vaultId.accountId).toString();
+    const addressStr = address.parachain.encode(vaultId.accountId).toString();
     const wrapped = currencyId.encode(vaultId.currencies.wrapped);
     const collateral = currencyId.encode(vaultId.currencies.collateral);
     return `${addressStr}-${currencyToString(wrapped)}-${currencyToString(
         collateral
     )}`;
+}
+
+/**
+ * Decodes a given ss58 encoded address, then returns the string representation of the decoded array.
+ * @param ss58Address Address in ss58 encoded format
+ * @param ss58Prefix (Optional) ss58 prefix to use in decoding, defaults to Interlay/Kintsugi prefix value
+ * @returns The decoded address as string.
+ */
+export function ss58AddressToString(ss58Address: string, ss58Prefix?: number): string {
+    const prefix = ss58Prefix !== undefined ? ss58Prefix : address.parachain.prefix;
+    const decodedArray = decodeAddress(ss58Address, false, prefix);
+    return u8aToString(decodedArray);
+}
+
+/**
+ * Tells us if a given ss58 encoded address is a system address or not.
+ * @param ss58Address Address in ss58 encoded format
+ * @param ss58Prefix (Optional) ss58 prefix to use in decoding, defaults to Interlay/Kintsugi prefix value
+ * @returns true if the address is a system address, false otherwise
+ */
+export function isSystemAddress(ss58Address: string, ss58Prefix?: number): boolean {
+    const prefix = ss58Prefix !== undefined ? ss58Prefix : address.parachain.prefix;
+
+    const decodedArray = decodeAddress(ss58Address, false, prefix);
+    const decodedAddress = u8aToString(decodedArray);
+    const isBootstrapAccount = String(decodedAddress).startsWith(MODL_BOOTSTRAP);
+    if (isBootstrapAccount) {
+        return true;
+    }
+
+    const isModlAccount = String(decodedAddress).startsWith(MODL_PREFIX);
+    if (isModlAccount) {
+        // exclude "modldex/" accounts
+        return !String(decodedAddress).startsWith(MODL_EXCLUDE);
+    }
+
+    // reencode to substrate native format
+    const substrateNativeAddress = encodeAddress(decodedArray);
+    return SYSTEM_MULTISIG_ACCOUNTS.includes(substrateNativeAddress);
 }

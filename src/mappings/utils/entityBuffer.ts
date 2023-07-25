@@ -36,4 +36,12 @@ export default class EntityBuffer {
             (entity) => entity.id === id
         );
     }
+
+    removeBufferedEntityBy(type: string, id: string): boolean {
+        if (!this.buffer.has(type)) {
+            return false;
+        }
+
+        return this.buffer.get(type)!.delete(id);
+    }
 }

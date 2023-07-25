@@ -37,10 +37,17 @@ import {
     setStorage,
     storeMainChainHeader,
     updateActiveBlock,
-    updateVaultActivity,
 } from "./mappings";
 import { deposit, withdraw } from "./mappings/event/escrow";
-import { tokensTransfer } from "./mappings/event/transfer";
+import { 
+    tokensTransfer,
+    tokensDeposited,
+    tokensWithdrawn,
+    tokensReserved,
+    tokensUnreserved, 
+    tokensUnlocked,
+    tokensLocked
+} from "./mappings/event/tokens";
 import * as heights from "./mappings/utils/heights";
 import EntityBuffer from "./mappings/utils/entityBuffer";
 import { eventArgsData, cacheForeignAsset } from "./mappings/_utils";
@@ -60,6 +67,7 @@ import {
     accrueInterest, 
     liquidateLoan
 } from "./mappings/event/loans";
+import { getCirculatingSupplyProcessRange } from "./mappings/utils/cumulativeCirculatingSupply";
 
 const archive = process.env.ARCHIVE_ENDPOINT;
 assert(!!archive);
@@ -73,6 +81,10 @@ const eventArgsData: eventArgsData = {
         event: { args: true },
     },
 };
+
+// some ciculating supply values are hardcoded for a specific starting point (height),
+// only process events after that point.
+const circulatingSupplyArgs = {...eventArgsData, ...getCirculatingSupplyProcessRange()};
 
 // initialise a cache with all the foreign assets
 cacheForeignAsset();
@@ -101,6 +113,12 @@ const processor = new SubstrateBatchProcessor()
     .addEvent("Redeem.RedeemPeriodChange", eventArgsData)
     .addEvent("Security.UpdateActiveBlock", eventArgsData)
     .addEvent("Tokens.Transfer", eventArgsData)
+    .addEvent("Tokens.Deposited", circulatingSupplyArgs)
+    .addEvent("Tokens.Withdrawn", circulatingSupplyArgs)
+    .addEvent("Tokens.Locked", circulatingSupplyArgs)
+    .addEvent("Tokens.Unlocked", circulatingSupplyArgs)
+    .addEvent("Tokens.Reserved", circulatingSupplyArgs)
+    .addEvent("Tokens.Unreserved", circulatingSupplyArgs)
     .addEvent("Loans.WithdrawCollateral", eventArgsData)
     .addEvent("Loans.DepositCollateral", eventArgsData)
     .addEvent("Loans.DistributedSupplierReward", eventArgsData)
@@ -245,6 +263,36 @@ processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
         {
             filter: { name: "Tokens.Transfer" },
             mapping: tokensTransfer,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Tokens.Deposited" },
+            mapping: tokensDeposited,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Tokens.Withdrawn" },
+            mapping: tokensWithdrawn,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Tokens.Locked" },
+            mapping: tokensLocked,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Tokens.Unlocked" },
+            mapping: tokensUnlocked,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Tokens.Reserved" },
+            mapping: tokensReserved,
+            totalTime: 0,
+        },
+        {
+            filter: { name: "Tokens.Unreserved" },
+            mapping: tokensUnreserved,
             totalTime: 0,
         },
         {

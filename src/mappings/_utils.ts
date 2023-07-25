@@ -361,5 +361,8 @@ export function truncateTimestampToDate(timestamp: number): Date {
     const date = new Date(timestamp);
     date.setHours(0, 0, 0, 0);
     return date;
-  }
-    
+}
+
+export function isMainnet(): boolean {
+    return process.env.BITCOIN_NETWORK?.toLowerCase() === "mainnet";
+}

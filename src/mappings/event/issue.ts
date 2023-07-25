@@ -80,7 +80,7 @@ export async function requestIssue(
     const issue = new Issue({
         id: toHex(e.issueId),
         griefingCollateral: e.griefingCollateral,
-        userParachainAddress: address.interlay.encode(e.requester),
+        userParachainAddress: address.parachain.encode(e.requester),
         vault: vault,
         vaultBackingAddress: address.btc.encode(e.vaultAddress),
         vaultWalletPubkey: toHex(e.vaultPublicKey),
