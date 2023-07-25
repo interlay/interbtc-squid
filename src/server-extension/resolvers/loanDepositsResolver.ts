@@ -1,11 +1,10 @@
 import { Arg, Field, ObjectType, Query, Resolver } from 'type-graphql';
 import type { EntityManager } from 'typeorm';
-import { Currency, Deposit } from '../../model';
+import { Deposit } from '../../model';
 
-// Define custom GraphQL ObjectType of the query result
 @ObjectType()
 export class AccountLoanDeposits {
-  @Field(() => String, { nullable: false })
+  @Field(() => String, { nullable: true })
   userParachainAddress!: string;
 
   @Field(() => String, {nullable: false})
@@ -39,17 +38,19 @@ export class AccountLoanDepositResolver {
   constructor(private tx: () => Promise<EntityManager>) {}
 
   @Query(() => AccountLoanDeposits)
-  async totalLoanDeposits(
-    @Arg('symbol', { nullable: false }) symbol: string,
-    @Arg('userParachainAddress', { nullable: false }) userParachainAddress: string
+  async loanDepositsByAccountAndSymbol(
+    @Arg('symbol', { nullable: false })
+    symbol: string,
+    @Arg('userParachainAddress', { nullable: false })
+    userParachainAddress: string
   ): Promise<AccountLoanDeposits> {
     const manager = await this.tx();
 
     const depositWithdrawalsList = await manager.getRepository(Deposit)
         .findBy({
+            type: "lending",
             symbol,
             userParachainAddress,
-            type: "lending"
         });
     
     const sums = depositWithdrawalsList.reduce((acc, depositEntity) => {
