@@ -3,7 +3,6 @@ import {
     BatchProcessorCallItem,
     BatchProcessorEventItem,
     BatchProcessorItem,
-    BlockRangeOption,
     SubstrateBatchProcessor,
     SubstrateBlock,
 } from "@subsquid/substrate-processor";
@@ -38,7 +37,6 @@ import {
     setStorage,
     storeMainChainHeader,
     updateActiveBlock,
-    updateVaultActivity,
 } from "./mappings";
 import { deposit, withdraw } from "./mappings/event/escrow";
 import { 
@@ -69,8 +67,7 @@ import {
     accrueInterest, 
     liquidateLoan
 } from "./mappings/event/loans";
-import { getNativeCurrency } from "./mappings/utils/nativeCurrency";
-import { Token } from "./model";
+import { getCirculatingSupplyProcessRange } from "./mappings/utils/cumulativeCirculatingSupply";
 
 const archive = process.env.ARCHIVE_ENDPOINT;
 assert(!!archive);
@@ -83,20 +80,6 @@ const eventArgsData: eventArgsData = {
     data: {
         event: { args: true },
     },
-};
-
-export const getCirculatingSupplyProcessRange = (): BlockRangeOption => {
-    const isTestnet = process.env.BITCOIN_NETWORK?.toLowerCase() !== "mainnet";
-    if (isTestnet) {
-        return {};
-    }
-    
-    const nativeCurrency = getNativeCurrency();
-    return {
-        range: {
-            from: nativeCurrency === Token.KINT ? 3250849 : 2959964,
-        },
-    };
 };
 
 // some ciculating supply values are hardcoded for a specific starting point (height),

@@ -2,9 +2,9 @@ import EntityBuffer from "./entityBuffer";
 import { CumulativeCirculatingSupply, Height, NativeToken, Token } from "../../model";
 import { LessThan } from "typeorm";
 import { cloneTimestampedEntity } from "./cloneHelpers";
-import { convertAmountToHuman } from "../_utils";
+import { convertAmountToHuman, isMainnet } from "../_utils";
 import { BigDecimal } from "@subsquid/big-decimal";
-import { SubstrateBlock } from "@subsquid/substrate-processor";
+import { BlockRangeOption, SubstrateBlock } from "@subsquid/substrate-processor";
 import { Ctx } from "../../processor";
 import { TokensTotalIssuanceStorage } from "../../types/storage";
 import { CurrencyId as CurrencyId_V6 } from "../../types/v6";
@@ -12,6 +12,7 @@ import { CurrencyId as CurrencyId_V15 } from "../../types/v15";
 import { CurrencyId as CurrencyId_V17 } from "../../types/v17";
 import { CurrencyId as CurrencyId_V1020000 } from "../../types/v1020000";
 import { CurrencyId as CurrencyId_V1021000 } from "../../types/v1021000";
+import { getNativeCurrency } from "./nativeCurrency";
 
 // in-mem storage for latest total issuance number by block height
 const totalIssuanceLatest = {
@@ -19,9 +20,18 @@ const totalIssuanceLatest = {
     value: 0n,
 };
 
-function isMainnet(): boolean {
-    return process.env.BITCOIN_NETWORK?.toLowerCase() === "mainnet";
-}
+export function getCirculatingSupplyProcessRange(): BlockRangeOption {
+    if (!isMainnet()) {
+        return {};
+    }
+    
+    const nativeCurrency = getNativeCurrency();
+    return {
+        range: {
+            from: nativeCurrency === Token.KINT ? 3250849 : 2959964,
+        },
+    };
+};
 
 async function getTotalIssuanceForHeight(
     ctx: Ctx,

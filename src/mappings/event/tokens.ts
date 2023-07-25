@@ -1,5 +1,5 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
-import { Ctx, EventItem, getCirculatingSupplyProcessRange } from "../../processor";
+import { Ctx, EventItem } from "../../processor";
 import {
     TokensReservedEvent,
     TokensUnreservedEvent,
@@ -20,7 +20,7 @@ import { CurrencyId as CurrencyId_V1024000 } from "../../types/v1024000";
 import EntityBuffer from "../utils/entityBuffer";
 import { blockToHeight } from "../utils/heights";
 import { getNativeCurrency } from "../utils/nativeCurrency";
-import { UpdateType, updateCumulativeCirculatingSupply } from "../utils/cumulativeCirculatingSupply";
+import { UpdateType, getCirculatingSupplyProcessRange, updateCumulativeCirculatingSupply } from "../utils/cumulativeCirculatingSupply";
 import { address, currencyId, isSystemAddress, legacyCurrencyId } from "../encoding";
 import { CumulativeCirculatingSupply, Currency, Token, Transfer } from "../../model";
 import { convertAmountToHuman } from "../_utils";
