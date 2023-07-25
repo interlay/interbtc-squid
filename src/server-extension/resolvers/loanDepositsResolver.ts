@@ -40,8 +40,8 @@ export class AccountLoanDepositResolver {
 
   @Query(() => AccountLoanDeposits)
   async totalLoanDeposits(
-    symbol: string,
-    userParachainAddress: string
+    @Arg('symbol', { nullable: false }) symbol: string,
+    @Arg('userParachainAddress', { nullable: false }) userParachainAddress: string
   ): Promise<AccountLoanDeposits> {
     const manager = await this.tx();
 
