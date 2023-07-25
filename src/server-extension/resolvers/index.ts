@@ -1,1 +1,1 @@
-export { AccountLoanDepositResolver } from "./loanDepositsResolver";
+export { AccountLoanDeposits, AccountLoanDepositResolver } from "./loanDepositsResolver";
