@@ -35,7 +35,7 @@ export class AccountLoanDeposits {
 }
 
 @Resolver()
-export class AccountLoanDepositResolver {
+export class AccountLoanDepositsResolver {
   constructor(private tx: () => Promise<EntityManager>) {}
 
   @Query(() => AccountLoanDeposits)
