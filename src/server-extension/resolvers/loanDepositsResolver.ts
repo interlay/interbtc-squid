@@ -57,18 +57,18 @@ export class AccountLoanDepositResolver {
     const sums = depositWithdrawalsList.reduce((acc, depositEntity) => {
         acc.sumDeposits += depositEntity.amountDeposited || 0n;
         if (depositEntity.amountDepositedBtc) {
-            acc.sumDepositsBtc.add(depositEntity.amountDepositedBtc);
+            acc.sumDepositsBtc = acc.sumDepositsBtc.add(depositEntity.amountDepositedBtc);
         }
         if (depositEntity.amountDepositedUsdt) {
-            acc.sumDepositsUsdt.add(depositEntity.amountDepositedUsdt);
+            acc.sumDepositsUsdt = acc.sumDepositsUsdt.add(depositEntity.amountDepositedUsdt);
         }
 
         acc.sumWithdrawals += depositEntity.amountWithdrawn || 0n;
         if (depositEntity.amountWithdrawnBtc) {
-            acc.sumWithdrawalsBtc.add(depositEntity.amountWithdrawnBtc);
+            acc.sumWithdrawalsBtc = acc.sumWithdrawalsBtc.add(depositEntity.amountWithdrawnBtc);
         }
         if (depositEntity.amountWithdrawnUsdt) {
-            acc.sumWithdrawalsUsdt.add(depositEntity.amountWithdrawnUsdt);
+            acc.sumWithdrawalsUsdt = acc.sumWithdrawalsUsdt.add(depositEntity.amountWithdrawnUsdt);
         }
 
         return acc;
