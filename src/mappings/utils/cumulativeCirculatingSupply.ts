@@ -14,6 +14,11 @@ import { CurrencyId as CurrencyId_V1020000 } from "../../types/v1020000";
 import { CurrencyId as CurrencyId_V1021000 } from "../../types/v1021000";
 import { getNativeCurrency } from "./nativeCurrency";
 
+const CIRCULATING_SUPPLY_PROCESSING_START_HEIGHT = {
+    Kintsugi: 3250849,
+    Interlay: 2959964
+};
+
 // in-mem storage for latest total issuance number by block height
 const totalIssuanceLatest = {
     height: 0,
@@ -28,7 +33,9 @@ export function getCirculatingSupplyProcessRange(): BlockRangeOption {
     const nativeCurrency = getNativeCurrency();
     return {
         range: {
-            from: nativeCurrency === Token.KINT ? 3250849 : 2959964,
+            from: nativeCurrency === Token.KINT 
+                ? CIRCULATING_SUPPLY_PROCESSING_START_HEIGHT.Kintsugi 
+                : CIRCULATING_SUPPLY_PROCESSING_START_HEIGHT.Interlay,
         },
     };
 };
