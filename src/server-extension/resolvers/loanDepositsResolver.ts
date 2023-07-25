@@ -1,6 +1,7 @@
 import { Arg, Field, ObjectType, Query, Resolver } from 'type-graphql';
 import type { EntityManager } from 'typeorm';
 import { Deposit } from '../../model';
+import { BigDecimal } from '@subsquid/big-decimal';
 
 @ObjectType()
 export class AccountLoanDeposits {
@@ -13,20 +14,20 @@ export class AccountLoanDeposits {
   @Field(() => BigInt, { nullable: false })
   sumDeposits!: bigint;
 
-  @Field(() => BigInt, { nullable: false })
-  sumDepositsBtc!: bigint;
+  @Field(() => BigDecimal, { nullable: false })
+  sumDepositsBtc!: BigDecimal;
   
-  @Field(() => BigInt, { nullable: false })
-  sumDepositsUsdt!: bigint;
+  @Field(() => BigDecimal, { nullable: false })
+  sumDepositsUsdt!: BigDecimal;
 
   @Field(() => BigInt, { nullable: false })
   sumWithdrawals!: bigint;
 
-  @Field(() => BigInt, { nullable: false })
-  sumWithdrawalsBtc!: bigint;
+  @Field(() => BigDecimal, { nullable: false })
+  sumWithdrawalsBtc!: BigDecimal;
 
-  @Field(() => BigInt, { nullable: false })
-  sumWithdrawalsUsdt!: bigint;
+  @Field(() => BigDecimal, { nullable: false })
+  sumWithdrawalsUsdt!: BigDecimal;
 
   constructor(props: Partial<AccountLoanDeposits>) {
     Object.assign(this, props);
@@ -55,22 +56,30 @@ export class AccountLoanDepositResolver {
     
     const sums = depositWithdrawalsList.reduce((acc, depositEntity) => {
         acc.sumDeposits += depositEntity.amountDeposited || 0n;
-        acc.sumDepositsBtc += depositEntity.amountDepositedBtc ? BigInt(depositEntity.amountDepositedBtc) : 0n;
-        acc.sumDepositsUsdt += depositEntity.amountDepositedUsdt ? BigInt(depositEntity.amountDepositedUsdt) : 0n;
+        if (depositEntity.amountDepositedBtc) {
+            acc.sumDepositsBtc.add(depositEntity.amountDepositedBtc);
+        }
+        if (depositEntity.amountDepositedUsdt) {
+            acc.sumDepositsUsdt.add(depositEntity.amountDepositedUsdt);
+        }
 
         acc.sumWithdrawals += depositEntity.amountWithdrawn || 0n;
-        acc.sumWithdrawalsBtc += depositEntity.amountWithdrawnBtc ? BigInt(depositEntity.amountWithdrawnBtc) : 0n;
-        acc.sumWithdrawalsUsdt += depositEntity.amountWithdrawnUsdt ? BigInt(depositEntity.amountWithdrawnUsdt) : 0n;
+        if (depositEntity.amountWithdrawnBtc) {
+            acc.sumWithdrawalsBtc.add(depositEntity.amountWithdrawnBtc);
+        }
+        if (depositEntity.amountWithdrawnUsdt) {
+            acc.sumWithdrawalsUsdt.add(depositEntity.amountWithdrawnUsdt);
+        }
 
         return acc;
     },
     {
         sumDeposits: 0n,
-        sumDepositsBtc: 0n,
-        sumDepositsUsdt: 0n,
+        sumDepositsBtc: BigDecimal(0),
+        sumDepositsUsdt: BigDecimal(0),
         sumWithdrawals: 0n,
-        sumWithdrawalsBtc: 0n,
-        sumWithdrawalsUsdt: 0n,
+        sumWithdrawalsBtc: BigDecimal(0),
+        sumWithdrawalsUsdt: BigDecimal(0),
     });
 
     return new AccountLoanDeposits({
