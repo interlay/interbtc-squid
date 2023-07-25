@@ -38,7 +38,7 @@ export class AccountLoanDeposits {
 export class AccountLoanDepositResolver {
   constructor(private tx: () => Promise<EntityManager>) {}
 
-  @Query(() => AccountLoanDepositResolver)
+  @Query(() => AccountLoanDeposits)
   async totalLoanDeposits(
     symbol: string,
     userParachainAddress: string
