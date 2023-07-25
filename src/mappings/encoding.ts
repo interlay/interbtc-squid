@@ -45,7 +45,8 @@ const bitcoinNetwork: Network = getBtcNetwork(process.env.BITCOIN_NETWORK);
 const ss58format = process.env.SS58_CODEC || "substrate";
 
 const MODL_PREFIX = "modl";
-const MODL_EXCLUDE = "modldex/"
+const MODL_EXCLUDE = "modldex/";
+const MODL_BOOTSTRAP = "modldex/genrboot";
 
 // multi-sig accounts to be considered as system accounts, in substrate native format
 const SYSTEM_MULTISIG_ACCOUNTS = [
@@ -217,10 +218,15 @@ export function isSystemAddress(ss58Address: string, ss58Prefix?: number): boole
 
     const decodedArray = decodeAddress(ss58Address, false, prefix);
     const decodedAddress = u8aToString(decodedArray);
+    const isBootstrapAccount = String(decodedAddress).startsWith(MODL_BOOTSTRAP);
+    if (isBootstrapAccount) {
+        return true;
+    }
+
     const isModlAccount = String(decodedAddress).startsWith(MODL_PREFIX);
     if (isModlAccount) {
-      // exclude "modldex/" accounts
-      return !String(decodedAddress).startsWith(MODL_EXCLUDE);
+        // exclude "modldex/" accounts
+        return !String(decodedAddress).startsWith(MODL_EXCLUDE);
     }
 
     // reencode to substrate native format
