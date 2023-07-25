@@ -63,7 +63,7 @@ export async function registerVault(
         Vault.name,
         new Vault({
             id: vaultId,
-            accountId: address.interlay.encode(e.vaultId.accountId),
+            accountId: address.parachain.encode(e.vaultId.accountId),
             wrappedToken,
             collateralToken,
             registrationBlock: registrationBlock,

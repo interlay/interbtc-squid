@@ -95,8 +95,8 @@ export async function tokensTransfer(
     const height = await blockToHeight(ctx, block.height, "TokensTransfer");
     const amountHuman = await convertAmountToHuman(currency, amount);
 
-    const fromAccount = address.interlay.encode(from);
-    const toAccount = address.interlay.encode(to);
+    const fromAccount = address.parachain.encode(from);
+    const toAccount = address.parachain.encode(to);
 
     entityBuffer.pushEntity(
         Transfer.name,
@@ -182,7 +182,7 @@ export async function tokensDeposited(
         return;
     }
 
-    const account = address.interlay.encode(accountId);
+    const account = address.parachain.encode(accountId);
 
     // only process system accounts; their deposits/withdrawals impact circulating supply
     if (!isSystemAddress(account)) {
@@ -232,7 +232,7 @@ export async function tokensWithdrawn(
         return;
     }
 
-    const account = address.interlay.encode(accountId);
+    const account = address.parachain.encode(accountId);
 
     // only process system accounts; their deposits/withdrawals impact circulating supply
     if (!isSystemAddress(account)) {
@@ -278,7 +278,7 @@ export async function tokensLocked(
         return;
     }
 
-    const account = address.interlay.encode(accountId);
+    const account = address.parachain.encode(accountId);
 
     // ignore if a system address, no change to circulation
     if (isSystemAddress(account)) {
@@ -325,7 +325,7 @@ export async function tokensUnlocked(
         return;
     }
 
-    const account = address.interlay.encode(accountId);
+    const account = address.parachain.encode(accountId);
 
     // ignore if a system address, no change to circulation
     if (isSystemAddress(account)) {

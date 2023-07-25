@@ -56,7 +56,7 @@ const SYSTEM_MULTISIG_ACCOUNTS = [
 ];
 
 export const address = {
-    interlay: ss58.codec(ss58format),
+    parachain: ss58.codec(ss58format),
     btc: {
         encode(address: AddressV6 | AddressV15): string | undefined {
             return encodeBtcAddress(address, bitcoinNetwork);
@@ -177,7 +177,7 @@ export function currencyToString(currency: Currency): string {
 }
 
 export function encodeLegacyVaultId(vaultId: VaultIdV6 | VaultIdV15) {
-    const addressStr = address.interlay.encode(vaultId.accountId).toString();
+    const addressStr = address.parachain.encode(vaultId.accountId).toString();
     const wrapped = legacyCurrencyId.encode(vaultId.currencies.wrapped);
     const collateral = legacyCurrencyId.encode(vaultId.currencies.collateral);
     return `${addressStr}-${currencyToString(wrapped)}-${currencyToString(
@@ -186,7 +186,7 @@ export function encodeLegacyVaultId(vaultId: VaultIdV6 | VaultIdV15) {
 }
 
 export function encodeVaultId(vaultId: VaultIdV1021000) {
-    const addressStr = address.interlay.encode(vaultId.accountId).toString();
+    const addressStr = address.parachain.encode(vaultId.accountId).toString();
     const wrapped = currencyId.encode(vaultId.currencies.wrapped);
     const collateral = currencyId.encode(vaultId.currencies.collateral);
     return `${addressStr}-${currencyToString(wrapped)}-${currencyToString(
@@ -201,7 +201,7 @@ export function encodeVaultId(vaultId: VaultIdV1021000) {
  * @returns The decoded address as string.
  */
 export function ss58AddressToString(ss58Address: string, ss58Prefix?: number): string {
-    const prefix = ss58Prefix !== undefined ? ss58Prefix : address.interlay.prefix;
+    const prefix = ss58Prefix !== undefined ? ss58Prefix : address.parachain.prefix;
     const decodedArray = decodeAddress(ss58Address, false, prefix);
     return u8aToString(decodedArray);
 }
@@ -213,7 +213,7 @@ export function ss58AddressToString(ss58Address: string, ss58Prefix?: number): s
  * @returns true if the address is a system address, false otherwise
  */
 export function isSystemAddress(ss58Address: string, ss58Prefix?: number): boolean {
-    const prefix = ss58Prefix !== undefined ? ss58Prefix : address.interlay.prefix;
+    const prefix = ss58Prefix !== undefined ? ss58Prefix : address.parachain.prefix;
 
     const decodedArray = decodeAddress(ss58Address, false, prefix);
     const decodedAddress = u8aToString(decodedArray);

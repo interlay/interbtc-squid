@@ -81,7 +81,7 @@ export async function requestRedeem(
         id: toHex(e.redeemId),
         bridgeFee: e.fee,
         collateralPremium: e.premium,
-        userParachainAddress: address.interlay.encode(e.redeemer),
+        userParachainAddress: address.parachain.encode(e.redeemer),
         vault: vault,
         userBackingAddress: address.btc.encode(e.btcAddress),
         btcTransferFee: e.transferFee,

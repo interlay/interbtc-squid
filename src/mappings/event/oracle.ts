@@ -34,7 +34,7 @@ export async function feedValues(
     }
     for (const [key, value] of e.values) {
         const height = await blockToHeight(ctx, block.height, "FeedValues");
-        const oracleAddress = address.interlay.encode(e.oracleId);
+        const oracleAddress = address.parachain.encode(e.oracleId);
         const update = new OracleUpdate({
             height,
             timestamp: new Date(block.timestamp),
