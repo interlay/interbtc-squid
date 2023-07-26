@@ -1,7 +1,6 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
 import { RoundingMode } from "big.js";
-import { Deposit, LoanLiquidation, InterestAccrual, Loan, LoanMarket, LoanMarketActivation, MarketState, Currency, OracleUpdate } from "../../model";
-import { Bitcoin, ExchangeRate  } from "@interlay/monetary-js";
+import { Currency, Deposit, InterestAccrual, Loan, LoanLiquidation, LoanMarket, LoanMarketActivation, MarketState } from "../../model";
 import { Ctx, EventItem } from "../../processor";
 import {
     LoansActivatedMarketEvent,
@@ -20,8 +19,8 @@ import {
 } from "../../types/events";
 
 import {
-    CurrencyId as CurrencyId_V1020000,
-    CurrencyId_LendToken
+    CurrencyId_LendToken,
+    CurrencyId as CurrencyId_V1020000
 } from "../../types/v1020000";
 
 import {
@@ -29,22 +28,20 @@ import {
     Market as LoanMarket_V1021000
 } from "../../types/v1021000";
 
-import EntityBuffer from "../utils/entityBuffer";
-import { blockToHeight } from "../utils/heights";
-import { lendTokenDetails } from "../utils/markets";
-import { 
+import {
+    convertAmountToHuman,
     decimalsFromCurrency,
     divideByTenToTheNth,
     friendlyAmount,
     getExchangeRate,
     getFirstAndLastFour,
     symbolFromCurrency,
-    currencyToLibCurrencyExt,
-    convertAmountToHuman,
     truncateTimestampToDate
 } from "../_utils";
 import { address, currencyId, currencyToString, rateModel } from "../encoding";
-import { createExchangeRateOracleKey, CurrencyExt, decodeFixedPointType, unwrapRawExchangeRate } from "@interlay/interbtc-api";
+import EntityBuffer from "../utils/entityBuffer";
+import { blockToHeight } from "../utils/heights";
+import { lendTokenDetails } from "../utils/markets";
 
 // https://github.com/paritytech/substrate/blob/8ae4738bd7ee57556ea42c33600dc95488b58db6/primitives/arithmetic/src/fixed_point.rs#L2200
 const FIXEDI128_SCALING_FACTOR = 18;
@@ -594,7 +591,7 @@ export async function liquidateLoan(
         liquidationCostBtc.mul(seizedCollateralExchangeRate.btcExchangeRate).toPrecision(0, RoundingMode.RoundUp)
     );
 
-    await entityBuffer.pushEntity(
+    entityBuffer.pushEntity(
         LoanLiquidation.name,
         new LoanLiquidation({
             id: item.event.id,
