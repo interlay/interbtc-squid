@@ -588,7 +588,9 @@ export async function liquidateLoan(
     const liquidationCostBtc = seizedCollateralExchangeRate.btc.minus(amountRepaidExchangeRate.btc);
 
     const liquidationCost = BigInt(
-        liquidationCostBtc.mul(seizedCollateralExchangeRate.btcExchangeRate).toPrecision(0, RoundingMode.RoundUp)
+        liquidationCostBtc.mul(seizedCollateralExchangeRate.btcExchangeRate)
+            .round(0, RoundingMode.RoundUp)
+            .toString()
     );
 
     entityBuffer.pushEntity(
