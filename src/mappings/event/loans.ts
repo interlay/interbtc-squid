@@ -1,4 +1,5 @@
 import { SubstrateBlock } from "@subsquid/substrate-processor";
+import { RoundingMode } from "big.js";
 import { Deposit, LoanLiquidation, InterestAccrual, Loan, LoanMarket, LoanMarketActivation, MarketState, Currency, OracleUpdate } from "../../model";
 import { Bitcoin, ExchangeRate  } from "@interlay/monetary-js";
 import { Ctx, EventItem } from "../../processor";
@@ -572,7 +573,6 @@ export async function liquidateLoan(
     let amountRepaidToken: Currency;
     let seizedCollateral: bigint;
     let seizedCollateralToken: Currency;
-    let liquidationCost: bigint;
     let e;
     if (rawEvent.isV1021000) {
         e = rawEvent.asV1021000;
@@ -590,7 +590,9 @@ export async function liquidateLoan(
     const seizedCollateralExchangeRate = await getExchangeRate(ctx, block.timestamp, seizedCollateralToken, Number(seizedCollateral));
     const liquidationCostBtc = seizedCollateralExchangeRate.btc.minus(amountRepaidExchangeRate.btc);
 
-    liquidationCost = BigInt(seizedCollateralExchangeRate.btcExchangeRate.mul(liquidationCostBtc).toString());
+    const liquidationCost = BigInt(
+        liquidationCostBtc.mul(seizedCollateralExchangeRate.btcExchangeRate).toPrecision(0, RoundingMode.RoundUp)
+    );
 
     await entityBuffer.pushEntity(
         LoanLiquidation.name,
