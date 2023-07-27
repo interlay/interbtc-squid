@@ -459,11 +459,14 @@ type LoanLiquidation @entity {
     amountRepaid: BigInt!
     amountRepaidHuman: BigDecimal!
     amountRepaidToken: Currency!
+    amountRepaidSymbol: String!
     seizedCollateral: BigInt!
     seizedCollateralHuman: BigDecimal!
     seizedCollateralToken: Currency!
+    seizedCollateralSymbol: String!
     liquidationCost: BigInt!
     liquidationCostHuman: BigDecimal!
     liquidationCostToken: Currency!
+    liquidationCostSymbol: String!
     timestamp: DateTime!
 }

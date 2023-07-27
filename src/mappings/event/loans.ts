@@ -41,7 +41,7 @@ import { Bitcoin } from "@interlay/monetary-js";
 import { Big } from "big.js";
 import { BigDecimal } from "@subsquid/big-decimal";
 import {
-    convertAmountToHuman,
+    currencyToLibCurrencyExt,
     decimalsFromCurrency,
     divideByTenToTheNth,
     friendlyAmount,
@@ -598,7 +598,6 @@ export async function liquidateLoan(
     const amountRepaidExchangeRate = await getExchangeRate(ctx, block.timestamp, amountRepaidToken, amountRepaid.toString());
     const seizedCollateralExchangeRate = await getExchangeRate(ctx, block.timestamp, seizedCollateralToken, seizedCollateral.toString());
     const liquidationCostBtc = seizedCollateralExchangeRate.btc.minus(amountRepaidExchangeRate.btc);
-
     const liquidationCostAmount = seizedCollateralExchangeRate.btcExchangeRate.toCounter(
         // liquidationCostBtc is in base value
         newMonetaryAmount(liquidationCostBtc, Bitcoin, true)
@@ -611,19 +610,31 @@ export async function liquidateLoan(
     // liquidation cost in human readable form (or in "base units")
     const liquidationCostHuman = BigDecimal(liquidationCostAmount.toString());
 
+    // get lib currencies for the symbols
+    const [repaidCurrencyExt, seizedCurrencyExt ] = await Promise.all([
+        currencyToLibCurrencyExt(amountRepaidToken),
+        currencyToLibCurrencyExt(seizedCollateralToken),
+    ]);
+
+    const repaidAmount = newMonetaryAmount(amountRepaid.toString(), repaidCurrencyExt);
+    const seizedAmount = newMonetaryAmount(seizedCollateral.toString(), seizedCurrencyExt);
+
     entityBuffer.pushEntity(
         LoanLiquidation.name,
         new LoanLiquidation({
             id: item.event.id,
             amountRepaid: amountRepaid,
-            amountRepaidHuman: await convertAmountToHuman(amountRepaidToken, amountRepaid),
+            amountRepaidHuman: BigDecimal(repaidAmount.toString()),
             amountRepaidToken: amountRepaidToken,
+            amountRepaidSymbol: repaidCurrencyExt.ticker,
             seizedCollateral: seizedCollateral,
-            seizedCollateralHuman: await convertAmountToHuman(seizedCollateralToken, seizedCollateral),
+            seizedCollateralHuman: BigDecimal(seizedAmount.toString()),
             seizedCollateralToken: seizedCollateralToken,
+            seizedCollateralSymbol: seizedCurrencyExt.ticker,
             liquidationCost,
             liquidationCostHuman,
             liquidationCostToken: seizedCollateralToken,
+            liquidationCostSymbol: seizedCurrencyExt.ticker,
             timestamp: new Date(block.timestamp),
         })
     );
