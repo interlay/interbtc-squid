@@ -38,6 +38,7 @@ import {
 
 import { newMonetaryAmount } from "@interlay/interbtc-api";
 import { Bitcoin } from "@interlay/monetary-js";
+import { Big } from "big.js";
 import { BigDecimal } from "@subsquid/big-decimal";
 import {
     convertAmountToHuman,
@@ -267,8 +268,8 @@ export async function borrow(
     const height = await blockToHeight(ctx, block.height, "LoansBorrowed");
     const account = address.parachain.encode(accountId);
     
-    const amounts = await getExchangeRate(ctx, block.timestamp, currency, amount);
-    const comment = `${getFirstAndLastFour(account)} borrowed ${await friendlyAmount(currency, amount)}`
+    const amounts = await getExchangeRate(ctx, block.timestamp, currency, amount.toString());
+    const comment = `${getFirstAndLastFour(account)} borrowed ${await friendlyAmount(currency, amount.toString())}`
     
     await entityBuffer.pushEntity(
         Loan.name,
@@ -321,7 +322,7 @@ export async function depositCollateral(
         symbol = await symbolFromCurrency(newCurrency);
         const qRate = cachedRates.getRate(block.height, symbol);
 
-        const newAmount = amount * BigInt(qRate.rate);
+        const newAmount = Big(amount.toString()).mul(qRate.rate);
         amounts = await getExchangeRate(ctx, block.timestamp, newCurrency, newAmount);
         symbol = `q`.concat(symbol);
         if(newCurrency){
@@ -329,8 +330,8 @@ export async function depositCollateral(
         }
     } else {
         symbol = await symbolFromCurrency(currency);
-        amounts = await getExchangeRate(ctx, block.timestamp, currency, amount);
-        comment = `${getFirstAndLastFour(account)} deposited ${await friendlyAmount(currency, amount)} for collateral`
+        amounts = await getExchangeRate(ctx, block.timestamp, currency, amount.toString());
+        comment = `${getFirstAndLastFour(account)} deposited ${await friendlyAmount(currency, amount.toString())} for collateral`
     }
     await entityBuffer.pushEntity(
         Deposit.name,
@@ -384,7 +385,7 @@ export async function withdrawCollateral(
         symbol = await symbolFromCurrency(newCurrency);
         const qRate = cachedRates.getRate(block.height, symbol);
 
-        const newAmount = amount * BigInt(qRate.rate);
+        const newAmount = Big(amount.toString()).mul(qRate.rate);
         amounts = await getExchangeRate(ctx, block.timestamp, newCurrency, newAmount);
         symbol = `q`.concat(symbol);
         if(newCurrency){
@@ -392,8 +393,8 @@ export async function withdrawCollateral(
         }
     } else {
         symbol = await symbolFromCurrency(currency);
-        amounts = await getExchangeRate(ctx, block.timestamp, currency, amount);
-        comment = `${getFirstAndLastFour(account)} withdrew ${await friendlyAmount(currency, amount)} from collateral`
+        amounts = await getExchangeRate(ctx, block.timestamp, currency, amount.toString());
+        comment = `${getFirstAndLastFour(account)} withdrew ${await friendlyAmount(currency, amount.toString())} from collateral`
     }
     await entityBuffer.pushEntity(
         Deposit.name,
@@ -439,8 +440,8 @@ export async function depositForLending(
     const symbol = await symbolFromCurrency(currency);
     const height = await blockToHeight(ctx, block.height, "Deposit");
     const account = address.parachain.encode(accountId);
-    const amounts = await getExchangeRate(ctx, block.timestamp, currency, amount);
-    const comment = `${getFirstAndLastFour(account)} deposited ${await friendlyAmount(currency, amount)} for lending`;
+    const amounts = await getExchangeRate(ctx, block.timestamp, currency, amount.toString());
+    const comment = `${getFirstAndLastFour(account)} deposited ${await friendlyAmount(currency, amount.toString())} for lending`;
     await entityBuffer.pushEntity(
         Deposit.name,
         new Deposit({
@@ -503,8 +504,8 @@ export async function repay(
     const height = await blockToHeight(ctx, block.height, "LoansRepaid");
     const account = address.parachain.encode(accountId);
 
-    const amounts = await getExchangeRate(ctx, block.timestamp, currency, amount);
-    const comment = `${getFirstAndLastFour(account)} paid back ${await friendlyAmount(currency, amount)}`
+    const amounts = await getExchangeRate(ctx, block.timestamp, currency, amount.toString());
+    const comment = `${getFirstAndLastFour(account)} paid back ${await friendlyAmount(currency, amount.toString())}`
 
     await entityBuffer.pushEntity(
         Loan.name,
@@ -548,8 +549,8 @@ export async function withdrawDeposit(
     const symbol = await symbolFromCurrency(currency);
     const height = await blockToHeight(ctx, block.height, "Redeemed");
     const account = address.parachain.encode(accountId);
-    const amounts = await getExchangeRate(ctx, block.timestamp, currency, amount);
-    const comment = `${getFirstAndLastFour(account)} withdrew ${await friendlyAmount(currency, amount)} from deposit`;
+    const amounts = await getExchangeRate(ctx, block.timestamp, currency, amount.toString());
+    const comment = `${getFirstAndLastFour(account)} withdrew ${await friendlyAmount(currency, amount.toString())} from deposit`;
     await entityBuffer.pushEntity(
         Deposit.name,
         new Deposit({
@@ -594,8 +595,8 @@ export async function liquidateLoan(
         return;
     }
     
-    const amountRepaidExchangeRate = await getExchangeRate(ctx, block.timestamp, amountRepaidToken, amountRepaid);
-    const seizedCollateralExchangeRate = await getExchangeRate(ctx, block.timestamp, seizedCollateralToken, seizedCollateral);
+    const amountRepaidExchangeRate = await getExchangeRate(ctx, block.timestamp, amountRepaidToken, amountRepaid.toString());
+    const seizedCollateralExchangeRate = await getExchangeRate(ctx, block.timestamp, seizedCollateralToken, seizedCollateral.toString());
     const liquidationCostBtc = seizedCollateralExchangeRate.btc.minus(amountRepaidExchangeRate.btc);
 
     const liquidationCostAmount = seizedCollateralExchangeRate.btcExchangeRate.toCounter(
@@ -650,9 +651,9 @@ export async function accrueInterest(
         ex,
     );
 
-    const totalBorrowsUsdtAndBtc = await getExchangeRate(ctx, block.timestamp, currency, interestAccrued.totalBorrows);
-    const totalReservesUsdtAndBtc = await getExchangeRate(ctx, block.timestamp, currency, interestAccrued.totalReserves);
-    const borrowIndexUsdtAndBtc = await getExchangeRate(ctx, block.timestamp, currency, interestAccrued.borrowIndex);
+    const totalBorrowsUsdtAndBtc = await getExchangeRate(ctx, block.timestamp, currency, interestAccrued.totalBorrows.toString());
+    const totalReservesUsdtAndBtc = await getExchangeRate(ctx, block.timestamp, currency, interestAccrued.totalReserves.toString());
+    const borrowIndexUsdtAndBtc = await getExchangeRate(ctx, block.timestamp, currency, interestAccrued.borrowIndex.toString());
     
     await entityBuffer.pushEntity(
         InterestAccrual.name,

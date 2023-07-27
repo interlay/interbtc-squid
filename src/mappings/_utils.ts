@@ -120,7 +120,7 @@ an amount (in the smallest unit, e.g. Planck) and returns a human friendly strin
 with a reasonable accuracy (6 digits after the decimal point for BTC and 2 for
 all others)
 */
-export async function friendlyAmount(currency: Currency, amount: bigint): Promise<string> {
+export async function friendlyAmount(currency: Currency, amount: BigSource): Promise<string> {
     const currencyExt = await currencyToLibCurrencyExt(currency);
     const monetaryAmount = newMonetaryAmount(amount.toString(), currencyExt);
     const amountFriendly = monetaryAmount.toBig();
@@ -244,7 +244,7 @@ export async function getExchangeRate(
     ctx: Ctx,
     timestamp: number,
     currency: Currency,
-    amount: bigint,
+    amount: BigSource,
 ): Promise<OracleRate>  {
     if(!usdtAssetId) {
         throw new Error("Unable to determine USDT Asset ID");
@@ -290,7 +290,7 @@ export async function getExchangeRate(
           )
         : undefined;
 
-    const amountInCurrency = newMonetaryAmount(amount.toString(), currencyExt);
+    const amountInCurrency = newMonetaryAmount(amount, currencyExt);
     const amountInBtc = btcCcyExchangeRate.toBase(amountInCurrency);
     const amountInUsdt = btcUsdtExchangeRate?.toCounter(amountInBtc);
 
