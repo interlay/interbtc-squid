@@ -130,7 +130,6 @@ export async function friendlyAmount(currency: Currency, amount: BigSource): Pro
             switch (currency.token) {
                 case 'KINT':
                 case 'KSM':
-                    return `${amountFriendly.toFixed(2)} ${currency.token}`;
                 case 'INTR':
                 case 'DOT':
                     return `${amountFriendly.toFixed(2)} ${currency.token}`;
