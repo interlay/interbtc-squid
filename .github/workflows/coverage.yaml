@@ -1,24 +1,15 @@
 name: 'coverage'
-permissions:
-  pull-requests: write
-  checks: write
-  contents: write
+
 on:
-  pull_request:
+  pull_request_target:
     branches:
       - master
-      - main
+
 jobs:
   coverage:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: ArtiomTr/jest-coverage-report-action@v2
-        id: coverage
         with:
-          output: report-markdown
           package-manager: yarn
-      - uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          # comment output from coverage
-          message: ${{ steps.coverage.outputs.report }}
