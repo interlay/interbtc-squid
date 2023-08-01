@@ -1,6 +1,8 @@
 name: 'coverage'
 permissions:
   pull-requests: write
+  checks: write
+  contents: write
 on:
   pull_request:
     branches:
@@ -14,9 +16,8 @@ jobs:
       - uses: ArtiomTr/jest-coverage-report-action@v2
         id: coverage
         with:
-          test-script: yarn jest --passWithNoTests
-          package-manager: yarn
           output: report-markdown
+          package-manager: yarn
       - uses: marocchino/sticky-pull-request-comment@v2
         with:
           # comment output from coverage
