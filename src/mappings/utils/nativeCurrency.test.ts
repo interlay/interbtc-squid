@@ -6,7 +6,6 @@ describe("getNativeCurrency", () => {
 
     beforeEach(() => {
         jest.resetModules();
-        process.env = {...env};
     });
 
     afterEach(() => {
@@ -29,6 +28,5 @@ describe("getNativeCurrency", () => {
         process.env.SS58_CODEC = "Kintsugi";
         const actualNativeCurrency = getNativeCurrency();
         expect(actualNativeCurrency).not.toBe(Token.KINT);
-
     });
 });
