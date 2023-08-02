@@ -7,10 +7,15 @@ on:
 
 jobs:
   coverage:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux]
     steps:
       - uses: actions/checkout@v3
-      - uses: ArtiomTr/jest-coverage-report-action@v2
-        with:
-          package-manager: yarn
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run code coverage
+        run: |
+            yarn
+            yarn test --coverage
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
