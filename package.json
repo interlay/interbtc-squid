@@ -65,6 +65,9 @@
     "jest" :{
         "preset": "ts-jest",
         "testEnvironment": "node",
+        "modulePathIgnorePatterns": [
+            "<rootDir>/lib/"
+        ],
         "collectCoverageFrom": [
             "<rootDir>/src/**/*.ts*"
         ],
