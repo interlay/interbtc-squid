@@ -15,7 +15,7 @@ export const getInterBtcApi = async (): Promise<InterBtcApi> => {
 /**
  * Only exported for better testing, use at own risk
  */
-export const testHelpers= { 
+export const testHelpers = { 
     unsafeSetInterBtcApi: (maybeApi: any) => {
         interBtcApi = maybeApi as InterBtcApi | undefined;
     }
