@@ -1,5 +1,6 @@
 import { ForeignAsset as LibForeignAsset } from "@interlay/interbtc-api";
-import { cacheForeignAssets, getForeignAsset, testHelpers } from "./_utils";
+import { cacheForeignAssets, getForeignAsset, symbolFromCurrency, testHelpers } from "./_utils";
+import { ForeignAsset, NativeToken, Token } from "../model";
 
 // mocking getForeignAsset and getForeignAssets in the lib (interBtcApi)
 const libGetForeignAssetsMock = jest.fn();
@@ -177,5 +178,34 @@ describe("_utils", () => {
             const newUsdtAssetId = testHelpers.getUsdtAssetId();
             expect(newUsdtAssetId).toBe(oldUsdtAssetId);
         });
+    });
+
+    describe("symbolFromCurrency", () => {
+        it("should return token name for native token", async () => {
+            const testNativeToken = new NativeToken({token: Token.KINT});
+            const actualSymbol = await symbolFromCurrency(testNativeToken);
+
+            expect(actualSymbol).toBe(Token.KINT);
+        });
+
+        it("should return ticker for foreign asset", async () => {
+            const testAssetId = fakeAsset.foreignAsset.id;
+            // prepare cache for lookup
+            testHelpers.getForeignAssetsCache().set(testAssetId, fakeAsset);
+            
+            const testForeignAsset = new ForeignAsset({asset: testAssetId});
+            const actualSymbol = await symbolFromCurrency(testForeignAsset);
+            expect(actualSymbol).toBe(fakeAsset.ticker);
+        });
+
+        it("should return unknown for unhandled currency type", async () => {
+            const badTestCurrency = {
+                isTypeOf: "definitely not a valid type"
+            };
+
+            const actualSymbol = await symbolFromCurrency(badTestCurrency as any);
+            expect(actualSymbol).toBe("UNKNOWN");
+        });
+
     });
 });
