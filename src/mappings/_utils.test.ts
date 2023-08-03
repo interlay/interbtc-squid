@@ -1,5 +1,5 @@
 import { ForeignAsset as LibForeignAsset } from "@interlay/interbtc-api";
-import { cacheForeignAssets, getForeignAsset, getForeignAssetsCache } from "./_utils";
+import { cacheForeignAssets, getForeignAsset, testHelpers } from "./_utils";
 
 // mocking getForeignAsset and getForeignAssets in the lib (interBtcApi)
 const libGetForeignAssetsMock = jest.fn();
@@ -42,7 +42,7 @@ describe("_utils", () => {
     describe("getForeignAsset", () => {
         beforeEach(() => {
             // clean out cache
-            getForeignAssetsCache().clear();
+            testHelpers.getForeignAssetsCache().clear();
         });
 
         afterEach(() => {
@@ -55,7 +55,7 @@ describe("_utils", () => {
             getInterBtcApiMock.mockImplementation(() => Promise.resolve(mockInterBtcApi));
 
             // relies on cache to have been passed as reference
-            getForeignAssetsCache().set(fakeAsset.foreignAsset.id, fakeAsset);
+            testHelpers.getForeignAssetsCache().set(fakeAsset.foreignAsset.id, fakeAsset);
 
             const actualAsset = await getForeignAsset(fakeAsset.foreignAsset.id);
             expect(actualAsset).toBe(fakeAsset);
@@ -68,7 +68,7 @@ describe("_utils", () => {
             getInterBtcApiMock.mockImplementation(() => Promise.resolve(mockInterBtcApi));
 
             // clean out cache
-            getForeignAssetsCache().clear();
+            testHelpers.getForeignAssetsCache().clear();
 
             const actualAsset = await getForeignAsset(fakeAsset.foreignAsset.id);
             expect(getInterBtcApiMock).toHaveBeenCalledTimes(1);
@@ -76,7 +76,7 @@ describe("_utils", () => {
 
             expect(actualAsset).toBe(fakeAsset);
 
-            const cacheNow = getForeignAssetsCache();
+            const cacheNow = testHelpers.getForeignAssetsCache();
             expect(cacheNow.size).toBe(1);
             expect(cacheNow.has(fakeAsset.foreignAsset.id)).toBe(true);
         });
@@ -111,7 +111,7 @@ describe("_utils", () => {
             getInterBtcApiMock.mockImplementation(() => Promise.resolve(mockInterBtcApi));
     
             await cacheForeignAssets();
-            const actualCache = getForeignAssetsCache();
+            const actualCache = testHelpers.getForeignAssetsCache();
     
             expect(getInterBtcApiMock).toHaveBeenCalledTimes(1);
             expect(libGetForeignAssetsMock).toHaveBeenCalledTimes(1);
@@ -134,6 +134,48 @@ describe("_utils", () => {
             await expect(cacheForeignAssets()).rejects.toThrow("no assets for you");
             expect(getInterBtcApiMock).toHaveBeenCalledTimes(1);
             expect(libGetForeignAssetsMock).toHaveBeenCalledTimes(1);
+        });
+
+        it("should set usdt asset id if found", async () => {
+            const oldUsdtAssetId = testHelpers.getUsdtAssetId() | 0;
+
+            const fakeUsdtAsset = {
+                foreignAsset: {
+                    id: oldUsdtAssetId + 13,
+                    coingeckoId: "usdt"
+                },
+                name: "Tether USD",
+                ticker:"USDT",
+                decimals: 6
+            };
+            const fakeAssets = [
+                fakeAsset,
+                fakeUsdtAsset,
+            ];
+
+            libGetForeignAssetsMock.mockImplementation(() => Promise.resolve(fakeAssets));
+            getInterBtcApiMock.mockImplementation(() => Promise.resolve(mockInterBtcApi));
+
+            await cacheForeignAssets();
+
+            const newUsdtAssetId = testHelpers.getUsdtAssetId();
+            expect(newUsdtAssetId).toBe(fakeUsdtAsset.foreignAsset.id);
+        });
+
+        it("should not set usdt asset id if not found", async () => {
+            const oldUsdtAssetId = testHelpers.getUsdtAssetId();
+
+            const fakeAssets = [
+                fakeAsset,
+            ];
+
+            libGetForeignAssetsMock.mockImplementation(() => Promise.resolve(fakeAssets));
+            getInterBtcApiMock.mockImplementation(() => Promise.resolve(mockInterBtcApi));
+
+            await cacheForeignAssets();
+
+            const newUsdtAssetId = testHelpers.getUsdtAssetId();
+            expect(newUsdtAssetId).toBe(oldUsdtAssetId);
         });
     });
 });

@@ -105,10 +105,13 @@ export async function getForeignAsset(id: number): Promise<LibForeignAsset> {
     return asset;
 }
 
-// getter for easier testing
-export function getForeignAssetsCache() {
-    return cache;
-}
+/**
+ * Helper methods to facilitate testing, use at own risk
+ */
+export const testHelpers = {
+    getForeignAssetsCache: () => cache,
+    getUsdtAssetId: () => usdtAssetId
+};
 
 /* This function takes a currency object (could be native, could be foreign) and
 an amount (in the smallest unit, e.g. Planck) and returns a human friendly string
