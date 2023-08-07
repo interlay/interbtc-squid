@@ -33,7 +33,7 @@ describe("_utils", () => {
         },
         name: "FooCoin",
         ticker:"FOO",
-        decimals: 42
+        decimals: 7
     };
 
     afterAll(() => {
@@ -116,8 +116,8 @@ describe("_utils", () => {
     
             expect(getInterBtcApiMock).toHaveBeenCalledTimes(1);
             expect(libGetForeignAssetsMock).toHaveBeenCalledTimes(1);
-            expect(actualCache.has(42)).toBe(true);
-            expect(actualCache.get(42)).toBe(fakeAssets[0]);
+            expect(actualCache.has(fakeAsset.foreignAsset.id)).toBe(true);
+            expect(actualCache.get(fakeAsset.foreignAsset.id)).toBe(fakeAsset);
         });
 
         it("should reject if getInterBtcApi rejects", async () => {
