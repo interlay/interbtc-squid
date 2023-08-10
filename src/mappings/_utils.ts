@@ -1,17 +1,18 @@
 import { CurrencyExt, CurrencyIdentifier, currencyIdToMonetaryCurrency, FIXEDI128_SCALING_FACTOR, newCollateralBTCExchangeRate, newMonetaryAmount, StandardPooledTokenIdentifier } from "@interlay/interbtc-api";
-import { Bitcoin, ExchangeRate, InterBtc, Interlay, KBtc, Kintsugi, Kusama, Polkadot } from "@interlay/monetary-js";
-import { ApiPromise, WsProvider } from '@polkadot/api';
+import { Bitcoin, ExchangeRate } from "@interlay/monetary-js";
 import { BigDecimal } from "@subsquid/big-decimal";
 import { Store } from "@subsquid/typeorm-store";
 import { Big, BigSource } from "big.js";
 import * as process from "process";
 import { LessThanOrEqual, Like } from "typeorm";
 import { Currency, ForeignAsset, Height, Issue, OracleUpdate, OracleUpdateType, Redeem, Token, Vault } from "../model";
-import { Ctx, getInterBtcApi } from "../processor";
+import { Ctx } from "../processor";
+import { getInterBtcApi } from "./utils/interBtcApi";
 import { VaultId as VaultIdV1021000 } from "../types/v1021000";
 import { VaultId as VaultIdV15 } from "../types/v15";
 import { VaultId as VaultIdV6 } from "../types/v6";
 import { encodeLegacyVaultId, encodeVaultId } from "./encoding";
+import { ForeignAsset as LibForeignAsset } from "@interlay/interbtc-api";
 
 export type eventArgs = {
     event: { args: true };
@@ -73,47 +74,44 @@ type AssetMetadata = {
     symbol: string;
 }
 
-// This function uses the storage API to obtain the details directly from the
-// WSS RPC provider for the correct chain
-const cache: { [id: number]: AssetMetadata } = {};
+// simple cache for foreign assets by id
+const cache: Map<number, LibForeignAsset> = new Map();
 let usdtAssetId: number;
 
-export async function cacheForeignAsset(): Promise<void> {
-    try {
-        const wsProvider = new WsProvider(process.env.CHAIN_ENDPOINT);
-        const api = await ApiPromise.create({ provider: wsProvider, noInitWarn: true });
-        const assets = await api.query.assetRegistry.metadata.entries();
-        assets.forEach(([key, details]) => {
-            const id:number = Number(key.args[0]);
-            const assetDetails = details.toHuman() as AssetMetadata;
-            cache[id] = assetDetails;
-            if(assetDetails.symbol==='USDT') usdtAssetId = id;
-          });        
-    } catch (error) {
-        console.error(`Error getting foreign asset metadata: ${error}`);
-        throw error;
-    }
+export async function cacheForeignAssets(): Promise<void> {
+    const interBtcApi = await getInterBtcApi();
+    const foreignAssets = await interBtcApi.assetRegistry.getForeignAssets();
+    foreignAssets.forEach((asset) => {
+        const id = asset.foreignAsset.id;
+
+        cache.set(id, asset);
+
+        if(asset.ticker === 'USDT') {
+            usdtAssetId = id;
+        } 
+    });
 }
 
+export async function getForeignAsset(id: number): Promise<LibForeignAsset> {
+    if (cache.has(id)) {
+        return cache.get(id)!;
+    }
 
-export async function getForeignAsset(id: number): Promise<AssetMetadata> {
-    if (id in cache) {
-        return cache[id];
-    }
-    try {
-        const wsProvider = new WsProvider(process.env.CHAIN_ENDPOINT);
-        const api = await ApiPromise.create({ provider: wsProvider, noInitWarn: true });
-        const assets = await api.query.assetRegistry.metadata(id);
-        const assetsJSON = assets.toHuman();
-        const metadata = assetsJSON as AssetMetadata;
-        console.debug(`Foreign Asset (${id}): ${JSON.stringify(metadata)}`);
-        cache[id] = metadata;
-        return metadata;
-    } catch (error) {
-        console.error(`Error getting foreign asset metadata: ${error}`);
-        throw error;
-    }
+    const interBtcApi = await getInterBtcApi();
+    const asset = await interBtcApi.assetRegistry.getForeignAsset(id);
+
+    cache.set(id,asset);
+    
+    return asset;
 }
+
+/**
+ * Helper methods to facilitate testing, use at own risk
+ */
+export const testHelpers = {
+    getForeignAssetsCache: () => cache,
+    getUsdtAssetId: () => usdtAssetId
+};
 
 /* This function takes a currency object (could be native, could be foreign) and
 an amount (in the smallest unit, e.g. Planck) and returns a human friendly string
@@ -155,13 +153,12 @@ export function divideByTenToTheNth(amount: bigint, n: number): number {
 }
 
 export async function symbolFromCurrency(currency: Currency): Promise<string> {
-    let amountFriendly: number;
     switch(currency.isTypeOf) {
         case 'NativeToken':
             return currency.token;
         case 'ForeignAsset':
             const details = await getForeignAsset(currency.asset)
-            return details.symbol;
+            return details.ticker;
         default:
             return `UNKNOWN`;
     }

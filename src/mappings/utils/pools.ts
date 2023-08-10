@@ -20,27 +20,24 @@ const DEX_GENERAL_FEE_DENOMINATOR: number = 10_000;
 
 // Replicated order from parachain code. 
 // See https://github.com/interlay/interbtc/blob/4cf80ce563825d28d637067a8a63c1d9825be1f4/primitives/src/lib.rs#L492-L498
-const indexToCurrencyTypeMap: Map<number, string> = new Map([
-    [0, "NativeToken"],
-    [1, "ForeignAsset"],
-    [2, "LendToken"],
-    [3, "LpToken"],
-    [4, "StableLpToken"]
+const currencyTypeToIndexMap = new Map([
+    ["NativeToken", 0],
+    ["ForeignAsset", 1],
+    ["LendToken", 2],
+    ["LpToken", 3],
+    ["StableLpToken", 4]
 ]);
-const currencyTypeToIndexMap = invertMap(indexToCurrencyTypeMap);
 
 // Replicated order from parachain code. 
 // See also https://github.com/interlay/interbtc/blob/d48fee47e153291edb92525221545c2f4fa58501/primitives/src/lib.rs#L469-L476
-const indexToNativeTokenMap: Map<number, Token> = new Map([
-    [0, Token.DOT],
-    [1, Token.IBTC],
-    [2, Token.INTR],
-    [10, Token.KSM],
-    [11, Token.KBTC],
-    [12, Token.KINT]
+const nativeTokenToIndexMap: Map<Token, number> = new Map([
+    [Token.DOT, 0],
+    [Token.IBTC, 1],
+    [Token.INTR, 2],
+    [Token.KSM, 10],
+    [Token.KBTC, 11],
+    [Token.KINT, 12]
 ]);
-
-const nativeTokenToIndexMap = invertMap(indexToNativeTokenMap);
 
 // poor man's stable pool id to currencies cache
 const stablePoolCurrenciesCache = new Map<number, [Currency, CurrencyId][]>();

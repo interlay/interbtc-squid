@@ -50,8 +50,7 @@ import {
 } from "./mappings/event/tokens";
 import * as heights from "./mappings/utils/heights";
 import EntityBuffer from "./mappings/utils/entityBuffer";
-import { eventArgsData, cacheForeignAsset } from "./mappings/_utils";
-import { BitcoinNetwork, createInterBtcApi, InterBtcApi } from "@interlay/interbtc-api";
+import { eventArgsData, cacheForeignAssets } from "./mappings/_utils";
 import { 
     newMarket, 
     updatedMarket, 
@@ -87,7 +86,7 @@ const eventArgsData: eventArgsData = {
 const circulatingSupplyArgs = {...eventArgsData, ...getCirculatingSupplyProcessRange()};
 
 // initialise a cache with all the foreign assets
-cacheForeignAsset();
+cacheForeignAssets();
 
 const processor = new SubstrateBatchProcessor()
     .setDataSource({ archive, chain })
@@ -164,17 +163,6 @@ export type CallItem = Exclude<
 >;
 export type Ctx = BatchContext<Store, Item>;
 
-let interBtcApi: InterBtcApi | undefined = undefined;
-
-export const getInterBtcApi = async () => {
-    if (interBtcApi === undefined) {
-        const PARACHAIN_ENDPOINT = process.env.CHAIN_ENDPOINT;
-        const BITCOIN_NETWORK = process.env.BITCOIN_NETWORK as BitcoinNetwork;
-    
-        interBtcApi = await createInterBtcApi(PARACHAIN_ENDPOINT!, BITCOIN_NETWORK!); 
-    }
-    return interBtcApi;
-}
 processor.run(new TypeormDatabase({ stateSchema: "interbtc" }), async (ctx) => {
     type MappingsList = Array<{
         filter: { name: string };
