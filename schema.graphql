@@ -404,10 +404,13 @@ type InterestAccrual @entity {
 
 type Swap @entity {
     id: ID!
+    poolType: PoolType! @index
+    poolId: String! @index
+    eventId: String!
     height: Height!
     timestamp: DateTime!
     fromAccount: String! @index
-    toAccount: String!
+    toAccount: String! @index
     fees: PooledAmount!
     feeRate: BigDecimal!
     from: PooledAmount!

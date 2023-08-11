@@ -1,6 +1,7 @@
 import {BigDecimal} from "@subsquid/big-decimal"
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_} from "typeorm"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_, ManyToOne as ManyToOne_} from "typeorm"
 import * as marshal from "./marshal"
+import {PoolType} from "./_poolType"
 import {Height} from "./height.model"
 import {PooledAmount} from "./_pooledAmount"
 
@@ -14,6 +15,17 @@ export class Swap {
     id!: string
 
     @Index_()
+    @Column_("varchar", {length: 8, nullable: false})
+    poolType!: PoolType
+
+    @Index_()
+    @Column_("text", {nullable: false})
+    poolId!: string
+
+    @Column_("text", {nullable: false})
+    eventId!: string
+
+    @Index_()
     @ManyToOne_(() => Height, {nullable: true})
     height!: Height
 
@@ -24,6 +36,7 @@ export class Swap {
     @Column_("text", {nullable: false})
     fromAccount!: string
 
+    @Index_()
     @Column_("text", {nullable: false})
     toAccount!: string
 
