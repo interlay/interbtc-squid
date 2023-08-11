@@ -408,7 +408,7 @@ type Swap @entity {
     poolId: String! @index
     eventId: String!
     height: Height!
-    timestamp: DateTime!
+    timestamp: DateTime! @index
     fromAccount: String! @index
     toAccount: String! @index
     fees: PooledAmount!

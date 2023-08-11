@@ -29,6 +29,7 @@ export class Swap {
     @ManyToOne_(() => Height, {nullable: true})
     height!: Height
 
+    @Index_()
     @Column_("timestamp with time zone", {nullable: false})
     timestamp!: Date
 
