@@ -47,7 +47,7 @@ import {
     friendlyAmount,
     getExchangeRate,
     getFirstAndLastFour,
-    symbolFromCurrency,
+    tickerFromCurrency,
     truncateTimestampToDate
 } from "../_utils";
 import { address, currencyId, currencyToString, rateModel } from "../encoding";
@@ -132,7 +132,7 @@ export async function newMarket(
         liquidateIncentive: divideByTenToTheNth(market.liquidateIncentive, FIXEDI128_SCALING_FACTOR),
         liquidationThreshold: market.liquidationThreshold / PERMILL_BASE,
         liquidateIncentiveReservedFactor: market.liquidateIncentiveReservedFactor / PERMILL_BASE,
-        currencySymbol: await symbolFromCurrency(currency)
+        currencySymbol: await tickerFromCurrency(currency)
     });
     // console.log(JSON.stringify(my_market));
     await entityBuffer.pushEntity(LoanMarket.name, my_market);
@@ -182,7 +182,7 @@ export async function updatedMarket(
         liquidateIncentive: divideByTenToTheNth(market.liquidateIncentive, decimals),
         liquidationThreshold: market.liquidationThreshold / PERMILL_BASE,
         liquidateIncentiveReservedFactor: market.liquidateIncentiveReservedFactor / PERMILL_BASE,
-        currencySymbol: await symbolFromCurrency(currency)
+        currencySymbol: await tickerFromCurrency(currency)
     });
 
     switch(market.state.__kind){
@@ -284,7 +284,7 @@ export async function borrow(
             amountBorrowedUsdt: amounts.usdt.toNumber(),
             amountBorrowedBtc: amounts.btc.toNumber(),
             comment: comment,
-            currencySymbol: await symbolFromCurrency(currency)
+            currencySymbol: await tickerFromCurrency(currency)
 
         })
     );
@@ -319,7 +319,7 @@ export async function depositCollateral(
     let symbol;
     if(currency.isTypeOf==='LendToken'){
         const newCurrency = await lendTokenDetails(ctx, currency.lendTokenId);
-        symbol = await symbolFromCurrency(newCurrency);
+        symbol = await tickerFromCurrency(newCurrency);
         const qRate = cachedRates.getRate(block.height, symbol);
 
         const newAmount = Big(amount.toString()).mul(qRate.rate);
@@ -329,7 +329,7 @@ export async function depositCollateral(
             comment = `${getFirstAndLastFour(account)} deposited ${await friendlyAmount(newCurrency, newAmount)} for collateral`
         }
     } else {
-        symbol = await symbolFromCurrency(currency);
+        symbol = await tickerFromCurrency(currency);
         amounts = await getExchangeRate(ctx, block.timestamp, currency, amount.toString());
         comment = `${getFirstAndLastFour(account)} deposited ${await friendlyAmount(currency, amount.toString())} for collateral`
     }
@@ -382,7 +382,7 @@ export async function withdrawCollateral(
     let symbol;
     if(currency.isTypeOf==='LendToken'){
         const newCurrency = await lendTokenDetails(ctx, currency.lendTokenId)
-        symbol = await symbolFromCurrency(newCurrency);
+        symbol = await tickerFromCurrency(newCurrency);
         const qRate = cachedRates.getRate(block.height, symbol);
 
         const newAmount = Big(amount.toString()).mul(qRate.rate);
@@ -392,7 +392,7 @@ export async function withdrawCollateral(
             comment = `${getFirstAndLastFour(account)} withdrew ${await friendlyAmount(newCurrency, newAmount)} from collateral`
         }
     } else {
-        symbol = await symbolFromCurrency(currency);
+        symbol = await tickerFromCurrency(currency);
         amounts = await getExchangeRate(ctx, block.timestamp, currency, amount.toString());
         comment = `${getFirstAndLastFour(account)} withdrew ${await friendlyAmount(currency, amount.toString())} from collateral`
     }
@@ -437,7 +437,7 @@ export async function depositForLending(
         return;
     }
     const currency = currencyId.encode(myCurrencyId);
-    const symbol = await symbolFromCurrency(currency);
+    const symbol = await tickerFromCurrency(currency);
     const height = await blockToHeight(ctx, block.height, "Deposit");
     const account = address.parachain.encode(accountId);
     const amounts = await getExchangeRate(ctx, block.timestamp, currency, amount.toString());
@@ -520,7 +520,7 @@ export async function repay(
             amountRepaidUsdt: amounts.usdt.toNumber(),
             amountRepaidBtc: amounts.btc.toNumber(),
             comment: comment,
-            currencySymbol: await symbolFromCurrency(currency)
+            currencySymbol: await tickerFromCurrency(currency)
         })
     );
 }
@@ -546,7 +546,7 @@ export async function withdrawDeposit(
         return;
     }
     const currency = currencyId.encode(myCurrencyId);
-    const symbol = await symbolFromCurrency(currency);
+    const symbol = await tickerFromCurrency(currency);
     const height = await blockToHeight(ctx, block.height, "Redeemed");
     const account = address.parachain.encode(accountId);
     const amounts = await getExchangeRate(ctx, block.timestamp, currency, amount.toString());
@@ -566,7 +566,7 @@ export async function withdrawDeposit(
             amountWithdrawnUsdt: amounts.usdt.toNumber(),
             amountWithdrawnBtc: amounts.btc.toNumber(),
             comment: comment,
-            currencySymbol: await symbolFromCurrency(currency)
+            currencySymbol: await tickerFromCurrency(currency)
         })
     );
 }
@@ -654,7 +654,7 @@ export async function accrueInterest(
 
     const currency = currencyId.encode(interestAccrued.underlyingCurrencyId);
     const height = await blockToHeight(ctx, block.height, "Interest Accrued");
-    const symbol = await symbolFromCurrency(currency);
+    const symbol = await tickerFromCurrency(currency);
     const decimals = await decimalsFromCurrency(currency);
     cachedRates.addRate(
         block.height,
