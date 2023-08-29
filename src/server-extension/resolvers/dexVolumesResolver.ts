@@ -212,7 +212,7 @@ class DexVolumesByPoolArgs {
 
     @Field(() => Int, {
         nullable: true,
-        description: "(optional) pool id value (if the first currency of the pair is a pool.)"
+        description: "(optional) stable pool id value (if the first currency of the pair is a stable pool.)"
     })
     @IsOptional()
     poolId1?: number;
@@ -269,7 +269,7 @@ class DexVolumesByPoolArgs {
 
     @Field(() => Int, {
         nullable: true,
-        description: "(optional) pool id value (if the second currency of the pair is a pool.)"
+        description: "(optional) stable pool id value (if the second currency of the pair is a stable pool.)"
     })
     @IsOptional()
     poolId2?: number;
