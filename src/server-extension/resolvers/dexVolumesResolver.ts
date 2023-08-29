@@ -175,27 +175,45 @@ type PooledTokenInputFields = {
 
 @ArgsType()
 class DexVolumesByPoolArgs {
-    @Field(() => Date, { nullable: true })
+    @Field(() => Date, {
+        nullable: true,
+        description: "(optional) startDate in iso 8061 format. Defaults to 1 week before endDate."
+    })
     @IsOptional()
     startDate?: Date;
 
-    @Field(() => Date, { nullable: true })
+    @Field(() => Date, {
+        nullable: true,
+        description: "(optional) endDate in ISO 8061 format. Defaults to current date/time."
+    })
     @IsOptional()
     endDate?: Date;
 
-    @Field(() => String, { nullable: true })
+    @Field(() => String, {
+        nullable: true,
+        description: "(optional) native token identifier (if the first currency of the pair is a native token.)"
+    })
     @IsOptional()
     token1?: string;
 
-    @Field(() => Int, { nullable: true })
+    @Field(() => Int, {
+        nullable: true,
+        description: "(optional) asset id value (if the first currency of the pair is a foreign asset.)"
+    })
     @IsOptional()
     assetId1?: number;
 
-    @Field(() => Int, { nullable: true })
+    @Field(() => Int, {
+        nullable: true,
+        description: "(optional) lend token id value (if the first currency of the pair is a lend token.)"
+    })
     @IsOptional()
     lendTokenId1?: number;
 
-    @Field(() => Int, { nullable: true })
+    @Field(() => Int, {
+        nullable: true,
+        description: "(optional) pool id value (if the first currency of the pair is a pool.)"
+    })
     @IsOptional()
     poolId1?: number;
 
@@ -228,19 +246,31 @@ class DexVolumesByPoolArgs {
         };
     }
 
-    @Field(() => String, { nullable: true })
+    @Field(() => String, {
+        nullable: true,
+        description: "(optional) native token identifier (if the second currency of the pair is a native token.)"
+    })
     @IsOptional()
     token2?: string;
 
-    @Field(() => Int, { nullable: true })
+    @Field(() => Int, {
+        nullable: true,
+        description: "(optional) asset id value (if the second currency of the pair is a foreign asset.)"
+    })
     @IsOptional()
     assetId2?: number;
 
-    @Field(() => Int, { nullable: true })
+    @Field(() => Int, {
+        nullable: true,
+        description: "(optional) lend token id value (if the second currency of the pair is a lend token.)"
+    })
     @IsOptional()
     lendTokenId2?: number;
 
-    @Field(() => Int, { nullable: true })
+    @Field(() => Int, {
+        nullable: true,
+        description: "(optional) pool id value (if the second currency of the pair is a pool.)"
+    })
     @IsOptional()
     poolId2?: number;
 
@@ -270,7 +300,11 @@ class DexVolumesByPoolArgs {
 export class DexVolumesResolver {
   constructor(private tx: () => Promise<EntityManager>) {}
 
-  @Query(() => DexTradingVolumesByPool)
+  @Query(() => DexTradingVolumesByPool, {
+    description: "Fetch trading volumes for a general dex by currency pairs, start and end date.\n"
+        + "Needs exactly one of token1, assetId1, lendTokenId1, or poolId1 defined for the first currency in the pairing.\n"
+        + "Needs exactly one of token2, assetId2, lendTokenId2, or poolId2 defined for the second currency in the pairing.\n"
+  })
   async getGeneralDexTradingVolumesByPool(
     @Args()
     { startDate, endDate, token1Json, token2Json }: DexVolumesByPoolArgs,
