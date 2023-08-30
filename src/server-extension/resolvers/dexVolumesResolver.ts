@@ -159,9 +159,9 @@ const accumulateDexVolumeSums = (
  * Testhelper export for better testing/mocking, use at your own risk
  */
 export const testHelpers = {
-    accumulateTokenPairInOutAmounts: accumulateDexVolumeSums,
+    accumulateDexVolumeSums,
     queryEntityManagerForDexGeneralSwaps,
-    buildVolumesInOut: buildNewDexVolumesPair,
+    buildNewDexVolumesPair,
 };
 
 // input structure that's compatible with the fromJsonPooledToken method
@@ -170,11 +170,10 @@ type PooledTokenInputFields = {
     token?: string,
     asset?: number,
     lendTokenId?: number,
-    poolId?: number,
 }
 
 @ArgsType()
-class DexVolumesByPoolArgs {
+export class DexVolumesByPoolArgs {
     @Field(() => Date, {
         nullable: true,
         description: "(optional) startDate in iso 8061 format. Defaults to 1 week before endDate."
@@ -210,19 +209,11 @@ class DexVolumesByPoolArgs {
     @IsOptional()
     lendTokenId1?: number;
 
-    @Field(() => Int, {
-        nullable: true,
-        description: "(optional) stable pool id value (if the first currency of the pair is a stable pool.)"
-    })
-    @IsOptional()
-    poolId1?: number;
-
     // helper to identify which token type the optional inputs represent
     private _findType(input: Partial<PooledTokenInputFields>): string | undefined {
         return (input.token != null) ? "NativeToken"
         : (input.asset != null) ? "ForeignAsset"
         : (input.lendTokenId != null) ? "LendToken"
-        : (input.poolId != null) ? "StableLpToken"
         : undefined
     }
 
@@ -231,13 +222,12 @@ class DexVolumesByPoolArgs {
             token: this.token1,
             asset: this.assetId1,
             lendTokenId: this.lendTokenId1,
-            poolId: this.poolId1
         };
         const type = this._findType(input);
 
         if(type === undefined) {
             throw Error("Unable to detect token/currency type for the given parameters, " 
-                + "please make sure that one of the fields (token1, assetId1, lendTokenId1, poolId1) is set");
+                + "please make sure that one of the fields (token1, assetId1, lendTokenId1) is set");
         }
 
         return {
@@ -267,26 +257,18 @@ class DexVolumesByPoolArgs {
     @IsOptional()
     lendTokenId2?: number;
 
-    @Field(() => Int, {
-        nullable: true,
-        description: "(optional) stable pool id value (if the second currency of the pair is a stable pool.)"
-    })
-    @IsOptional()
-    poolId2?: number;
-
     get token2Json(): PooledTokenInputFields {
         const input: Partial<PooledTokenInputFields> = {
             token: this.token2,
             asset: this.assetId2,
             lendTokenId: this.lendTokenId2,
-            poolId: this.poolId2
         };
 
         const type = this._findType(input);
 
         if(type === undefined) {
             throw Error("Unable to detect token/currency type for the given parameters, " 
-                + "please make sure that one of the fields (token2, assetId2, lendTokenId2, poolId2) is set");
+                + "please make sure that one of the fields (token2, assetId2, lendTokenId2) is set");
         }
 
         return {
@@ -302,8 +284,8 @@ export class DexVolumesResolver {
 
   @Query(() => DexTradingVolumesByPool, {
     description: "Fetch trading volumes for a general dex by currency pairs, start and end date.\n"
-        + "Needs exactly one of token1, assetId1, lendTokenId1, or poolId1 defined for the first currency in the pairing.\n"
-        + "Needs exactly one of token2, assetId2, lendTokenId2, or poolId2 defined for the second currency in the pairing.\n"
+        + "Needs exactly one of token1, assetId1, or lendTokenId1 defined for the first currency in the pairing.\n"
+        + "Needs exactly one of token2, assetId2, or lendTokenId2 defined for the second currency in the pairing."
   })
   async getGeneralDexTradingVolumesByPool(
     @Args()
