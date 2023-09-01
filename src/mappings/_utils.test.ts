@@ -292,8 +292,8 @@ describe("_utils", () => {
             // prepare cache for lookup
             testHelpers.getLendTokensCache().set(testLendTokenId, fakeLendToken);
             
-            const testForeignAsset = new LendToken({lendTokenId: testLendTokenId});
-            const actualSymbol = await tickerFromCurrency(testForeignAsset);
+            const testLendToken = new LendToken({lendTokenId: testLendTokenId});
+            const actualSymbol = await tickerFromCurrency(testLendToken);
             expect(actualSymbol).toBe(fakeLendToken.ticker);
         });
 
