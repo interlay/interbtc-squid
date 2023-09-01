@@ -12,7 +12,7 @@ import { VaultId as VaultIdV1021000 } from "../types/v1021000";
 import { VaultId as VaultIdV15 } from "../types/v15";
 import { VaultId as VaultIdV6 } from "../types/v6";
 import { encodeLegacyVaultId, encodeVaultId } from "./encoding";
-import { ForeignAsset as LibForeignAsset } from "@interlay/interbtc-api";
+import { ForeignAsset as LibForeignAsset, LendToken as LibLendToken } from "@interlay/interbtc-api";
 
 export type eventArgs = {
     event: { args: true };
@@ -75,7 +75,7 @@ type AssetMetadata = {
 }
 
 // simple cache for foreign assets by id
-const cache: Map<number, LibForeignAsset> = new Map();
+const foreignAssetsCache: Map<number, LibForeignAsset> = new Map();
 let usdtAssetId: number;
 
 export async function cacheForeignAssets(): Promise<void> {
@@ -84,7 +84,7 @@ export async function cacheForeignAssets(): Promise<void> {
     foreignAssets.forEach((asset) => {
         const id = asset.foreignAsset.id;
 
-        cache.set(id, asset);
+        foreignAssetsCache.set(id, asset);
 
         if(asset.ticker === 'USDT') {
             usdtAssetId = id;
@@ -93,24 +93,52 @@ export async function cacheForeignAssets(): Promise<void> {
 }
 
 export async function getForeignAsset(id: number): Promise<LibForeignAsset> {
-    if (cache.has(id)) {
-        return cache.get(id)!;
+    if (foreignAssetsCache.has(id)) {
+        return foreignAssetsCache.get(id)!;
     }
 
     const interBtcApi = await getInterBtcApi();
     const asset = await interBtcApi.assetRegistry.getForeignAsset(id);
 
-    cache.set(id,asset);
+    foreignAssetsCache.set(id,asset);
     
     return asset;
+}
+
+const lendTokensCache = new Map<number, LibLendToken>();
+
+export async function cacheLendTokens(): Promise<void> {
+    const interBtcApi = await getInterBtcApi();
+    const foreignAssets = await interBtcApi.loans.getLendTokens();
+    foreignAssets.forEach((lendToken) => {
+        const id = lendToken.lendToken.id;
+
+        lendTokensCache.set(id, lendToken);
+    });
+}
+
+export async function getLendToken(id: number): Promise<LibLendToken> {
+    if (lendTokensCache.has(id)) {
+        return lendTokensCache.get(id)!;
+    }
+
+    // no direct getter, so cache all lend tokens again.
+    await cacheLendTokens();
+
+    if (!lendTokensCache.has(id)) {
+        throw Error(`Could not find lend token with id ${id}`);
+    }
+
+    return lendTokensCache.get(id)!;
 }
 
 /**
  * Helper methods to facilitate testing, use at own risk
  */
 export const testHelpers = {
-    getForeignAssetsCache: () => cache,
-    getUsdtAssetId: () => usdtAssetId
+    getForeignAssetsCache: () => foreignAssetsCache,
+    getUsdtAssetId: () => usdtAssetId,
+    getLendTokensCache: () => lendTokensCache,
 };
 
 /* This function takes a currency object (could be native, could be foreign) and
@@ -152,13 +180,16 @@ export function divideByTenToTheNth(amount: bigint, n: number): number {
     return result;
 }
 
-export async function symbolFromCurrency(currency: Currency): Promise<string> {
+export async function tickerFromCurrency(currency: Currency): Promise<string> {
     switch(currency.isTypeOf) {
         case 'NativeToken':
             return currency.token;
         case 'ForeignAsset':
-            const details = await getForeignAsset(currency.asset)
+            const details = await getForeignAsset(currency.asset);
             return details.ticker;
+        case 'LendToken':
+            const lendToken = await getLendToken(currency.lendTokenId);
+            return lendToken.ticker;
         default:
             return `UNKNOWN`;
     }

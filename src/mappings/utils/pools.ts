@@ -272,8 +272,13 @@ export async function buildNewSwapEntity(
 
     const ccyPair = inferGeneralPoolId(swapDetails.from.currency, swapDetails.to.currency);
 
+    const entityPoolId = PoolType.Standard ? ccyPair : String(poolId!);
+
     const entity = new Swap({
-        id: `swap_${ccyPair}_${eventId}`,
+        id: `swap_${entityPoolId}_${eventId}`,
+        poolType,
+        poolId: entityPoolId,
+        eventId,
         height,
         timestamp: blockTimestamp,
         fromAccount: swapDetails.from.accountId,

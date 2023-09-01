@@ -1,14 +1,18 @@
 import { ForeignAsset as LibForeignAsset } from "@interlay/interbtc-api";
-import { cacheForeignAssets, getForeignAsset, symbolFromCurrency, testHelpers } from "./_utils";
-import { ForeignAsset, NativeToken, Token } from "../model";
+import { cacheForeignAssets, cacheLendTokens, getForeignAsset, getLendToken, tickerFromCurrency, testHelpers } from "./_utils";
+import { ForeignAsset, LendToken, NativeToken, Token } from "../model";
 
-// mocking getForeignAsset and getForeignAssets in the lib (interBtcApi)
+// mocking getForeignAsset, getForeignAssets, getLendTokens in the lib (interBtcApi)
 const libGetForeignAssetsMock = jest.fn();
 const libGetForeignAssetMock = jest.fn();
+const libGetLendTokensMock = jest.fn();
 const mockInterBtcApi = {
     assetRegistry: {
         getForeignAssets: () => libGetForeignAssetsMock(),
         getForeignAsset: (id: number) => libGetForeignAssetMock(id)
+    },
+    loans: {
+        getLendTokens: () => libGetLendTokensMock()
     }
 };
 
@@ -35,6 +39,16 @@ describe("_utils", () => {
         ticker:"FOO",
         decimals: 7
     };
+
+    // fake asset to play with
+    const fakeLendToken = {
+        lendToken: {
+            id: 42,
+        },
+        name: "FooCoin lend token",
+        ticker:"qFOO",
+        decimals: 7
+    };    
 
     afterAll(() => {
         jest.resetAllMocks();
@@ -180,10 +194,85 @@ describe("_utils", () => {
         });
     });
 
-    describe("symbolFromCurrency", () => {
+    describe("getLendToken", () => {
+        beforeEach(() => {
+            // clean out cache
+            testHelpers.getLendTokensCache().clear();
+        });
+
+        afterEach(() => {
+            libGetLendTokensMock.mockReset();
+            getInterBtcApiMock.mockReset();
+        });
+
+        it("should fetch value from cache first", async () => {
+            getInterBtcApiMock.mockImplementation(() => Promise.resolve(mockInterBtcApi));
+
+            // relies on cache to have been passed as reference
+            testHelpers.getLendTokensCache().set(fakeLendToken.lendToken.id, fakeLendToken);
+
+            const actualLendToken = await getLendToken(fakeLendToken.lendToken.id);
+            expect(actualLendToken).toBe(fakeLendToken);
+            expect(getInterBtcApiMock).not.toHaveBeenCalled();
+            expect(libGetLendTokensMock).not.toHaveBeenCalled();
+        });
+
+        it("should call caching method and return if not found in cache already", async () => {
+            const fakeLibLendTokens = [fakeLendToken];
+            libGetLendTokensMock.mockImplementation(() => Promise.resolve(fakeLibLendTokens));
+            getInterBtcApiMock.mockImplementation(() => Promise.resolve(mockInterBtcApi));
+
+            const actualLendToken = await getLendToken(fakeLendToken.lendToken.id);
+            expect(getInterBtcApiMock).toHaveBeenCalledTimes(1);
+            expect(libGetLendTokensMock).toHaveBeenCalledTimes(1);
+
+            expect(actualLendToken).toBe(fakeLendToken);
+        });
+    });
+
+    describe("cacheLendTokens", () => {
+        afterEach(() => {
+            libGetLendTokensMock.mockReset();
+            getInterBtcApiMock.mockReset();
+            testHelpers.getLendTokensCache().clear();
+        });
+
+        it("should get all lend tokens from lib as expected", async () => {
+            const fakeLendTokens = [fakeLendToken];
+            libGetLendTokensMock.mockImplementation(() => Promise.resolve(fakeLendTokens));
+            getInterBtcApiMock.mockImplementation(() => Promise.resolve(mockInterBtcApi));
+    
+            await cacheLendTokens();
+            const actualCache = testHelpers.getLendTokensCache();
+    
+            expect(getInterBtcApiMock).toHaveBeenCalledTimes(1);
+            expect(libGetLendTokensMock).toHaveBeenCalledTimes(1);
+            expect(actualCache.has(fakeLendToken.lendToken.id)).toBe(true);
+            expect(actualCache.get(fakeLendToken.lendToken.id)).toBe(fakeLendToken);
+        });
+
+        it("should reject if getInterBtcApi rejects", async () => {
+            getInterBtcApiMock.mockImplementation(() => Promise.reject(Error("yeah nah")));
+
+            await expect(getLendToken(fakeLendToken.lendToken.id)).rejects.toThrow("yeah nah");
+            expect(getInterBtcApiMock).toHaveBeenCalledTimes(1);
+            expect(libGetLendTokensMock).not.toHaveBeenCalled();
+        });
+
+        it("should reject if loans.getLendTokens rejects", async () => {
+            getInterBtcApiMock.mockImplementation(() => Promise.resolve(mockInterBtcApi));
+            libGetLendTokensMock.mockImplementation(() => Promise.reject(Error("who dis")));
+
+            await expect(getLendToken(fakeLendToken.lendToken.id)).rejects.toThrow("who dis");
+            expect(getInterBtcApiMock).toHaveBeenCalledTimes(1);
+            expect(libGetLendTokensMock).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe("tickerFromCurrency", () => {
         it("should return token name for native token", async () => {
             const testNativeToken = new NativeToken({token: Token.KINT});
-            const actualSymbol = await symbolFromCurrency(testNativeToken);
+            const actualSymbol = await tickerFromCurrency(testNativeToken);
 
             expect(actualSymbol).toBe(Token.KINT);
         });
@@ -194,8 +283,18 @@ describe("_utils", () => {
             testHelpers.getForeignAssetsCache().set(testAssetId, fakeAsset);
             
             const testForeignAsset = new ForeignAsset({asset: testAssetId});
-            const actualSymbol = await symbolFromCurrency(testForeignAsset);
+            const actualSymbol = await tickerFromCurrency(testForeignAsset);
             expect(actualSymbol).toBe(fakeAsset.ticker);
+        });
+
+        it("should return ticker for lend token", async () => {
+            const testLendTokenId = fakeLendToken.lendToken.id;
+            // prepare cache for lookup
+            testHelpers.getLendTokensCache().set(testLendTokenId, fakeLendToken);
+            
+            const testLendToken = new LendToken({lendTokenId: testLendTokenId});
+            const actualSymbol = await tickerFromCurrency(testLendToken);
+            expect(actualSymbol).toBe(fakeLendToken.ticker);
         });
 
         it("should return unknown for unhandled currency type", async () => {
@@ -203,7 +302,7 @@ describe("_utils", () => {
                 isTypeOf: "definitely not a valid type"
             };
 
-            const actualSymbol = await symbolFromCurrency(badTestCurrency as any);
+            const actualSymbol = await tickerFromCurrency(badTestCurrency as any);
             expect(actualSymbol).toBe("UNKNOWN");
         });
 
