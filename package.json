@@ -28,7 +28,7 @@
     "dependencies": {
         "@interlay/interbtc-api": "2.8.0",
         "@interlay/interbtc-types": "1.1.1",
-        "@polkadot/util-crypto": "^12.6.2",
+        "@polkadot/util-crypto": "^13.4.4",
         "@subsquid/archive-registry": "^1.0.12",
         "@subsquid/big-decimal": "^0.0.0",
         "@subsquid/graphql-server": "^3.3.0",
